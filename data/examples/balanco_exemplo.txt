@@ -1,0 +1,7 @@
+Codigo	Descricao	Saldo	Natureza
+1	ATIVO	100000.00	Devedora
+1.1	ATIVO CIRCULANTE	60000.00	Devedora
+1.1.1	CAIXA	10000.00	Devedora
+1.1.2	BANCOS	50000.00	Devedora
+2	PASSIVO	100000.00	Credora
+2.1	FORNECEDORES	30000.00	Credora

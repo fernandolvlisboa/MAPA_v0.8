@@ -1,0 +1,66 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# .env files
+.env
+.env.*
+
+# Saída gerada pelo treino: pode conter descrições de balancetes reais de
+# clientes (nomes próprios em worklists, exports). Ver SECURITY_REVIEW.md.
+# training_report.md e review_worklist.csv (agregados) são versionáveis;
+# exports por-arquivo (com dados individuais) não.
+output/exports/
+
+# Planilhas geradas: são saída, não fonte — e carregam dados individuais de
+# cliente, que a política acima já diz para não versionar. Estavam rastreadas
+# por acidente e sujavam o `git status` a cada execução.
+output/*.xlsx
+output/*.xls
+
+# Cache de matching: derivável por construção (as 151 entradas do repo eram
+# todas automáticas, nenhuma decisão humana). Ficava modificado depois de
+# qualquer run e virava ruído em todo commit. As variações APRENDIDAS
+# (src/bp/training/account_variations.json) continuam versionadas — aquilo é
+# conhecimento, isto é cache.
+data/match_cache.json
+
+# Saída gerada com dados de cliente
+output/gt/
+
+# Backup do template gerado pelo script de migração
+templates/*.bak
+
+# Artefatos de teste/cobertura
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Dados de treinamento: balancetes de clientes.
+# NÃO versionar — carregam dados individuais. O usuário mantém local,
+# adiciona e remove à vontade, e o git ignora tudo exceto o README-guia.
+# Ver docs/DADOS_PRIVADOS.md.
+data/samples/**
+!data/samples/README.md
+
+# --- Dados de cliente e artefatos derivados (nunca commitar) ---
+src/bp/training/DFS_Exemple/*
+!src/bp/training/DFS_Exemple/README.md
+auxil/BP_PDF_ex/
+output/
+src/bp/training/processed_files.json
+src/bp/training/training_cache.json
+data/match_cache.json
+
+# --- Artefatos do PyInstaller ---
+dist/
+build/
+src/bp/training/_backup_master_train/

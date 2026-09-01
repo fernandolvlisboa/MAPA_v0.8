@@ -1,0 +1,236 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-11-28",
+  "description": "Padrões para detecção de demonstrações financeiras em PDFs",
+  
+  "balance_sheet": {
+    "keywords": [
+      "balanço patrimonial",
+      "balance sheet",
+      "estado patrimonial",
+      "posição patrimonial",
+      "ativo",
+      "passivo",
+      "patrimônio líquido",
+      "patrimônio",
+      "equity",
+      "liabilities",
+      "assets",
+      "ativo circulante",
+      "ativo não circulante",
+      "passivo circulante",
+      "passivo não circulante",
+      "realizável a longo prazo",
+      "exigível a longo prazo",
+      "caixa",
+      "bancos",
+      "aplicações financeiras",
+      "contas a receber",
+      "estoques",
+      "imobilizado",
+      "intangível",
+      "fornecedores",
+      "empréstimos",
+      "financiamentos"
+    ],
+    "strong_keywords": [
+      "balanço patrimonial",
+      "ativo circulante",
+      "passivo circulante",
+      "patrimônio líquido"
+    ],
+    "score_weights": {
+      "strong": 3.0,
+      "normal": 1.0,
+      "max_score": 20.0
+    }
+  },
+  
+  "income_statement": {
+    "keywords": [
+      "demonstração do resultado",
+      "demonstração de resultados",
+      "income statement",
+      "statement of operations",
+      "d.r.e.",
+      "receita",
+      "revenue",
+      "faturamento",
+      "vendas",
+      "sales",
+      "despesa",
+      "custo",
+      "lucro",
+      "prejuízo",
+      "resultado",
+      "receita operacional",
+      "receita bruta",
+      "receita líquida",
+      "custo das vendas",
+      "custo dos produtos vendidos",
+      "cpv",
+      "cmv",
+      "despesas operacionais",
+      "despesas administrativas",
+      "despesas comerciais",
+      "resultado operacional",
+      "ebitda",
+      "ebit",
+      "lucro bruto",
+      "lucro operacional",
+      "lucro líquido",
+      "resultado antes dos impostos",
+      "resultado financeiro"
+    ],
+    "strong_keywords": [
+      "demonstração do resultado",
+      "receita líquida",
+      "lucro líquido",
+      "resultado operacional"
+    ],
+    "score_weights": {
+      "strong": 3.0,
+      "normal": 1.0,
+      "max_score": 20.0
+    }
+  },
+  
+  "notes": {
+    "keywords": [
+      "notas explicativas",
+      "explanatory notes",
+      "nota",
+      "contexto operacional",
+      "políticas contábeis",
+      "base de preparação",
+      "principais práticas",
+      "resumo das principais"
+    ],
+    "score_weights": {
+      "normal": 1.0,
+      "max_score": 5.0
+    }
+  },
+  
+  "noise": {
+    "keywords": [
+      "assinaturas",
+      "assinatura",
+      "aprovado",
+      "aprovada",
+      "certificado",
+      "certificada",
+      "atestado",
+      "visto",
+      "de acordo",
+      "confere",
+      "auditor independente",
+      "relatório dos auditores",
+      "relatório do auditor",
+      "opinião dos auditores",
+      "parecer dos auditores",
+      "pwc",
+      "deloitte",
+      "kpmg",
+      "ey",
+      "ernst & young",
+      "carimbo",
+      "selo",
+      "chancela",
+      "continua",
+      "continuação"
+    ],
+    "patterns": [
+      "página \\d+",
+      "pág\\.?\\s*\\d+",
+      "\\d+\\s+de\\s+\\d+",
+      "folha\\s+\\d+"
+    ]
+  },
+  
+  "header_footer": {
+    "patterns": [
+      "^[A-Z\\s\\.]+(?:LTDA|S\\.A\\.|S/A)\\.?$",
+      "cnpj:?\\s*\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}",
+      "em\\s+\\d{2}/\\d{2}/\\d{4}",
+      "período\\s+de\\s+\\d{2}/\\d{2}/\\d{4}",
+      "pág(?:ina)?\\.?\\s*\\d+",
+      "\\d+\\s*/\\s*\\d+"
+    ]
+  },
+  
+  "columns": {
+    "current": {
+      "keywords": ["atual", "corrente", "present", "current"],
+      "patterns": ["\\d{2}/\\d{4}", "\\d{4}"]
+    },
+    "previous": {
+      "keywords": ["anterior", "comparativo", "prior", "previous", "exercício anterior"]
+    },
+    "consolidated": {
+      "keywords": ["consolidado", "consolidated"]
+    },
+    "individual": {
+      "keywords": ["controladora", "individual", "parent company"]
+    },
+    "description": {
+      "keywords": ["descrição", "conta", "título", "nome", "item", "description"]
+    },
+    "code": {
+      "keywords": ["código", "cod", "code"]
+    },
+    "value": {
+      "keywords": ["saldo", "valor", "montante", "total", "value"]
+    }
+  },
+  
+  "currency": {
+    "patterns": [
+      "(?:em\\s+)?(?:mil(?:hares)?|milhares\\s+de)\\s+reais",
+      "(?:em\\s+)?r\\$\\s*mil",
+      "valores?\\s+em\\s+reais",
+      "valores?\\s+expressos\\s+em",
+      "\\(r\\$\\s*\\d+\\)",
+      "brl",
+      "usd",
+      "eur"
+    ],
+    "scales": {
+      "thousands": {
+        "keywords": ["mil", "milhares"],
+        "multiplier": 1000
+      },
+      "millions": {
+        "keywords": ["milhões", "milhao"],
+        "multiplier": 1000000
+      }
+    }
+  },
+  
+  "metadata": {
+    "company_patterns": [
+      "^([A-ZÀÂÃÁÉÊÍÓÔÕÚÇ\\s\\.]+(?:LTDA|S\\.?A\\.?|S/A)\\.?)$",
+      "^([\\w\\s\\.]+(?:LTDA|S\\.?A\\.?|S/A))"
+    ],
+    "cnpj_patterns": [
+      "cnpj:?\\s*(\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})",
+      "cnpj:?\\s*(\\d{14})"
+    ],
+    "period_patterns": [
+      "em\\s+(\\d{2}/\\d{2}/\\d{4})",
+      "(\\d{2}/\\d{2}/\\d{4})",
+      "em\\s+(\\d{2}\\s+de\\s+\\w+\\s+de\\s+\\d{4})",
+      "exercício\\s+de\\s+(\\d{4})",
+      "período\\s+de\\s+(\\d{2}/\\d{2}/\\d{4})"
+    ]
+  },
+  
+  "settings": {
+    "min_confidence": 0.3,
+    "min_line_length": 3,
+    "case_sensitive": false,
+    "use_regex": true,
+    "language": "pt-BR",
+    "trailing_numbers_order": "current_previous"
+  }
+}

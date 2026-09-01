@@ -1,0 +1,120 @@
+[project]
+name = "bp"
+version = "0.1.0"
+description = "Padronização automática de balancetes contábeis para o Plano Referencial (offline)"
+readme = "README.md"
+requires-python = ">=3.13"
+
+# ============================================================================
+# NÚCLEO — é isto que o executável do colaborador precisa embarcar.
+# Cobre: XLSX/XLS/CSV/TXT + PDF nativo, matching, treino e exportação.
+# Verificado empiricamente: o pipeline completo roda só com estas.
+# NÃO adicione nada aqui sem medir o impacto no tamanho do .exe.
+# ============================================================================
+dependencies = [
+    "pandas>=2.3.3",        # leitura tabular (XLSX/XLS/CSV/TXT)
+    "numpy>=1.24.0",        # dependência do pandas
+    "openpyxl>=3.1.5",      # leitura/escrita .xlsx (exporter)
+    "xlrd>=2.0.2",          # leitura .xls legado via pandas
+    "pdfplumber>=0.11.8",   # PDF nativo (PDFBalanceParser); traz pdfminer.six
+    "rapidfuzz>=3.14.3",    # matching fuzzy (ContaMatcher)
+    "tkinterdnd2>=0.4.3",   # arrastar-e-soltar na janela (src/bp/app); ~1 MB
+]
+
+# A janela usa `tkinter`, que vem com o Python — não é dependência aqui. Em
+# Linux ele pode faltar (`apt install python3-tk`); no Windows e no macOS vem
+# no instalador oficial.
+
+[project.optional-dependencies]
+# OCR para PDFs ESCANEADOS. Só na estação de curadoria — o app do
+# colaborador não precisa (ver PLANO_F.md / ARQUITETURA.md).
+# Peso: ~145 MB (opencv 79 + pymupdf 60 + pillow 6).
+# Requer também os binários Tesseract (idioma `por`) e poppler.
+ocr = [
+    "pytesseract>=0.3.10",
+    "pdf2image>=1.17.0",
+    "pillow>=10.0.0",
+    "opencv-python>=4.8.0",
+    "pymupdf>=1.23.0",
+]
+
+# Geração do plano master a partir do Excel (Passo 1 do README).
+# Passo único de curadoria; não faz parte do runtime.
+curation = [
+    "pydantic>=2.12.5",
+]
+
+# Conversão de .xls legado via automação COM do Excel (somente Windows).
+# O código já degrada com try/except quando ausente (EXCEL_AVAILABLE).
+windows-xls = [
+    "pywin32>=306; sys_platform == 'win32'",
+]
+
+# Geracao do .exe (PLANO K). PyInstaller so roda em Windows para gerar
+# um .exe Windows (nao cross-compila); pyinstxtractor-ng e usado pelo
+# teste anti-vazamento em tests/test_build_seguranca.py.
+packaging = [
+    "pyinstaller>=6.16.0",
+    "pyinstxtractor-ng>=2025.1",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.1.0",
+    "mypy>=2.3.1",
+    "pytest>=9.0.1",
+    "ruff>=0.16.5",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+exclude = [
+    ".venv",
+    "auxil",           # scripts ad-hoc / demos, não fazem parte do produto
+    "src/bp/training/_backup_master_train",
+]
+
+[tool.ruff.lint]
+# Regras que rendem o mais alto valor sem exigir grande refactor:
+# E/W/F: correctness padrão; I: imports; B: bugbear; C4: comprehensions;
+# UP: modernização (list vs List, X|None vs Optional); SIM: simplificações;
+# RUF: regras específicas do ruff.
+select = ["E", "W", "F", "I", "B", "C4", "UP", "SIM", "RUF"]
+# Em código com forma "protocol/optional import", try/except pass é padrão;
+# BLE001 (blind except) e S110/S112 são revisados caso a caso.
+ignore = [
+    "E501",   # line-length é gerenciado pelo formatter
+    "SIM115", # abrir sem context manager: paths legítimos em JSON multi-etapa
+    "SIM103", # `if X: return True else: return False` — legibilidade > brevidade
+    "SIM102", # if aninhado — às vezes mais claro que combinado
+    "RUF012", # ClassVar mutável: casos específicos (regex/dicionários constantes)
+    "B008",   # default argument call é uso legítimo em alguns tipos (Path())
+]
+# Só a bare `_` é throwaway (ver skill: default do ruff é frouxo demais).
+dummy-variable-rgx = "^_$"
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+# NÃO exigir tipagem completa ainda — o projeto é grande demais para bater
+# strict mode num commit só. Adotar disallow_untyped_defs por módulo, à medida
+# que forem revisados (matchers/, parsers/, utils/ primeiro).
+
+[tool.pytest.ini_options]
+# `testpaths` é o que impede o pytest de coletar os scripts ad-hoc `test_*.py`
+# da raiz (test_phase3.py, test_matching_complete.py, ...). Eles têm funções
+# `test_file(file_path, ...)` que o pytest tentava coletar como teste e
+# quebravam com "fixture 'file_path' not found" — 3 erros num `pytest` puro.
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "integration: teste que depende do corpus real em src/bp/training/DFS_Exemple ou auxil/BP_PDF_ex",
+    "contrato: trava um contrato entre camadas (numérico, rollup, índice do matcher)",
+]
+filterwarnings = [
+    # Um teste que "retorna" em vez de "assertar" não valida nada. Falha dura.
+    "error::pytest.PytestReturnNotNoneWarning",
+]

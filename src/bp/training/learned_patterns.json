@@ -1,0 +1,2349 @@
+{
+  "synonyms": {
+    "equivalentes": [
+      "caixa",
+      "geral"
+    ],
+    "numerarios": [
+      "caixa",
+      "geral"
+    ],
+    "bens": [
+      "caixa",
+      "geral",
+      "imoveis",
+      "terceiros",
+      "benfeitorias",
+      "imobilizado"
+    ],
+    "banco": [
+      "aplicacoes"
+    ],
+    "c/aplicacoes": [
+      "aplicacoes"
+    ],
+    "cadeiras": [
+      "clientes"
+    ],
+    "marketing": [
+      "clientes"
+    ],
+    "publicidade": [
+      "clientes"
+    ],
+    "catering": [
+      "clientes"
+    ],
+    "camarotes": [
+      "clientes"
+    ],
+    "superior": [
+      "clientes"
+    ],
+    "camarote": [
+      "clientes"
+    ],
+    "sup.": [
+      "clientes"
+    ],
+    "individual": [
+      "clientes"
+    ],
+    "inteiro": [
+      "clientes"
+    ],
+    "spot": [
+      "clientes"
+    ],
+    "locacao": [
+      "clientes",
+      "alugueis",
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,"
+    ],
+    "diversos": [
+      "adiantamento",
+      "salarios",
+      "adiantamentos",
+      "pais",
+      "clientes",
+      "imobilizado",
+      "diversas",
+      "taxas"
+    ],
+    "adiantamentos": [
+      "adiantamento",
+      "salarios",
+      "ferias",
+      "clientes"
+    ],
+    "adiantamento": [
+      "fornecedores",
+      "adiantamentos",
+      "pais",
+      "circulante",
+      "clientes",
+      "veiculos"
+    ],
+    "corrente": [
+      "pais",
+      "movimento",
+      "bancos",
+      "conta",
+      "ativo",
+      "circulante"
+    ],
+    "antecipas": [
+      "antecipadas",
+      "despesas"
+    ],
+    "seguros": [
+      "antecipadas",
+      "despesas",
+      "adiantamento",
+      "ferias",
+      "plano",
+      "saude"
+    ],
+    "prazo": [
+      "clientes"
+    ],
+    "longo": [
+      "clientes"
+    ],
+    "(lp)": [
+      "clientes"
+    ],
+    "instalacoes": [
+      "acumulada",
+      "depreciacao",
+      "despesas",
+      "operacionais"
+    ],
+    "maquinas": [
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,",
+      "amortizacoes",
+      "depreciacoes",
+      "alugueis",
+      "pagar"
+    ],
+    "depreciacao": [
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,",
+      "moveis,",
+      "utensilios",
+      "comerciais",
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "dados": [
+      "perifericos",
+      "computadores"
+    ],
+    "proces.": [
+      "perifericos",
+      "computadores"
+    ],
+    "eletronicos": [
+      "perifericos",
+      "computadores"
+    ],
+    "equipam.": [
+      "perifericos",
+      "computadores"
+    ],
+    "moveis": [
+      "moveis,",
+      "instalacoes",
+      "utensilios",
+      "comerciais",
+      "acumulada",
+      "depreciacao"
+    ],
+    "fornecedores/credores": [
+      "fornecedores",
+      "circulante"
+    ],
+    "fiscais": [
+      "sociais",
+      "obrigacoes"
+    ],
+    "recolher": [
+      "sociais",
+      "obrigacoes",
+      "tributarias"
+    ],
+    "issqn": [
+      "retido",
+      "recolher",
+      "impostos",
+      "vendas",
+      "servicos",
+      "contribuicoes",
+      "incidentes",
+      "demais",
+      "sobre"
+    ],
+    "4,65%": [
+      "cofins",
+      "recolher"
+    ],
+    "pis/cofins/csll": [
+      "cofins",
+      "recolher"
+    ],
+    "10.833": [
+      "cofins",
+      "recolher"
+    ],
+    "provisoes": [
+      "previdenciarias",
+      "trabalhistas",
+      "obrigacoes",
+      "para",
+      "provisao",
+      "ferias",
+      "salario",
+      "salarios"
+    ],
+    "provisao": [
+      "pagar",
+      "ferias",
+      "provisoes",
+      "trabalhistas",
+      "resultado",
+      "irpj",
+      "recolher"
+    ],
+    "pagar": [
+      "salario",
+      "para",
+      "provisao",
+      "previdenciarias",
+      "trabalhistas",
+      "obrigacoes",
+      "longo",
+      "prazo",
+      "irpj",
+      "recolher"
+    ],
+    "demandas": [
+      "previdenciarias",
+      "trabalhistas",
+      "obrigacoes"
+    ],
+    "judiciais": [
+      "previdenciarias",
+      "trabalhistas",
+      "obrigacoes"
+    ],
+    "rec.recebidas": [
+      "receitas",
+      "diferidas"
+    ],
+    "antecipadamente": [
+      "receitas",
+      "diferidas"
+    ],
+    "integralizado": [
+      "capital",
+      "social"
+    ],
+    "integralizar": [
+      "capital",
+      "social"
+    ],
+    "prejuizos": [
+      "saldo",
+      "e/ou",
+      "lucros",
+      "disposicao",
+      "acumulados",
+      "assembleia",
+      "ajustes",
+      "exercicios",
+      "anteriores"
+    ],
+    "bruta": [
+      "receita",
+      "rural",
+      "liquida",
+      "operacional",
+      "atividade"
+    ],
+    "comercial": [
+      "receita",
+      "bruta",
+      "vendas",
+      "servicos"
+    ],
+    "locacoes": [
+      "receita",
+      "bruta",
+      "vendas",
+      "servicos"
+    ],
+    "avulsa": [
+      "propaganda",
+      "publicidade"
+    ],
+    "custos": [
+      "custo",
+      "servicos",
+      "prestados",
+      "revendidas",
+      "mercadorias",
+      "terceiros"
+    ],
+    "s/vendas": [
+      "vendas",
+      "comissoes",
+      "sobre"
+    ],
+    "comissao": [
+      "vendas",
+      "comissoes",
+      "sobre"
+    ],
+    "loc.": [
+      "alugueis"
+    ],
+    "equip.": [
+      "alugueis",
+      "acumulada",
+      "depreciacao",
+      "perifericos",
+      "computadores"
+    ],
+    "maq.e": [
+      "alugueis"
+    ],
+    "insumos": [
+      "material",
+      "consumo",
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "hospitalidade": [
+      "material",
+      "consumo"
+    ],
+    "limpeza": [
+      "material",
+      "consumo"
+    ],
+    "ticketing": [
+      "alugueis"
+    ],
+    "desp.condominio": [
+      "condominio"
+    ],
+    "reembolso": [
+      "condominio"
+    ],
+    "-street": [
+      "condominio"
+    ],
+    "mensais": [
+      "gerais",
+      "despesas"
+    ],
+    "jogos": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "despesas": [
+      "terceiros",
+      "prestados",
+      "servicos",
+      "viagens",
+      "condominio",
+      "sistemas",
+      "adiantamento",
+      "ferias",
+      "receitas",
+      "financeiras",
+      "outras"
+    ],
+    "amortizacao": [
+      "amortizacoes",
+      "depreciacoes",
+      "imoveis",
+      "terceiros",
+      "benfeitorias"
+    ],
+    "auxilio": [
+      "vale",
+      "alimentacao"
+    ],
+    "c/seguros": [
+      "despesas",
+      "seguros"
+    ],
+    "outras": [
+      "administrativas",
+      "despesas",
+      "pessoal",
+      "bancarias",
+      "diversas",
+      "taxas",
+      "gerais"
+    ],
+    "aluguel": [
+      "condominio"
+    ],
+    "diversas": [
+      "gerais",
+      "despesas"
+    ],
+    "juridicas": [
+      "despesas",
+      "judiciais",
+      "legais"
+    ],
+    "equipamentos": [
+      "alugueis",
+      "perifericos",
+      "computadores",
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "c/correio": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "c/representacoes": [
+      "viagens"
+    ],
+    "obra": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "civil": [
+      "alugueis",
+      "material",
+      "consumo"
+    ],
+    "eletrica/logica": [
+      "material",
+      "consumo"
+    ],
+    "hidraulica": [
+      "material",
+      "consumo"
+    ],
+    "mecanica": [
+      "material",
+      "consumo"
+    ],
+    "midias": [
+      "propaganda",
+      "publicidade"
+    ],
+    "comerciais": [
+      "terceiros",
+      "prestados",
+      "servicos",
+      "clientes",
+      "despesas",
+      "operacionais"
+    ],
+    "duvidos": [
+      "devedores",
+      "perdas",
+      "para",
+      "duvidosos",
+      "provisao"
+    ],
+    "receitas": [
+      "outras",
+      "despesas",
+      "operacionais",
+      "bonificacoes",
+      "recebidas",
+      "aplicacoes"
+    ],
+    "recuperacao": [
+      "receitas",
+      "outras",
+      "operacionais"
+    ],
+    "creditos": [
+      "receitas",
+      "outras",
+      "operacionais",
+      "clientes"
+    ],
+    "incobraveis": [
+      "receitas",
+      "outras",
+      "operacionais"
+    ],
+    "liquido": [
+      "resultado",
+      "financeiro",
+      "reservas",
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido",
+      "imobilizado"
+    ],
+    "contas": [
+      "receber",
+      "operacoes",
+      "pais",
+      "duplicatas",
+      "relacionadas",
+      "partes",
+      "clientes"
+    ],
+    "otal": [
+      "ativo",
+      "circulante",
+      "liquido",
+      "patrimonio"
+    ],
+    "12|13|14": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "operacionais,": [
+      "outras",
+      "despesas",
+      "operacionais",
+      "receitas"
+    ],
+    "liquidas": [
+      "outras",
+      "despesas",
+      "operacionais",
+      "receitas"
+    ],
+    "receitas(despesas)": [
+      "outras",
+      "despesas",
+      "operacionais"
+    ],
+    "lucro": [
+      "resultado",
+      "operacional",
+      "exercicio",
+      "participacoes",
+      "impostos",
+      "vendas",
+      "servicos",
+      "contribuicoes",
+      "incidentes",
+      "demais",
+      "sobre",
+      "reservas",
+      "irpj",
+      "recolher"
+    ],
+    "antes": [
+      "resultado",
+      "operacional",
+      "social",
+      "contribuicao",
+      "liquido",
+      "lucro",
+      "sobre",
+      "receitas",
+      "financeiras",
+      "outras"
+    ],
+    "financeiro": [
+      "resultado",
+      "operacional",
+      "adiantamento",
+      "ferias"
+    ],
+    "renda": [
+      "csll",
+      "compensar",
+      "irpj",
+      "recolher"
+    ],
+    "social": [
+      "csll",
+      "compensar",
+      "recolher",
+      "medica",
+      "assistencia",
+      "irpj"
+    ],
+    "contribuicao": [
+      "csll",
+      "compensar",
+      "recolher",
+      "irpj"
+    ],
+    "periodo": [
+      "exercicio",
+      "resultado",
+      "prejuizos",
+      "acumulados",
+      "social",
+      "contribuicao",
+      "liquido",
+      "lucro",
+      "sobre"
+    ],
+    "para": [
+      "material",
+      "consumo",
+      "clientes",
+      "exercicio",
+      "resultado",
+      "imobilizado"
+    ],
+    "fretes": [
+      "terceiros",
+      "prestados",
+      "servicos",
+      "alugueis"
+    ],
+    "desenvolvimento": [
+      "sistemas"
+    ],
+    "nuvem": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "repasses": [
+      "alugueis"
+    ],
+    "outros": [
+      "alugueis",
+      "clientes",
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,",
+      "ativos",
+      "venda",
+      "mantidos",
+      "ajustes",
+      "para",
+      "justo",
+      "valor",
+      "ganho",
+      "circulantes",
+      "terceiros",
+      "custo",
+      "servicos",
+      "prestados",
+      "diversas",
+      "taxas"
+    ],
+    "(31)": [
+      "alugueis"
+    ],
+    "alugueis,": [
+      "alugueis"
+    ],
+    "(30)": [
+      "alugueis"
+    ],
+    "total": [
+      "operacoes",
+      "auferidos",
+      "rendimentos",
+      "mutuo",
+      "relacionadas",
+      "partes",
+      "ativo",
+      "circulante",
+      "receitas",
+      "diferidas",
+      "liquido",
+      "patrimonio",
+      "prazo",
+      "integrantes",
+      "bens",
+      "realizavel",
+      "alienacao",
+      "longo",
+      "imobilizado",
+      "divergentes",
+      "tributaria",
+      "legislacao",
+      "contraprestacao",
+      "criterios",
+      "recebimento"
+    ],
+    "cofins": [],
+    "recuperar": [
+      "irpj",
+      "recolher",
+      "tributos",
+      "compensar",
+      "outros",
+      "aplicacoes",
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido"
+    ],
+    "csll": [
+      "irpj",
+      "recolher",
+      "lucros",
+      "social",
+      "contribuicao",
+      "geral)",
+      "(atividade",
+      "para",
+      "liquido",
+      "provisao",
+      "lucro",
+      "sobre",
+      "diferidos"
+    ],
+    "irrf": [
+      "renda",
+      "imposto",
+      "compensar",
+      "aplicacoes",
+      "irpj",
+      "recolher",
+      "(irrf)",
+      "fonte",
+      "retido"
+    ],
+    "exclusao": [
+      "(scp)",
+      "equivalencia",
+      "patrimonial",
+      "sociedades",
+      "avaliadas",
+      "pais",
+      "metodo",
+      "socio",
+      "conta",
+      "pelo",
+      "participacao",
+      "participacoes",
+      "(mep)",
+      "ostensivo"
+    ],
+    "interno": [
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "mercado": [
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "digitais": [
+      "clientes"
+    ],
+    "sellers": [
+      "clientes"
+    ],
+    "(a.1)": [
+      "tributos",
+      "federais",
+      "recuperar"
+    ],
+    "(a.2)": [
+      "tributos",
+      "recolher",
+      "estaduais"
+    ],
+    "varejo": [
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "prestacoes": [
+      "custos",
+      "servicos"
+    ],
+    "prestadores": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "vendas": [
+      "amortizacoes",
+      "depreciacoes",
+      "reservas",
+      "propaganda",
+      "publicidade"
+    ],
+    "administrativas": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "(nota": [
+      "receitas",
+      "outras",
+      "operacionais",
+      "aplicacoes",
+      "exterior",
+      "relacionadas",
+      "partes",
+      "circulante",
+      "mutuos",
+      "imobilizado",
+      "juros",
+      "financiamentos",
+      "emprestimos",
+      "sobre"
+    ],
+    "(perda)": [
+      "imobilizado"
+    ],
+    "ativo": [
+      "imobilizado",
+      "aplicacoes",
+      "prazo",
+      "realizavel",
+      "longo"
+    ],
+    "venda": [
+      "imobilizado",
+      "tesouraria",
+      "acoes",
+      "vendas",
+      "despesas"
+    ],
+    "ganho": [
+      "imobilizado"
+    ],
+    "juros": [
+      "mercantil",
+      "arrendamento",
+      "obtidos",
+      "descontos",
+      "financeiros",
+      "amortizacoes",
+      "depreciacoes",
+      "pagar",
+      "dividendos",
+      "debentures"
+    ],
+    "sobre": [
+      "resultado",
+      "financeiro",
+      "para",
+      "provisao",
+      "ferias",
+      "salario",
+      "participacoes",
+      "aplicacoes",
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido",
+      "irpj",
+      "recolher",
+      "pagar",
+      "dividendos",
+      "debentures"
+    ],
+    "impostos": [
+      "resultado",
+      "financeiro",
+      "irpj",
+      "recolher",
+      "tributarias",
+      "obrigacoes",
+      "participacoes",
+      "diversas",
+      "taxas"
+    ],
+    "amortizado": [
+      "clientes",
+      "mercantil",
+      "arrendamento"
+    ],
+    "nivel": [
+      "clientes",
+      "pais",
+      "valores",
+      "mobiliarios",
+      "titulos",
+      "hedge",
+      "mercantil",
+      "arrendamento"
+    ],
+    "acordos": [
+      "clientes"
+    ],
+    "custo": [
+      "clientes",
+      "mercantil",
+      "arrendamento",
+      "sistemas"
+    ],
+    "riscos": [
+      "imobilizado"
+    ],
+    "estoques": [
+      "imobilizado"
+    ],
+    "financeiras": [
+      "aplicacoes"
+    ],
+    "emprestimos": [
+      "adiantamento",
+      "ferias"
+    ],
+    "reserva": [
+      "outras",
+      "lucros",
+      "reservas"
+    ],
+    "disponibilidades": [
+      "caixa",
+      "geral"
+    ],
+    "bancos": [
+      "aplicacoes"
+    ],
+    "curto": [
+      "aplicacoes",
+      "prazo",
+      "realizavel",
+      "longo",
+      "obrigacoes",
+      "receita",
+      "presente",
+      "ajuste",
+      "diferida",
+      "juros",
+      "decorrentes",
+      "valor",
+      "(avp)",
+      "apropriar",
+      "parcelamentos",
+      "fiscais"
+    ],
+    "receber": [
+      "clientes"
+    ],
+    "encargos": [
+      "despesas",
+      "pessoal",
+      "provisao",
+      "ferias",
+      "provisoes",
+      "trabalhistas",
+      "resultado"
+    ],
+    "trabalhistas": [
+      "despesas",
+      "pessoal",
+      "sociais",
+      "obrigacoes"
+    ],
+    "informatica": [
+      "perifericos",
+      "computadores"
+    ],
+    "depreciacoes": [
+      "acumulada",
+      "depreciacao",
+      "veiculos",
+      "perifericos",
+      "computadores",
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,",
+      "imoveis",
+      "terceiros",
+      "benfeitorias"
+    ],
+    "utensilios": [
+      "acumulada",
+      "depreciacao"
+    ],
+    "curso": [
+      "exercicio",
+      "resultado"
+    ],
+    "equipamen": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "info": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "indice": [
+      "ativo",
+      "circulante"
+    ],
+    "liquidez": [
+      "ativo",
+      "circulante",
+      "aplicacoes"
+    ],
+    "faturados": [
+      "clientes"
+    ],
+    "servicos": [
+      "clientes"
+    ],
+    "imoveis": [
+      "instalacoes",
+      "conservacao",
+      "despesas",
+      "veiculos",
+      "bens",
+      "alugueis"
+    ],
+    "receitas/despesas": [
+      "outras",
+      "despesas",
+      "operacionais",
+      "receitas",
+      "financeiras",
+      "diversas"
+    ],
+    "imediata": [
+      "aplicacoes"
+    ],
+    "nacionais": [
+      "clientes",
+      "fornecedores",
+      "adiantamentos",
+      "pais",
+      "circulante"
+    ],
+    "tributos": [
+      "recuperar",
+      "impostos",
+      "outros",
+      "contribuicoes",
+      "tributarias",
+      "obrigacoes"
+    ],
+    "pessoas": [
+      "adiantamento",
+      "ferias"
+    ],
+    "ligadas": [
+      "adiantamento",
+      "ferias"
+    ],
+    "ferias": [
+      "provisoes",
+      "trabalhistas",
+      "resultado"
+    ],
+    "retidos": [
+      "irpj",
+      "recolher"
+    ],
+    "folha": [
+      "irpj",
+      "recolher",
+      "salarios",
+      "irrf",
+      "sobre"
+    ],
+    "perdas": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "prestados": [
+      "custos",
+      "servicos"
+    ],
+    "despesa": [
+      "sistemas",
+      "viagens",
+      "bancarias",
+      "despesas",
+      "terceiros",
+      "prestados",
+      "servicos",
+      "judiciais",
+      "legais",
+      "exercicio",
+      "resultado"
+    ],
+    "software": [
+      "sistemas"
+    ],
+    "representacoes": [
+      "viagens"
+    ],
+    "financeiros": [
+      "resultado",
+      "financeiro"
+    ],
+    "resultados": [
+      "resultado",
+      "financeiro"
+    ],
+    "bancaria": [
+      "bancarias",
+      "despesas"
+    ],
+    "disponivel": [
+      "caixa",
+      "geral"
+    ],
+    "duplicatas": [
+      "clientes"
+    ],
+    "salario": [
+      "adiantamento",
+      "empregados",
+      "encargos",
+      "ferias",
+      "provisao",
+      "sobre"
+    ],
+    "alimentacao": [
+      "adiantamento",
+      "empregados"
+    ],
+    "ticket": [
+      "adiantamento",
+      "empregados",
+      "vale",
+      "alimentacao"
+    ],
+    "saude": [
+      "adiantamento",
+      "empregados"
+    ],
+    "plano": [
+      "adiantamento",
+      "empregados",
+      "ferias"
+    ],
+    "vale": [
+      "adiantamento",
+      "empregados",
+      "refeicoes"
+    ],
+    "transporte": [
+      "adiantamento",
+      "empregados"
+    ],
+    "odontologico": [
+      "adiantamento",
+      "ferias"
+    ],
+    "recuperar/compensar": [
+      "tributos",
+      "compensar",
+      "outros"
+    ],
+    "retido": [
+      "csll",
+      "compensar",
+      "cofins",
+      "recolher",
+      "inss",
+      "irpj"
+    ],
+    "nao-circulante": [
+      "ativo",
+      "circulante"
+    ],
+    "exaus.": [
+      "acumulada",
+      "depreciacao"
+    ],
+    "acumul": [
+      "acumulada",
+      "depreciacao"
+    ],
+    "depreciacoes,": [
+      "acumulada",
+      "depreciacao",
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "amort.": [
+      "acumulada",
+      "depreciacao"
+    ],
+    "contribuicoes": [
+      "tributarias",
+      "obrigacoes",
+      "diversas",
+      "taxas"
+    ],
+    "imposto": [
+      "irpj",
+      "recolher"
+    ],
+    "retida": [
+      "csll",
+      "recolher"
+    ],
+    "funcionarios": [
+      "irpj",
+      "recolher"
+    ],
+    "trabalhista": [
+      "previdenciarias",
+      "trabalhistas",
+      "obrigacoes"
+    ],
+    "previdenciaria": [
+      "previdenciarias",
+      "trabalhistas",
+      "obrigacoes"
+    ],
+    "pessoal": [
+      "previdenciarias",
+      "trabalhistas",
+      "obrigacoes"
+    ],
+    "ordenados": [
+      "salarios",
+      "pagar",
+      "remuneracoes"
+    ],
+    "lucros": [
+      "reservas",
+      "adiantamento",
+      "ferias"
+    ],
+    "realizar": [
+      "reservas"
+    ],
+    "prestacao": [
+      "custos",
+      "servicos"
+    ],
+    "diretos": [
+      "custos",
+      "servicos"
+    ],
+    "exaustoes": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "terrestres": [
+      "viagens"
+    ],
+    "servidor": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "empregados": [
+      "plano",
+      "saude"
+    ],
+    "extra": [
+      "extras",
+      "horas"
+    ],
+    "hora": [
+      "extras",
+      "horas"
+    ],
+    "bradesco": [
+      "plano",
+      "saude",
+      "aplicacoes"
+    ],
+    "arrendamentos": [
+      "alugueis"
+    ],
+    "impostos,": [
+      "diversas",
+      "taxas"
+    ],
+    "cartorarias": [
+      "despesas",
+      "judiciais",
+      "legais"
+    ],
+    "sindicatos": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "tarifas": [
+      "bancarias",
+      "despesas"
+    ],
+    "debito": [],
+    "multa": [
+      "terceiros",
+      "prestados",
+      "servicos"
+    ],
+    "cancelamento": [
+      "vendas",
+      "canceladas",
+      "devolucoes"
+    ],
+    "prejuizo": [
+      "prejuizos",
+      "acumulados"
+    ],
+    "ferramentas": [
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,"
+    ],
+    "propriedade": [
+      "imoveis",
+      "terceiros",
+      "benfeitorias"
+    ],
+    "maquinas,": [
+      "acumulada",
+      "depreciacao"
+    ],
+    "marcas,": [
+      "patentes",
+      "marcas"
+    ],
+    "direitos": [
+      "patentes",
+      "marcas",
+      "aplicacoes"
+    ],
+    "csrf": [
+      "irrf",
+      "recolher"
+    ],
+    "inss": [
+      "para",
+      "provisao",
+      "ferias",
+      "salario",
+      "encargos",
+      "sobre"
+    ],
+    "fgts": [
+      "para",
+      "provisao",
+      "ferias",
+      "salario",
+      "encargos",
+      "sobre"
+    ],
+    "resultado": [
+      "social",
+      "contribuicao",
+      "liquido",
+      "lucro",
+      "sobre",
+      "receitas",
+      "financeiras",
+      "outras"
+    ],
+    "irpj,": [
+      "social",
+      "contribuicao",
+      "liquido",
+      "lucro",
+      "sobre"
+    ],
+    "particip.": [
+      "social",
+      "contribuicao",
+      "liquido",
+      "lucro",
+      "sobre"
+    ],
+    "bruto": [
+      "resultado",
+      "periodo",
+      "apuracao",
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido"
+    ],
+    "brutas": [
+      "receita",
+      "exportadora",
+      "vendas",
+      "exportacao",
+      "produtos",
+      "mercadorias",
+      "comercial",
+      "especifico"
+    ],
+    "consultoria": [
+      "receita",
+      "exportacao",
+      "servicos"
+    ],
+    "graficas": [
+      "gerais",
+      "despesas"
+    ],
+    "beneficios": [
+      "pais",
+      "movimento",
+      "bancos",
+      "conta"
+    ],
+    "caju": [
+      "pais",
+      "movimento",
+      "bancos",
+      "conta"
+    ],
+    "compras": [
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "p/revenda": [
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "mercadoria": [
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "p.revenda": [
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "taxas": [
+      "recuperar",
+      "impostos",
+      "outros",
+      "contribuicoes"
+    ],
+    "rescisao": [
+      "adiantamento",
+      "ferias"
+    ],
+    "fornecedor": [
+      "fornecedores",
+      "adiantamentos",
+      "pais",
+      "circulante"
+    ],
+    "andamento": [
+      "imobilizado"
+    ],
+    "terceiro": [
+      "imoveis",
+      "terceiros",
+      "benfeitorias",
+      "provisoes",
+      "trabalhistas",
+      "resultado"
+    ],
+    "imovel": [
+      "imoveis",
+      "terceiros",
+      "benfeitorias",
+      "pais",
+      "mercantil",
+      "prazo",
+      "arrendamento",
+      "longo"
+    ],
+    "reforma": [
+      "imoveis",
+      "terceiros",
+      "benfeitorias"
+    ],
+    "benfeitoria": [
+      "imoveis",
+      "terceiros",
+      "benfeitorias"
+    ],
+    "consorcio": [
+      "veiculos"
+    ],
+    "sistema": [
+      "perifericos",
+      "computadores"
+    ],
+    "computacao": [
+      "perifericos",
+      "computadores"
+    ],
+    "propriedades": [
+      "imoveis",
+      "terceiros",
+      "benfeitorias"
+    ],
+    "deposito": [
+      "depositos",
+      "judiciais"
+    ],
+    "judicial": [
+      "depositos",
+      "judiciais"
+    ],
+    "contrib.": [
+      "csll",
+      "recolher"
+    ],
+    "p/i.r": [
+      "irpj",
+      "recolher"
+    ],
+    "p/ferias": [
+      "para",
+      "provisao",
+      "ferias"
+    ],
+    "s/ferias": [
+      "encargos",
+      "ferias",
+      "provisao",
+      "sobre"
+    ],
+    "s/faturamento": [],
+    "investimento": [
+      "doacoes",
+      "subvencoes",
+      "para",
+      "investimentos"
+    ],
+    "vendidas": [
+      "revendidas",
+      "custo",
+      "mercadorias"
+    ],
+    "horas-extras": [
+      "extras",
+      "horas"
+    ],
+    "decimo": [
+      "provisoes",
+      "trabalhistas",
+      "resultado"
+    ],
+    "refeicao": [
+      "refeicoes"
+    ],
+    "iptu": [
+      "condominio"
+    ],
+    "cartorios": [
+      "despesas",
+      "judiciais",
+      "legais"
+    ],
+    "antonio": [
+      "adiantamento",
+      "ferias"
+    ],
+    "distribuicao": [
+      "adiantamento",
+      "ferias",
+      "juros",
+      "capital",
+      "proprio",
+      "receitas",
+      "sobre"
+    ],
+    "bruno": [
+      "adiantamento",
+      "ferias"
+    ],
+    "pagas": [
+      "antecipadas",
+      "despesas"
+    ],
+    "argo": [
+      "adiantamento",
+      "ferias"
+    ],
+    "brasil": [
+      "adiantamento",
+      "ferias",
+      "aplicacoes"
+    ],
+    "assure": [
+      "adiantamento",
+      "ferias"
+    ],
+    "dominion": [
+      "adiantamento",
+      "ferias"
+    ],
+    "capital": [
+      "adiantamento",
+      "ferias",
+      "pagar",
+      "dividendos"
+    ],
+    "planejamento": [
+      "adiantamento",
+      "ferias"
+    ],
+    "excellplus": [
+      "adiantamento",
+      "ferias"
+    ],
+    "aegon": [
+      "adiantamento",
+      "ferias"
+    ],
+    "previ": [
+      "adiantamento",
+      "ferias"
+    ],
+    "mongeral": [
+      "adiantamento",
+      "ferias"
+    ],
+    "unity": [
+      "adiantamento",
+      "ferias"
+    ],
+    "ajuste": [
+      "ajustes",
+      "exercicios",
+      "anteriores"
+    ],
+    "fixas": [
+      "gerais",
+      "despesas"
+    ],
+    "c/softwares": [
+      "sistemas"
+    ],
+    "alta": [
+      "aplicacoes"
+    ],
+    "schuma": [
+      "adiantamento",
+      "ferias"
+    ],
+    "moldes": [
+      "adiantamento",
+      "ferias"
+    ],
+    "matrizes": [
+      "adiantamento",
+      "ferias"
+    ],
+    "logica": [
+      "adiantamento",
+      "ferias"
+    ],
+    "ferramentaria": [
+      "adiantamento",
+      "ferias"
+    ],
+    "pallets": [
+      "adiantamento",
+      "empregados"
+    ],
+    "comercio": [
+      "adiantamento",
+      "empregados"
+    ],
+    "mercadorias,": [
+      "mercadorias",
+      "para",
+      "revenda"
+    ],
+    "produtos": [
+      "mercadorias",
+      "para",
+      "revenda",
+      "custos",
+      "servicos",
+      "custo",
+      "bens"
+    ],
+    "comunicacao": [
+      "perifericos",
+      "computadores"
+    ],
+    "manutencao": [
+      "alugueis"
+    ],
+    "autonomos": [
+      "carretos",
+      "fretes"
+    ],
+    "vida": [
+      "plano",
+      "saude"
+    ],
+    "informacao": [
+      "sistemas"
+    ],
+    "desconto": [
+      "concedidos",
+      "descontos"
+    ],
+    "vendidos": [
+      "custos",
+      "servicos",
+      "custo",
+      "bens",
+      "terceiros"
+    ],
+    "exercicio": [
+      "resultado",
+      "periodo",
+      "apuracao"
+    ],
+    "sicoob": [
+      "aplicacoes"
+    ],
+    "credicom": [
+      "aplicacoes"
+    ],
+    "5948": [
+      "aplicacoes"
+    ],
+    "santander": [
+      "aplicacoes"
+    ],
+    "127418": [
+      "aplicacoes"
+    ],
+    "aquisicoes": [
+      "imobilizado"
+    ],
+    "equpamentos": [
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,"
+    ],
+    "construcoes": [
+      "acumulada",
+      "depreciacao"
+    ],
+    "salarios": [
+      "encargos",
+      "demais",
+      "recolher"
+    ],
+    "taxas/impostos": [
+      "diversas",
+      "taxas"
+    ],
+    "5.04.07": [
+      "juros",
+      "capital",
+      "proprio",
+      "receitas",
+      "sobre"
+    ],
+    "financiamentos": [
+      "debentures"
+    ],
+    "emprestimos,": [
+      "debentures",
+      "pais",
+      "financiamentos",
+      "emprestimos",
+      "circulante",
+      "prazo",
+      "longo"
+    ],
+    "(iv)": [
+      "receita",
+      "bruta",
+      "presente",
+      "ajuste",
+      "valor",
+      "sobre",
+      "rural",
+      "liquida",
+      "operacional",
+      "atividade",
+      "custos",
+      "producao"
+    ],
+    "(icms)": [
+      "icms"
+    ],
+    "grupo": [],
+    "espera": [],
+    "cofins:": [],
+    "participacao": [
+      "participacoes",
+      "empregados"
+    ],
+    "administracao": [
+      "participacoes"
+    ],
+    "freijo": [
+      "participacoes"
+    ],
+    "gestao": [
+      "participacoes",
+      "sistemas"
+    ],
+    "franquias": [
+      "participacoes"
+    ],
+    "mone": [
+      "participacoes"
+    ],
+    "brands": [
+      "sistemas"
+    ],
+    "love": [
+      "sistemas"
+    ],
+    "(ii)": [
+      "amortizacoes",
+      "depreciacoes",
+      "receita",
+      "rural",
+      "liquida",
+      "operacional",
+      "atividade",
+      "custos",
+      "producao"
+    ],
+    "pis/cofins": [],
+    "(9,25%)": [],
+    "potencial": [],
+    "companhia": [
+      "liquido",
+      "patrimonio"
+    ],
+    "(base": [
+      "controladas",
+      "exterior",
+      "diretas",
+      "base",
+      "universais",
+      "(tbu)",
+      "subconta",
+      "tributacao"
+    ],
+    "recebido": [
+      "fornecedores",
+      "adiantamentos",
+      "pais",
+      "circulante"
+    ],
+    "valor": [
+      "capital",
+      "social",
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido"
+    ],
+    "aumento": [
+      "capital",
+      "social"
+    ],
+    "acoes": [
+      "reservas"
+    ],
+    "capitalizacao": [
+      "reservas",
+      "juros",
+      "financiamentos",
+      "emprestimos",
+      "sobre"
+    ],
+    "depreciacao,": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "deplecao": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "26.134,": [
+      "vendas",
+      "despesas"
+    ],
+    "82.471,": [
+      "resultado",
+      "financeiro"
+    ],
+    "negativo": [
+      "resultado",
+      "financeiro"
+    ],
+    "(despesas)": [
+      "outras",
+      "despesas",
+      "operacionais"
+    ],
+    "explicativa": [
+      "aplicacoes"
+    ],
+    "creditorios": [
+      "aplicacoes"
+    ],
+    "fidc-np": [
+      "aplicacoes"
+    ],
+    "diferido": [],
+    "9.718/98": [],
+    "cofins,": [],
+    "cide,": [],
+    "reconhecida": [
+      "exercicio",
+      "resultado"
+    ],
+    "ocorridas": [
+      "imobilizado"
+    ],
+    "transferencias": [
+      "imobilizado"
+    ],
+    "apropriacoes": [
+      "reservas"
+    ],
+    "2023,": [
+      "exercicio",
+      "resultado"
+    ],
+    "propostos": [
+      "exercicio",
+      "resultado"
+    ],
+    "dividendos": [
+      "exercicio",
+      "resultado",
+      "juros",
+      "capital",
+      "proprio",
+      "receitas",
+      "sobre"
+    ],
+    "modificando": [
+      "exercicio",
+      "resultado"
+    ],
+    "deliberados": [
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido"
+    ],
+    "inclui": [
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido"
+    ],
+    "17.460,": [
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido"
+    ],
+    "deliberado": [
+      "renda",
+      "(irrf)",
+      "imposto",
+      "fonte",
+      "retido"
+    ],
+    "social,": [
+      "capital",
+      "social"
+    ],
+    "reducao": [
+      "capital",
+      "social"
+    ],
+    "tesouraria,": [
+      "capital",
+      "social"
+    ],
+    "sendo": [
+      "capital",
+      "social"
+    ],
+    "petroleo": [
+      "reservas"
+    ],
+    "provadas": [
+      "reservas"
+    ],
+    "suporte": [
+      "perifericos",
+      "computadores"
+    ],
+    "exaustao": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "31.12.2024": [
+      "reservas"
+    ],
+    "31.12.2023": [
+      "reservas"
+    ],
+    "31.12.2022": [
+      "reservas"
+    ],
+    "disso,": [
+      "reservas"
+    ],
+    "alem": [
+      "reservas"
+    ],
+    "reduzidas": [
+      "reservas"
+    ],
+    "foram": [
+      "reservas"
+    ],
+    "depreciacao:": [
+      "amortizacoes",
+      "depreciacoes"
+    ],
+    "disponibilizado": [
+      "imobilizado"
+    ],
+    "saldo": [
+      "liquido",
+      "patrimonio"
+    ],
+    "final": [
+      "liquido",
+      "patrimonio"
+    ],
+    "contribuir": [
+      "clientes"
+    ],
+    "clientes.": [
+      "clientes"
+    ],
+    "transacao": [
+      "clientes"
+    ],
+    "automotores),": [
+      "veiculos"
+    ],
+    "encerrou": [
+      "veiculos"
+    ],
+    "10,5%": [
+      "veiculos"
+    ],
+    "valores": [
+      "aplicacoes"
+    ],
+    "mobiliarios": [
+      "aplicacoes"
+    ],
+    "titulos,": [
+      "aplicacoes"
+    ],
+    "22.9.2": [
+      "pagar",
+      "dividendos"
+    ],
+    "proprio": [
+      "pagar",
+      "dividendos"
+    ],
+    "passivo": [
+      "liquido",
+      "patrimonio",
+      "presente",
+      "pais",
+      "ajuste",
+      "valores",
+      "mobiliarios",
+      "juros",
+      "decorrentes",
+      "valor",
+      "(avp)",
+      "apropriar"
+    ],
+    "aplicacao": [
+      "debentures",
+      "aplicacoes",
+      "renda",
+      "imposto",
+      "compensar"
+    ],
+    "(cdi)": [
+      "debentures"
+    ],
+    "(ipca)": [
+      "debentures"
+    ],
+    "ativa": [
+      "debentures",
+      "variacoes",
+      "cambiais",
+      "ativas"
+    ],
+    "ponta": [
+      "debentures"
+    ],
+    "swap": [
+      "debentures"
+    ],
+    "passiva": [
+      "debentures"
+    ],
+    "(tjlp)": [
+      "pais",
+      "financiamentos",
+      "emprestimos",
+      "circulante"
+    ],
+    "(usd)": [
+      "pais",
+      "financiamentos",
+      "emprestimos",
+      "circulante"
+    ],
+    "(eur)": [
+      "prazo",
+      "financiamentos",
+      "emprestimos",
+      "longo"
+    ],
+    "transferidos": [
+      "imobilizado"
+    ],
+    "aquisicao": [
+      "debentures"
+    ],
+    "bonus": [
+      "salarios"
+    ],
+    "ferias,": [
+      "salarios"
+    ],
+    "planos": [
+      "liquido",
+      "patrimonio"
+    ],
+    "ativos": [
+      "receita",
+      "exportadora",
+      "venda",
+      "exportacao",
+      "comercial",
+      "rural",
+      "especifico",
+      "atividade"
+    ],
+    "caminhoes,": [
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,"
+    ],
+    "vamos": [
+      "industriais",
+      "instalacoes",
+      "equipamentos",
+      "maquinas,"
+    ],
+    "leasing": [
+      "mercantil",
+      "arrendamento"
+    ],
+    "adicoes": [
+      "imobilizado",
+      "juros",
+      "financiamentos",
+      "emprestimos",
+      "sobre"
+    ],
+    "sociais": [
+      "despesas",
+      "pessoal"
+    ],
+    "compra": [
+      "tesouraria",
+      "acoes"
+    ],
+    "(incorporacao)": [
+      "agio",
+      "incorporacao",
+      "reserva",
+      "especial"
+    ],
+    "materiais,": [
+      "terceiros",
+      "custo",
+      "servicos"
+    ],
+    "energia,": [
+      "terceiros",
+      "custo",
+      "servicos"
+    ],
+    "carteira": [
+      "clientes"
+    ],
+    "consolidadas": [
+      "aplicacoes"
+    ],
+    "fonte": [
+      "csll",
+      "compensar"
+    ],
+    "(artigo": [
+      "reserva",
+      "legal"
+    ],
+    "constituicao": [
+      "reserva",
+      "legal"
+    ],
+    "amortizacao,": [
+      "resultado",
+      "financeiro"
+    ],
+    "variacao": [
+      "variacoes",
+      "cambiais",
+      "ativas"
+    ],
+    "cambial": [
+      "variacoes",
+      "cambiais",
+      "ativas"
+    ],
+    "itau-": [
+      "aplicacoes"
+    ],
+    "mais": [
+      "aplicacoes"
+    ],
+    "aplic": [
+      "aplicacoes"
+    ],
+    "nacional": [
+      "clientes"
+    ],
+    "faturar": [
+      "clientes"
+    ],
+    "financeira": [
+      "renda",
+      "imposto",
+      "compensar"
+    ],
+    "adto.": [
+      "fornecedores",
+      "adiantamentos",
+      "pais",
+      "circulante"
+    ],
+    "adto": [
+      "fornecedores",
+      "adiantamentos",
+      "pais",
+      "circulante"
+    ],
+    "telefonia": [
+      "perifericos",
+      "computadores"
+    ],
+    "deprec.": [
+      "perifericos",
+      "computadores"
+    ],
+    "prov.": [
+      "encargos",
+      "ferias",
+      "provisao",
+      "sobre"
+    ],
+    "gerais": [
+      "custos",
+      "producao"
+    ],
+    "marketing,": [
+      "propaganda",
+      "publicidade"
+    ],
+    "prov.de": [
+      "provisao",
+      "ferias"
+    ],
+    "funcionamento": [
+      "gerais",
+      "despesas"
+    ],
+    "desp.": [
+      "gerais",
+      "despesas"
+    ],
+    "exterior": [
+      "terceiros",
+      "custo",
+      "servicos"
+    ],
+    "operacoes)": [
+      "diversas",
+      "taxas"
+    ],
+    "cozinha,": [
+      "refeicoes"
+    ],
+    "lanches": [
+      "refeicoes"
+    ],
+    "copa,": [
+      "refeicoes"
+    ],
+    "(outros)": [
+      "carretos",
+      "fretes"
+    ],
+    "receita": [
+      "obtidos",
+      "descontos",
+      "financeiros"
+    ],
+    "credito": [],
+    "passivos": [
+      "liquido",
+      "patrimonio"
+    ],
+    "gerais,": [
+      "gerais",
+      "administrativas",
+      "despesas"
+    ]
+  },
+  "abbreviations": {},
+  "common_terms": []
+}

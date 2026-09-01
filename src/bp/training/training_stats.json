@@ -1,0 +1,21 @@
+{
+  "total_files": 31,
+  "total_accounts": 9117,
+  "total_synthetic": 7376,
+  "total_analytical_filtered": 1741,
+  "total_matched": 3466,
+  "total_needs_review": 3433,
+  "sessions": [
+    {
+      "timestamp": "2026-08-28T16:57:47.982978",
+      "files_processed": 31,
+      "accounts": 9117,
+      "synthetic": 7376,
+      "analytical_filtered": 1741,
+      "matched": 3466,
+      "needs_review": 3433,
+      "ignored": 38
+    }
+  ],
+  "total_ignored": 0
+}
