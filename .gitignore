@@ -2,7 +2,6 @@
 __pycache__/
 *.py[oc]
 build/
-dist/
 wheels/
 *.egg-info
 
@@ -69,6 +68,5 @@ src/bp/training/training_cache.json
 data/match_cache.json
 
 # --- Artefatos do PyInstaller ---
-dist/
 build/
 src/bp/training/_backup_master_train/
