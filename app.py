@@ -10,6 +10,7 @@ toda a lógica está em ``src/bp/app/`` (interface) e no núcleo do projeto
     MAPA.exe                    # empacotado (PyInstaller)
 
     MAPA.exe --diagnostico      # escreve MAPA_diagnostico.txt ao lado do .exe
+    MAPA.exe --autoteste        # roda o pipeline inteiro; sai 0 se passou
 
 ``--diagnostico`` existe porque o executável é ``console=False``: quando algo
 falha nele não há terminal, não há log, não há traceback. Foi assim que o .exe
@@ -66,7 +67,31 @@ def _diagnosticar() -> int:
     return 0
 
 
+def _autotestar() -> int:
+    """
+    Roda o pipeline completo dentro do próprio binário. 0 = passou.
+
+    É o portão do `build.py`: um `.exe` que não se prova não é entregue. Grava
+    o relatório ao lado do executável porque, em build ``console=False``, o
+    print não vai a lugar nenhum.
+    """
+    from src.bp.app import autoteste
+
+    passou, relatorio = autoteste.executar()
+    print(relatorio)
+    destino = (
+        Path(sys.executable).resolve().parent
+        if getattr(sys, "frozen", False)
+        else Path.cwd()
+    ) / "MAPA_autoteste.txt"
+    with contextlib.suppress(Exception):
+        destino.write_text(relatorio, encoding="utf-8")
+    return 0 if passou else 1
+
+
 if __name__ == "__main__":
     if "--diagnostico" in sys.argv[1:]:
         raise SystemExit(_diagnosticar())
+    if "--autoteste" in sys.argv[1:]:
+        raise SystemExit(_autotestar())
     raise SystemExit(main())

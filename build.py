@@ -77,6 +77,32 @@ def auditar() -> None:
     ])
 
 
+def autotestar() -> None:
+    """
+    Roda o `.exe` recem-criado e exige que ele complete o pipeline.
+
+    A auditoria confere o CONTEUDO do binario. Este passo confere que ele
+    FUNCIONA — e e o que faltava. O .exe distribuido aos usuarios abria, aceitava
+    o balancete e morria em "No module named 'pandas.plotting'": bp.spec excluia
+    do bundle um modulo que `import pandas` carrega. Nenhum dos 617 testes pegou,
+    porque todos rodam sobre a arvore de codigo, onde pandas esta inteiro.
+
+    Um `.exe` so se prova rodando. Se este passo falha, o binario nao sai.
+    """
+    _passo("Autoteste: o .exe roda o pipeline completo?")
+    resultado = subprocess.run([str(EXE_ESPERADO), "--autoteste"], cwd=RAIZ)
+    relatorio = EXE_ESPERADO.parent / "MAPA_autoteste.txt"
+    if relatorio.exists():
+        print(relatorio.read_text(encoding="utf-8"))
+    if resultado.returncode != 0:
+        raise SystemExit(
+            "O .exe NAO completou o pipeline. NAO DISTRIBUA este binario.\n"
+            f"Relatorio: {relatorio}\n"
+            "Causa tipica: `excludes` do bp.spec tirando um modulo que uma "
+            "biblioteca carrega sozinha (foi o caso de pandas.plotting)."
+        )
+
+
 def resumo() -> None:
     tamanho_mb = EXE_ESPERADO.stat().st_size / (1024 * 1024)
     _passo("Pronto")
@@ -88,6 +114,7 @@ def resumo() -> None:
 def main() -> int:
     compilar()
     auditar()
+    autotestar()
     resumo()
     return 0
 

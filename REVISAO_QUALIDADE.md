@@ -2291,3 +2291,86 @@ tudo que não fosse vazamento de dado de cliente. Agora a auditoria pergunta as
 duas coisas — o que **não pode** entrar, e o que **tem** que entrar.
 
 ---
+
+## 24. `pandas.plotting`: eu excluí do bundle um módulo que o pandas carrega
+
+O `.exe` foi distribuído. Os usuários abriram, arrastaram o balancete, e na
+hora de gerar:
+
+```
+Não deu para gerar
+Não consegui carregar o motor do BP: No module named 'pandas.plotting'
+```
+
+### A causa, e o comentário que a escondia
+
+`bp.spec` excluía do bundle:
+
+```python
+"pandas.tests", "pandas.plotting", "pandas.io.sql",
+```
+
+sob este comentário:
+
+> *Cada exclusão foi verificada: nenhum import de `src/bp/app`,
+> `src/bp/output`, `src/bp/parsers`, `src/bp/matchers` toca esses módulos.*
+
+**A verificação estava certa. A conclusão, errada.** O que decide não é se
+*nós* importamos o módulo — é se a *biblioteca* importa. E `pandas/__init__.py`,
+linha 138:
+
+```python
+from pandas import api, arrays, errors, io, plotting, tseries
+```
+
+Medido: `import pandas` carrega `pandas.plotting` **e**, via `pandas.io.api`,
+`pandas.io.sql`. Eram **duas** exclusões fatais, não uma — a segunda apareceria
+logo depois de corrigir a primeira.
+
+### Por que só apareceu na mão do usuário
+
+Duas camadas de atraso, somadas:
+
+1. **A suíte roda sobre a árvore de código**, onde o pandas está inteiro. Os
+   617 testes verdes não diziam nada sobre o bundle.
+2. **O motor é importado tarde.** `service.py` só importa `build_gt_output`
+   quando o analista clica em Gerar. A janela abre, aceita o arquivo, mostra o
+   cliente — e quebra na última etapa, com o trabalho já feito.
+
+### O padrão, agora na terceira repetição
+
+| § | o que falhou | o que a suíte cobria |
+|---|---|---|
+| 22 | `.gitignore` engoliu `src/bp/output/` | o código, não o repositório |
+| 23 | `bp.spec` não levou a extensão `tkdnd` | o código, não o bundle |
+| 24 | `bp.spec` excluiu módulo que o pandas carrega | o código, não o bundle |
+
+Três vezes o mesmo enunciado: **o código estava certo; o que falhou foi o
+artefato.** E as três vezes eu respondi construindo uma auditoria mais fina do
+*conteúdo* do artefato — o que não fecha o buraco, porque conteúdo correto não
+é o mesmo que artefato que funciona.
+
+### As duas correções
+
+1. **A lista de exclusões passa a ser medida, não raciocinada.**
+   `tests/test_excludes_do_bundle.py` importa o que o app importa em runtime,
+   num processo separado, e reprova qualquer nome da lista que tenha ido parar
+   em `sys.modules`. Roda na suíte normal, sem compilar nada. Antes de
+   acrescentar um nome aos `excludes`, o teste tem de continuar verde.
+
+2. **O `.exe` prova que roda antes de sair.** `MAPA.exe --autoteste`
+   (`src/bp/app/autoteste.py`) monta um balancete sintético, chama o
+   `build_gt_output` de verdade sobre o template embarcado e confere que a
+   entrega saiu com as abas obrigatórias. `build.py` roda isso no binário
+   recém-compilado e **falha o build** se não passar. Em uma passada, exercita
+   o que quebrou nas três vezes: `import pandas` completo, o pacote
+   `src/bp/output` presente, os recursos do `bp.spec`, e o caminho de
+   importação tardia do `service.py`.
+
+### A regra que fica
+
+Auditar o conteúdo do artefato é necessário e não é suficiente. **Um `.exe` só
+se prova rodando** — e a prova tem de acontecer antes da distribuição, no mesmo
+comando que o gera, sem depender de alguém lembrar de testar.
+
+---

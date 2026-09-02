@@ -142,8 +142,25 @@ hiddenimports = [
 ]
 
 # --- MÓDULOS PESADOS QUE NÃO SÃO USADOS PELO APP --------------------------
-# Cada exclusão foi verificada: nenhum import de `src/bp/app`, `src/bp/output`,
-# `src/bp/parsers`, `src/bp/matchers` toca esses módulos.
+#
+# O comentário que estava aqui dizia: "Cada exclusão foi verificada: nenhum
+# import de src/bp/app, src/bp/output, src/bp/parsers, src/bp/matchers toca
+# esses módulos". A verificação estava certa e a conclusão errada — o que
+# importa não é se NÓS importamos, é se a BIBLIOTECA importa.
+#
+# `pandas/__init__.py` linha 138:
+#
+#     from pandas import api, arrays, errors, io, plotting, tseries
+#
+# `pandas.plotting` e `pandas.io.sql` (via `pandas.io.api`) são carregados por
+# `import pandas`. Excluí-los quebra o pandas inteiro, e o usuário vê
+# "No module named 'pandas.plotting'" na hora de gerar. Foi o que aconteceu
+# com o .exe distribuído.
+#
+# A lista abaixo é MEDIDA, não raciocinada: `tests/test_excludes_do_bundle.py`
+# importa tudo que o app importa em runtime e reprova qualquer nome desta
+# lista que tenha ido parar em `sys.modules`. Antes de acrescentar um nome
+# aqui, o teste tem de continuar verde.
 excludes = [
     "tkinter.test",
     "unittest",
@@ -151,7 +168,7 @@ excludes = [
     "pydantic",              # extra `curation`, não usado em runtime
     "cv2", "fitz", "pdf2image", "pytesseract", "PIL.ImageTk",  # extra `ocr`
     "matplotlib", "IPython", "notebook", "ipykernel",
-    "pandas.tests", "pandas.plotting", "pandas.io.sql",
+    "pandas.tests",
     "numpy.tests",
 ]
 

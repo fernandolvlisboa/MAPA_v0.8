@@ -1,0 +1,9 @@
+AUTOTESTE DO EXECUTÁVEL
+
+importar o motor                   OK
+pandas                             2.3.3
+gerar a entrega                    OK
+linhas escritas                    4
+abas geradas                       BP_GT, Balancete Original, Contas Não Identificadas, Contas Tratadas, DRE_GT, Sumário, _dados_padronizados, _instrucoes
+
+RESULTADO: PASSOU — o executável roda o pipeline completo.
