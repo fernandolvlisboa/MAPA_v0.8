@@ -25,12 +25,29 @@ RAIZ = Path(SPECPATH).resolve()
 # pessoa descobrir no dia da entrega.
 #
 # OPCIONAIS: quando existem, entram; quando não, o build segue e avisa.
-# `account_variations.json` é o aprendizado do matcher — mora só no repo
-# privado (contém strings agregadas de balancetes reais e não pertence ao
-# repo público). Compilando no privado o arquivo está lá e vai para o
-# .exe; compilando no público o .exe sai sem aprendizado (o matcher opera
-# só com fuzzy + sinônimos, aproveitamento fica menor até a próxima rodada
-# de treino). Ver PLANO_J_INTERFACE.md §3.4 e PLANO_K_EMPACOTAMENTO.md §4.
+#
+# `account_variations.json` é o aprendizado do matcher: as variações de nome de
+# conta que o treino consolidou ("BENS NUMERÁRIOS", "DISPONIBILIDADES" e
+# "CAIXA GERAL" são todas Caixa). É nomenclatura contábil, não saldo, e está
+# versionado NOS DOIS repositórios — todo build carrega o aprendizado, aqui e
+# no runner do CI.
+#
+# (O comentário antigo dizia que este arquivo "mora só no repo privado e não
+# pertence ao repo público". Era falso: ele está versionado nos dois. Uma
+# afirmação errada num comentário é pior que a ausência dele — esta fazia
+# concluir que o .exe do CI sai sem aprendizado, e não sai.)
+#
+# O que ele contém, MEDIDO (317 contas, 928 variações): nenhum CNPJ, nenhum
+# CPF, nenhum valor monetário. Mas 11 das 928 variações nomeiam contrapartes
+# que vieram de balancetes reais — "aplicacoes bradesco 127418",
+# "adiantamento axa seguros sa", "vamos locacao ... s.a". São fornecedores e
+# bancos dos clientes, não os clientes; ainda assim, num repositório público,
+# a decisão de mantê-las é do dono do dado, não do build. Ver
+# docs/DADOS_PRIVADOS.md.
+#
+# Continua em OPCIONAIS por segurança: um clone que não o traga compila mesmo
+# assim, com o matcher operando só com fuzzy + sinônimos, e o build avisa em
+# vez de morrer. Ver PLANO_K_EMPACOTAMENTO.md §4.
 _OBRIGATORIOS = [
     ("data/plano_referencial.json",                 "data"),
     ("data/plano_contas.json",                       "data"),
@@ -59,9 +76,10 @@ for origem, destino in _OPCIONAIS:
     else:
         print(
             f"[bp.spec] AVISO: {origem} nao existe — o .exe sai sem esse "
-            "recurso. Normal se voce esta compilando no repo publico; se "
-            "esperava embarcar o aprendizado, compile no clone privado onde "
-            "o arquivo mora."
+            "recurso. O arquivo E versionado; se ele sumiu, o clone esta "
+            "incompleto. Rode `git status` antes de distribuir este binario: "
+            "sem o aprendizado o matcher opera so com fuzzy + sinonimos e o "
+            "aproveitamento cai."
         )
 
 # --- A BIBLIOTECA NATIVA DO ARRASTAR-E-SOLTAR -----------------------------
