@@ -20,6 +20,7 @@ precisa de admin porque o modo onefile descompacta em %TEMP% do usuario.
 
 from __future__ import annotations
 
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
@@ -50,8 +51,26 @@ def compilar() -> None:
 
 
 def auditar() -> None:
-    """Roda o teste anti-vazamento em cima do binario recem-criado."""
-    _passo("Auditando o .exe (nenhum arquivo de cliente pode estar dentro)")
+    """
+    Roda a auditoria em cima do binario recem-criado.
+
+    Sao duas perguntas: nada de cliente entrou, e o que PRECISA entrar entrou —
+    inclusive a biblioteca `tkdnd` do arrastar-e-soltar, que ficou de fora do
+    .exe da v0.8 e so apareceu quando o binario ja estava circulando.
+
+    A auditoria depende de `pyinstxtractor-ng` (extra `packaging`). Sem ele os
+    testes PULAM, e um build que pula a auditoria inteira e um build nao
+    auditado — este passo entao para, em vez de deixar passar por omissao.
+    """
+    _passo("Auditando o .exe (dado de cliente fora, recursos obrigatorios dentro)")
+    if importlib.util.find_spec("pyinstxtractor_ng") is None:
+        raise SystemExit(
+            "pyinstxtractor-ng nao esta instalado, entao a auditoria nao roda e "
+            "o .exe sai SEM CONFERENCIA — nem de vazamento de dado de cliente, "
+            "nem da biblioteca do arrastar-e-soltar.\n"
+            "Instale o extra de empacotamento:\n"
+            "    uv sync --extra packaging"
+        )
     _rodar([
         sys.executable, "-m", "pytest", "-q", "-x",
         "tests/test_build_seguranca.py",

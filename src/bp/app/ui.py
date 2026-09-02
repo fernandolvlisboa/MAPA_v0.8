@@ -285,7 +285,11 @@ class AplicacaoBP:
             apoio = "ou clique para procurar no computador"
         else:
             titulo = "Clique para escolher os balancetes"
-            apoio = "um arquivo por exercício — até 5"
+            # Dizer que arrastar está DESLIGADO, e não só oferecer o clique.
+            # Sem isto, quem recebeu o .exe da v0.8 arrastou sobre uma zona que
+            # dizia "clique", nada aconteceu, e a conclusão possível era "o
+            # programa não funciona". A causa era o tkdnd fora do bundle.
+            apoio = "arrastar-e-soltar indisponível nesta máquina · até 5 arquivos"
 
         # Ícone desenhado, não tipográfico: glifo bonito é loteria de fonte, e
         # uma seta que vira caixinha na máquina do colega é pior que nenhuma.
@@ -294,7 +298,11 @@ class AplicacaoBP:
                       font=(self.fonte, 13, "bold"))
         c.create_text(largura / 2, altura / 2 + 28, text=apoio, fill=TEXTO_FRACO,
                       font=(self.fonte, 9))
-        c.create_text(largura / 2, altura - 18, text="xlsx  ·  xls  ·  csv  ·  txt  ·  pdf",
+        rodape = "xlsx  ·  xls  ·  csv  ·  txt  ·  pdf"
+        if not self.dnd_ativo and dnd.diagnostico():
+            # O motivo técnico, curto, para quem for reportar o problema.
+            rodape = dnd.diagnostico()[:110]
+        c.create_text(largura / 2, altura - 18, text=rodape,
                       fill=TEXTO_FRACO, font=(self.fonte, 8))
 
     def _icone_soltar(self, cx: float, cy: float, cor: str) -> None:

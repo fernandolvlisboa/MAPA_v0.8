@@ -30,6 +30,26 @@ AVISO_SEM_CAMINHO = (
     "arquivo .zip, salve-o numa pasta primeiro e arraste de lá."
 )
 
+#: Por que o arrastar-e-soltar não subiu, quando não subiu. Vazio = subiu.
+#:
+#: Existe porque a falha era **silenciosa**. No .exe da v0.8 o `tkdnd` não foi
+#: empacotado, ``TkinterDnD.Tk()`` levantou ``RuntimeError('Unable to load
+#: tkdnd library.')``, o ``except Exception: pass`` engoliu, e a janela abriu
+#: com a zona virada em botão. Quem recebeu o executável só viu que arrastar
+#: não trazia o arquivo — sem mensagem, sem log, sem pista. O motivo custa uma
+#: string e transforma "não funciona" em "não achei a biblioteca tkdnd".
+motivo_indisponivel: str = ""
+
+
+def diagnostico() -> str:
+    """
+    Uma linha sobre o estado do arrastar-e-soltar. Vazia quando está ativo.
+
+    A janela mostra isto embaixo da zona de soltar, e ``app.py --diagnostico``
+    imprime no terminal — é o que se pede a quem relata "não traz o arquivo".
+    """
+    return motivo_indisponivel
+
 
 def criar_root() -> tuple[Any, str]:
     """
@@ -42,17 +62,21 @@ def criar_root() -> tuple[Any, str]:
     os testes e a captura de tela rodam, e é a saída se o tkdnd brigar com
     alguma máquina.
     """
+    global motivo_indisponivel
+    motivo_indisponivel = ""
+
     if os.environ.get("BP_SEM_DND"):
         import tkinter as tk
 
+        motivo_indisponivel = "desligado por BP_SEM_DND no ambiente"
         return tk.Tk(), SEM_SUPORTE
 
     try:
         from tkinterdnd2 import TkinterDnD
 
         return TkinterDnD.Tk(), "tkinterdnd2"
-    except Exception:
-        pass
+    except Exception as exc:
+        falha_tkdnd = f"{type(exc).__name__}: {exc}"
 
     import tkinter as tk
 
@@ -61,7 +85,10 @@ def criar_root() -> tuple[Any, str]:
         import windnd  # noqa: F401
 
         return root, "windnd"
-    except Exception:
+    except Exception as exc:
+        motivo_indisponivel = (
+            f"tkinterdnd2 falhou ({falha_tkdnd}); windnd tambem nao ({exc})"
+        )
         return root, SEM_SUPORTE
 
 

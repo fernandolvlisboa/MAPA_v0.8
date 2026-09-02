@@ -138,3 +138,65 @@ def test_recursos_esperados_estao_presentes(tmp_path: Path) -> None:
         f"Recursos obrigatorios ausentes do .exe: {sorted(faltando)}. "
         "O `bp.spec` esta desalinhado com a lista de recursos do PLANO_K."
     )
+
+
+def test_exe_carrega_a_biblioteca_do_arrastar_e_soltar(tmp_path: Path) -> None:
+    """
+    O tkdnd tem de estar DENTRO do .exe — foi o defeito da v0.8.
+
+    `tkinterdnd2` sao dois pedacos: os .py, que o PyInstaller acha por
+    importacao, e a extensao Tcl `tkdnd` (uma pasta com .dll e pkgIndex.tcl),
+    que e DADO e so entra se o spec mandar. O bp.spec antigo declarava so
+    `hiddenimports = ["tkinterdnd2"]` e confiava no hook do
+    pyinstaller-hooks-contrib.
+
+    No .exe distribuido, o resultado foi:
+
+        TkinterDnD.Tk() -> package require tkdnd -> TclError
+                        -> RuntimeError('Unable to load tkdnd library.')
+
+    `app/dnd.py` engolia a excecao, caia para o `tkinter.Tk` puro, e a janela
+    abria com a zona de soltar virada em botao. Arrastar nao trazia nada, sem
+    nenhuma mensagem — o build e `console=False`.
+
+    Nenhum teste de comportamento pega isso: na maquina que compila, o pacote
+    esta instalado e tudo funciona. So o conteudo do binario responde.
+    """
+    raiz_extraida = _extrair_exe(tmp_path)
+
+    arquivos = [p for p in raiz_extraida.rglob("*") if p.is_file()]
+    dentro_de_tkdnd = [
+        p for p in arquivos
+        if re.search(r"(^|[\\/])tkdnd([\\/]|$)", str(p.relative_to(raiz_extraida)))
+    ]
+    assert dentro_de_tkdnd, (
+        "O .exe NAO carrega a pasta `tkdnd` do tkinterdnd2 — arrastar-e-soltar "
+        "vai estar morto para quem receber este binario, e a janela nao vai "
+        "dizer por que.\n"
+        "Conserto: o bloco `_tkdnd_datas` do bp.spec. `hiddenimports` sozinho "
+        "nao traz a extensao Tcl."
+    )
+
+    # Nao basta a pasta existir: precisa do indice que o `package require` le
+    # e da biblioteca nativa da plataforma.
+    nomes = {p.name.lower() for p in dentro_de_tkdnd}
+    assert "pkgindex.tcl" in nomes, (
+        "a pasta tkdnd foi embarcada sem `pkgIndex.tcl` — sem ele o Tcl nao "
+        f"encontra o pacote. Presentes: {sorted(nomes)[:12]}"
+    )
+    nativas = [n for n in nomes if n.endswith((".dll", ".so", ".dylib"))]
+    assert nativas, (
+        "a pasta tkdnd foi embarcada so com os .tcl, sem a biblioteca nativa "
+        f"(.dll/.so/.dylib). Presentes: {sorted(nomes)[:12]}"
+    )
+
+    # E a plataforma DESTE binario tem de estar entre as embarcadas.
+    esperada = {"win32": "win-", "darwin": "osx-"}.get(sys.platform, "linux-")
+    plataformas = {
+        p.parent.name for p in dentro_de_tkdnd if p.name.lower() == "pkgindex.tcl"
+    }
+    assert any(nome.startswith(esperada) for nome in plataformas), (
+        f"nenhuma variante `{esperada}*` do tkdnd no bundle — o .exe foi "
+        f"compilado para {sys.platform} e nao leva a biblioteca dessa "
+        f"plataforma. Embarcadas: {sorted(plataformas)}"
+    )

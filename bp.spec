@@ -64,11 +64,71 @@ for origem, destino in _OPCIONAIS:
             "o arquivo mora."
         )
 
+# --- A BIBLIOTECA NATIVA DO ARRASTAR-E-SOLTAR -----------------------------
+#
+# Este bloco existe porque o .exe da v0.8 saiu SEM arrastar-e-soltar.
+#
+# `tkinterdnd2` é dois pedaços: os .py (que o PyInstaller acha sozinho, por
+# importação) e a extensão Tcl `tkdnd` — uma pasta com .dll e pkgIndex.tcl
+# dentro do pacote. A segunda é DADO, não módulo: `hiddenimports` não a traz.
+# Sem ela, em runtime:
+#
+#     TkinterDnD.Tk()
+#       -> tkroot.tk.call('package', 'require', 'tkdnd')
+#       -> TclError -> RuntimeError('Unable to load tkdnd library.')
+#
+# e `app/dnd.py` cai para o `tkinter.Tk` puro. A janela abre normalmente, a
+# zona de soltar vira botão, e arrastar não traz nada — sem erro na tela,
+# porque o build é `console=False`. Era exatamente o sintoma relatado.
+#
+# Depender do hook do `pyinstaller-hooks-contrib` foi o erro: ele existe, mas
+# muda entre versões, e o comentário antigo aqui já admitia a dúvida ("o hook
+# oficial cobre, mas..."). Declarar explicitamente custa ~2 MB e tira o
+# resultado do jogo de versões.
+#
+# Entram TODAS as plataformas de propósito. `TkinterDnD._require()` escolhe a
+# pasta em runtime por `platform.system()`, `PROCESSOR_ARCHITECTURE` e a
+# versão do Tcl (`-tcl9` quando Tcl >= 9). Filtrar aqui pela máquina que
+# compila é apostar que ela é igual à de quem recebe — e é a mesma classe de
+# aposta que produziu este defeito.
+# Localiza o pacote SEM importá-lo: `import tkinterdnd2` executa
+# `import tkinter`, que falta em máquina sem Tk (um Linux de CI, por exemplo)
+# e derrubaria o spec por um motivo que não tem a ver com o empacotamento.
+# `find_spec` só resolve o caminho.
+import importlib.util as _ilu
+
+_tkdnd_spec = _ilu.find_spec("tkinterdnd2")
+if _tkdnd_spec is None or not _tkdnd_spec.origin:
+    raise SystemExit(
+        "[bp.spec] tkinterdnd2 nao esta instalado. Ele e dependencia de NUCLEO "
+        "(pyproject.toml): sem ele o .exe sai sem arrastar-e-soltar, que foi o "
+        "defeito da v0.8. Rode `uv sync` antes de compilar."
+    )
+
+_tkdnd_raiz = Path(_tkdnd_spec.origin).resolve().parent / "tkdnd"
+if not _tkdnd_raiz.is_dir():
+    raise SystemExit(
+        f"[bp.spec] {_tkdnd_raiz} nao existe — o pacote tkinterdnd2 esta "
+        "incompleto. Reinstale com `uv sync`."
+    )
+
+_tkdnd_datas = [
+    (str(_arq), str(Path("tkinterdnd2/tkdnd") / _arq.parent.relative_to(_tkdnd_raiz)))
+    for _arq in sorted(_tkdnd_raiz.rglob("*"))
+    if _arq.is_file()
+]
+if not _tkdnd_datas:
+    raise SystemExit(f"[bp.spec] {_tkdnd_raiz} esta vazia — nada a embarcar.")
+
+print(f"[bp.spec] tkdnd: {len(_tkdnd_datas)} arquivo(s) embarcado(s)")
+datas += _tkdnd_datas
+
 # --- MÓDULOS QUE O PYINSTALLER NÃO ACHA POR IMPORTAÇÃO ESTÁTICA -----------
 hiddenimports = [
-    # tkinterdnd2 carrega o Tk extension em runtime; o hook oficial cobre,
-    # mas nomear aqui evita variação entre versões do PyInstaller.
+    # Os .py do tkinterdnd2. A extensão Tcl vem pelo bloco acima — este nome
+    # sozinho NÃO a traz, e foi a confusão que quebrou o .exe da v0.8.
     "tkinterdnd2",
+    "tkinterdnd2.TkinterDnD",
     # openpyxl usa esses subpacotes só dinamicamente.
     "openpyxl.cell._writer",
 ]

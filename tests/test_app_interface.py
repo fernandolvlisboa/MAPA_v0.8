@@ -9,6 +9,7 @@ entregue, a leitura do drop e a tradução dos avisos do núcleo. Essa é a raz�
 
 from __future__ import annotations
 
+import importlib.util
 from datetime import date
 from pathlib import Path
 
@@ -368,3 +369,76 @@ def test_traducao_do_nucleo_para_a_tela_esta_viva():
     assert "O balanço não fechou por" in frase, (
         f"a tradução da tela não reconhece mais a mensagem do núcleo: {frase}"
     )
+
+
+# ============================================================================
+# O arrastar-e-soltar que morre calado
+# ============================================================================
+
+
+#: `criar_root` cria uma janela Tk de verdade. Em Linux sem `python3-tk` (e o
+#: caso deste container de CI) nao ha o que criar — e o proprio app tambem nao
+#: rodaria ali. Os dois testes que precisam de raiz pulam; o resto nao precisa.
+_TEM_TK = importlib.util.find_spec("tkinter") is not None
+requer_tk = pytest.mark.skipif(not _TEM_TK, reason="tkinter ausente (apt install python3-tk)")
+
+
+def test_diagnostico_vazio_antes_de_tentar():
+    """Sem tentativa, não há queixa a fazer."""
+    dnd.motivo_indisponivel = ""
+    assert dnd.diagnostico() == ""
+
+
+@requer_tk
+def test_desligado_por_ambiente_diz_que_foi_de_proposito(monkeypatch):
+    """
+    ``BP_SEM_DND=1`` é escolha, não defeito — e o diagnóstico separa os dois.
+
+    A distinção importa para quem for ler o rodapé da janela: "desligado por
+    variável de ambiente" e "não achei a biblioteca" pedem ações opostas.
+    """
+    monkeypatch.setenv("BP_SEM_DND", "1")
+    root, backend = dnd.criar_root()
+    try:
+        assert backend == dnd.SEM_SUPORTE
+        assert "BP_SEM_DND" in dnd.diagnostico()
+    finally:
+        root.destroy()
+
+
+@requer_tk
+def test_falha_do_tkdnd_vira_motivo_legivel(monkeypatch):
+    """
+    O defeito do .exe da v0.8, reproduzido: o tkdnd não carrega.
+
+    Antes, ``except Exception: pass`` engolia a causa e a janela abria com a
+    zona de soltar virada em botão. Quem recebeu o binário só viu que arrastar
+    não trazia o arquivo. Agora a razão sobrevive à queda — é ela que a tela
+    mostra no rodapé e que alguém pode reportar.
+    """
+    import builtins
+
+    real_import = builtins.__import__
+
+    def sem_tkdnd(nome, *args, **kwargs):
+        if nome in ("tkinterdnd2", "windnd"):
+            raise RuntimeError("Unable to load tkdnd library.")
+        return real_import(nome, *args, **kwargs)
+
+    monkeypatch.delenv("BP_SEM_DND", raising=False)
+    monkeypatch.setattr(builtins, "__import__", sem_tkdnd)
+
+    root, backend = dnd.criar_root()
+    try:
+        assert backend == dnd.SEM_SUPORTE
+        motivo = dnd.diagnostico()
+        assert "tkdnd" in motivo, motivo
+        assert "tkinterdnd2" in motivo, motivo
+    finally:
+        monkeypatch.undo()
+        root.destroy()
+
+
+def test_sem_backend_nao_registra_alvo():
+    """Não-vacuidade: sem backend, registrar_alvo é honesto e devolve False."""
+    assert dnd.registrar_alvo(object(), dnd.SEM_SUPORTE, lambda _p: None) is False
