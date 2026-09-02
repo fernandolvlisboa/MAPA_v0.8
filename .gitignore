@@ -15,8 +15,11 @@ wheels/
 
 # Saída gerada pelo treino: pode conter descrições de balancetes reais de
 # clientes (nomes próprios em worklists, exports). Ver SECURITY_REVIEW.md.
-# training_report.md e review_worklist.csv (agregados) são versionáveis;
-# exports por-arquivo (com dados individuais) não.
+# NOTA: a regra `/output/` mais abaixo passou a ignorar a pasta inteira, e
+# ela vence esta seção. `training_report.md` e `review_worklist.csv`
+# continuam rastreados por já estarem no índice, mas nada novo entra em
+# output/ — foi a decisão tomada no repositório público (MAPA_v0.8), onde
+# esses dois não existem.
 output/exports/
 
 # Planilhas geradas: são saída, não fonte — e carregam dados individuais de

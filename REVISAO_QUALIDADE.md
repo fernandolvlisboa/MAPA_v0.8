@@ -2125,3 +2125,106 @@ este arquivo.
 para um defeito não resolvido: ruidoso, não silencioso.
 
 ---
+
+
+## 22. O repositório público subiu sem o pacote da entrega
+
+Achado ao abrir `fernandolvlisboa/MAPA_v0.8` — a release pública. Ela é este
+branch, arquivo a arquivo (160 idênticos), mais o empacotamento do PLANO K e
+os READMEs por módulo. Menos uma coisa: **o pacote `src/bp/output/` inteiro**.
+
+### A causa
+
+A limpeza que preparou o repositório público acrescentou ao `.gitignore` uma
+regra para não versionar a pasta de saída:
+
+```
+output/
+```
+
+Sem barra inicial, o padrão casa **qualquer** diretório com esse nome em
+qualquer profundidade. E existe um:
+
+```
+$ git check-ignore -v src/bp/output/build_gt_output.py
+.gitignore:58:output/	src/bp/output/build_gt_output.py
+```
+
+Foram junto `build_gt_output.py`, `origem.py`, `template_map.py` e o
+`__init__.py`.
+
+### O efeito
+
+```
+$ pytest --collect-only
+ERROR tests/test_captura_template.py
+ERROR tests/test_copia_original.py
+ERROR tests/test_gt_output.py
+ERROR tests/test_integridade_entrega_gt.py
+ERROR tests/test_totais_da_entrega.py
+E   ModuleNotFoundError: No module named 'src.bp.output'
+```
+
+E não é só teste. `service.py:387` e `main.py:121` importam `bp.output` de
+forma **tardia** — então o programa abre normalmente, lê o balancete, mostra
+a interface, e morre exatamente na hora de gerar o Template GT.
+
+### Por que nenhum teste pegou
+
+Porque o defeito não está no código. Está no que o código **não chegou a
+ser**. Toda a suíte roda sobre a árvore local, e localmente o arquivo está
+lá — só o git não o leva. É uma classe de defeito que nenhuma asserção sobre
+comportamento alcança: a pergunta certa não é "isto funciona?", é "isto vai
+junto quando eu empurrar?".
+
+`tests/test_codigo_versionado.py` faz essa pergunta ao próprio git, e nomeia o
+arquivo **e a linha do `.gitignore`** que o engole. Confere também o lado
+oposto: dado de cliente tem de continuar ignorado.
+
+### A segunda metade: a suíte pública abria vermelha
+
+Com o pacote de volta, ainda: **26 falhas e 22 erros**. Causa diferente, mesma
+família.
+
+Os testes de corpus separavam "ausente por design" de "bug" pela **existência
+do diretório** `data/samples`. Mas `data/samples/README.md` é versionado —
+então o diretório existe no clone público, o corpus (que é dado de cliente)
+não, e todo teste de corpus **falhava em vez de pular**.
+
+São três estados, e faltava o do meio:
+
+| estado | veredito |
+|---|---|
+| diretório inexistente, **ou existente e vazio de balancetes** | `skip` |
+| corpus presente, arquivo nomeado ausente | `fail` — é caminho errado no teste |
+| arquivo presente | devolve o caminho |
+
+O `fail` do meio é o guard que pegou um nome de arquivo que eu tinha
+inventado (§18) e não pode ser afrouxado. Quem decide agora é o **conteúdo**
+do diretório: `conftest.corpus_disponivel()`.
+
+Os sete testes de `test_gt_output.py` que geram a entrega de verdade ganharam
+`@requer_balancete`.
+
+### Medido
+
+| | antes | depois |
+|---|---|---|
+| MAPA_v0.8 (público) | 5 erros de coleta; 26 failed, 22 errors | **428 passed, 139 skipped, 0 failed** |
+| BP (com corpus) | 613 passed | **615 passed, 7 skipped, 2 xfailed** |
+
+Os 139 skips do repositório público são os testes que dependem de balancete de
+cliente — ausente por design (`docs/DADOS_PRIVADOS.md`). Não é verde vazio: é
+verde declarado, e cada skip diz o motivo.
+
+### O que continua aberto
+
+Os **8 balancetes de cliente** rastreados em `src/bp/training/DFS_Exemple/`
+neste repositório (o privado). O `.gitignore` agora impede que **novos**
+entrem, mas `.gitignore` não desrastreia o que já está no índice, e o
+histórico guarda o que já foi commitado. Os três caminhos de remediação estão
+em `docs/DADOS_PRIVADOS.md`. O repositório público está limpo — a verificação
+é `git ls-files | grep -iE "\.(xlsx|xls|csv|pdf)$"`, que lá devolve só
+exemplos sintéticos, o template e o plano master.
+
+---
