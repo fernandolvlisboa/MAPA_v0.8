@@ -96,10 +96,13 @@ def autotestar() -> None:
         print(relatorio.read_text(encoding="utf-8"))
     if resultado.returncode != 0:
         raise SystemExit(
-            "O .exe NAO completou o pipeline. NAO DISTRIBUA este binario.\n"
+            "O autoteste do .exe NAO passou.\n"
             f"Relatorio: {relatorio}\n"
-            "Causa tipica: `excludes` do bp.spec tirando um modulo que uma "
-            "biblioteca carrega sozinha (foi o caso de pandas.plotting)."
+            "LEIA O RELATORIO ANTES DE CONCLUIR. Ele distingue dois casos:\n"
+            "  - 'O autoteste em si falhou' -> defeito do teste, nao do "
+            "binario;\n"
+            "  - qualquer etapa marcada FALHOU  -> ai sim, NAO DISTRIBUA.\n"
+            "Nao adivinhe a causa pela mensagem: o traceback do relatorio diz."
         )
 
 

@@ -2388,3 +2388,64 @@ ser versionado, se o workflow deixar de chamar o `build.py` ou o `pytest`, ou
 se o gatilho por tag sumir. O portão que só existe por convenção não é portão.
 
 ---
+
+## 25. O portão reprovou um binário bom — e o handle que ficou aberto
+
+O `build.py` recusou o `.exe` com "NAO DISTRIBUA". O relatório do usuário:
+
+```
+PermissionError: [WinError 32] O arquivo já está sendo usado por outro processo:
+  '...\Temp\tmpb0r3002f\autoteste_balancete.xlsx'
+  File "src\bp\app\autoteste.py", line 101, in executar
+    with tempfile.TemporaryDirectory() as tmp:
+```
+
+Leia onde estourou: **`__exit__`**. O pipeline inteiro tinha passado — ler,
+casar, projetar, escrever. O que falhou foi apagar a pasta temporária, depois
+de tudo dar certo. **O portão reprovou um binário correto por causa da faxina
+do próprio portão.**
+
+### O defeito de verdade, que estava embaixo
+
+O `WinError 32` não é capricho do Windows: alguém segurava o arquivo. Três
+lugares abriam `pd.ExcelFile(...)` e nunca fechavam:
+
+```python
+abas = pd.ExcelFile(self.file_path).sheet_names   # dispatcher, 2 sítios
+nomes = pd.ExcelFile(caminho).sheet_names          # abas.py
+```
+
+Sem `with`, o handle vive até o coletor de lixo passar. No Linux ninguém nota —
+apagar arquivo aberto é permitido. No Windows, **o balancete do cliente fica
+preso**: depois de processar, quem tentasse mover, renomear ou apagar o arquivo
+era barrado até fechar o programa. Nunca apareceu na suíte porque a suíte roda
+em Linux.
+
+O autoteste não causou o defeito. Ele foi o primeiro a exercitar o caminho num
+Windows e a exigir apagar o arquivo logo em seguida.
+
+### As duas correções
+
+1. **Os três `pd.ExcelFile` viram `with`.** É o bug do produto, e vale para
+   quem usa o programa, não só para o build.
+
+2. **`autoteste.executar()` nunca levanta.** Um portão que explode não reprova
+   o binário — impede que ele seja avaliado, e o build para sem dizer se o
+   programa funciona. Agora o corpo roda dentro de um `try`, e uma falha do
+   próprio teste devolve um relatório que diz, com todas as letras, que aquilo
+   *não é um veredito sobre o binário*. A pasta temporária usa
+   `ignore_cleanup_errors=True`: apagá-la nunca foi o que este teste verifica.
+
+### A regra que fica
+
+Já sabíamos que auditar o conteúdo do artefato não basta (§24). Agora: **um
+portão precisa distinguir "o que eu meço está ruim" de "eu quebrei"** — e dizer
+qual dos dois. Sem essa distinção, ele para a entrega com a mesma cara nos dois
+casos, e quem lê conclui a coisa errada sob pressão.
+
+Vale a pena registrar a coincidência: a mensagem que o build imprimiu sugeria
+`excludes` do `bp.spec` como causa típica. Era um palpite meu, escrito no §24,
+e apontava para o lugar errado. **Mensagem de erro que adivinha a causa atrasa
+quem está depurando** — o traceback já estava ali, e dizia outra coisa.
+
+---

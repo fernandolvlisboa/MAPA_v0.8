@@ -219,3 +219,71 @@ def test_o_workflow_de_release_existe_e_gateia_o_build():
     assert "contents: write" in texto, (
         "sem essa permissão o job não consegue criar a Release"
     )
+
+
+def test_o_autoteste_nunca_levanta():
+    """
+    Um portão que explode não reprova o binário — impede que ele seja avaliado.
+
+    Aconteceu: a limpeza da pasta temporária falhou no Windows (`WinError 32`,
+    arquivo em uso) DEPOIS de o pipeline ter passado inteiro. A exceção subiu,
+    e o `build.py` recusou um `.exe` correto dizendo "NAO DISTRIBUA".
+
+    Aqui o corpo é substituído por algo que estoura. O contrato é devolver
+    ``(False, texto)`` — nunca propagar.
+    """
+    from src.bp.app import autoteste
+
+    original = autoteste._executar
+    try:
+        def explodir():
+            raise RuntimeError("pane no meio do autoteste")
+
+        autoteste._executar = explodir
+        passou, relatorio = autoteste.executar()
+    finally:
+        autoteste._executar = original
+
+    assert passou is False
+    assert "pane no meio do autoteste" in relatorio
+    assert "defeito do próprio" in relatorio, (
+        "o relatório precisa distinguir 'o teste quebrou' de 'o binário é ruim'"
+    )
+
+
+def test_ler_abas_nao_deixa_o_arquivo_aberto(tmp_path):
+    """
+    No Windows, handle não fechado é `WinError 32` — o arquivo fica preso.
+
+    `pd.ExcelFile(...)` sem `with` mantinha o balancete do cliente aberto
+    depois de processado: quem tentasse mover, renomear ou apagar o arquivo
+    era barrado até fechar o programa.
+
+    O teste é o mais direto que existe: processa e depois APAGA. No Windows,
+    apagar arquivo aberto falha; no Linux passa sempre, então lá ele vale como
+    não-regressão de leitura.
+    """
+    from openpyxl import Workbook
+
+    from src.bp.parsers.abas import listar_abas
+    from src.bp.parsers.dispatcher import ParseyCaller
+
+    caminho = tmp_path / "duas abas.xlsx"
+    wb = Workbook()
+    for nome in ("Balancete 2024", "Balancete 2025"):
+        ws = wb.create_sheet(nome)
+        ws.append(["Conta", "Descrição", "Saldo"])
+        for codigo, desc, saldo in (
+            ("1", "ATIVO", 300.0), ("1.01", "CIRCULANTE", 300.0),
+            ("1.01.01", "Caixa", 100.0), ("1.01.02", "Bancos", 200.0),
+        ):
+            ws.append([codigo, desc, saldo])
+    del wb["Sheet"]
+    wb.save(caminho)
+    wb.close()
+
+    listar_abas(str(caminho))
+    ParseyCaller(str(caminho)).parse()
+
+    caminho.unlink()
+    assert not caminho.exists(), "o arquivo ficou preso por um handle aberto"

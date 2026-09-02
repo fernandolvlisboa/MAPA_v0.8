@@ -145,7 +145,10 @@ def listar_abas(
     if caminho.suffix.lower() not in EXTENSOES_COM_ABAS:
         return []
     try:
-        nomes = pd.ExcelFile(caminho).sheet_names
+        # `with`: ver a nota em dispatcher._aba_escolhida. Handle nao fechado
+        # segura o arquivo no Windows.
+        with pd.ExcelFile(caminho) as livro:
+            nomes = livro.sheet_names
     except Exception:
         return []
     if len(nomes) < 2:

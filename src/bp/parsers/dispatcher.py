@@ -510,7 +510,12 @@ class ParseyCaller:
         if self.file_path.suffix.lower() not in (".xlsx", ".xls"):
             return None
         try:
-            abas = pd.ExcelFile(self.file_path).sheet_names
+            # `with`: sem fechar, o handle do arquivo fica aberto ate o GC
+            # passar. No Windows isso e WinError 32 — "o arquivo ja esta sendo
+            # usado por outro processo" — e trava quem tentar mover, renomear
+            # ou apagar o balancete depois de processado. Ver §25.
+            with pd.ExcelFile(self.file_path) as livro:
+                abas = livro.sheet_names
         except Exception:
             return None
         if len(abas) < 2:
@@ -618,7 +623,12 @@ class ParseyCaller:
             return None
 
         try:
-            abas = pd.ExcelFile(self.file_path).sheet_names
+            # `with`: sem fechar, o handle do arquivo fica aberto ate o GC
+            # passar. No Windows isso e WinError 32 — "o arquivo ja esta sendo
+            # usado por outro processo" — e trava quem tentar mover, renomear
+            # ou apagar o balancete depois de processado. Ver §25.
+            with pd.ExcelFile(self.file_path) as livro:
+                abas = livro.sheet_names
         except Exception:
             return None
         if len(abas) < 2:

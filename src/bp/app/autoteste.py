@@ -72,9 +72,31 @@ def executar() -> tuple[bool, str]:
     """
     Roda o pipeline inteiro. Devolve ``(passou, relatório)``.
 
-    Não levanta: um autoteste que estoura sem explicar não serve para gatear
-    build nenhum. Todo erro vira texto.
+    **Nunca levanta.** Um autoteste que estoura não reprova o binário — ele
+    impede que qualquer binário seja avaliado, e o build para sem dizer se o
+    programa funciona. Foi o que aconteceu: a limpeza da pasta temporária
+    falhou no Windows depois de o pipeline ter passado, a exceção subiu, e o
+    `build.py` recusou um `.exe` correto dizendo "NAO DISTRIBUA".
+
+    A guarda é dupla: cada etapa trata o próprio erro, e ``_executar`` inteira
+    roda dentro de um ``try`` aqui. Todo erro vira texto.
     """
+    try:
+        return _executar()
+    except BaseException as exc:  # o portão não pode explodir: reprova com texto
+        import traceback
+
+        return False, (
+            "AUTOTESTE DO EXECUTÁVEL\n\n"
+            f"O autoteste em si falhou: {type(exc).__name__}: {exc}\n"
+            "Isto NÃO é um veredito sobre o binário — é defeito do próprio\n"
+            "teste. Leia o traceback abaixo antes de concluir qualquer coisa\n"
+            "sobre o .exe.\n\n" + traceback.format_exc()
+        )
+
+
+def _executar() -> tuple[bool, str]:
+    """O corpo do autoteste. Ver :func:`executar`."""
     linhas: list[str] = ["AUTOTESTE DO EXECUTÁVEL", ""]
 
     def anotar(rotulo: str, valor: object) -> None:
@@ -98,7 +120,11 @@ def executar() -> tuple[bool, str]:
         anotar("pandas", f"FALHOU: {type(exc).__name__}: {exc}")
         return False, "\n".join(linhas)
 
-    with tempfile.TemporaryDirectory() as tmp:
+    # `ignore_cleanup_errors`: apagar a pasta temporária NÃO é parte do que
+    # este teste verifica, e no Windows ela falhava — `WinError 32`, arquivo
+    # em uso — DEPOIS de o pipeline inteiro ter dado certo. O portão reprovava
+    # um binário bom por causa da faxina do próprio portão. Ver §25.
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         pasta = Path(tmp)
         try:
             origem = _escrever_balancete(pasta)
@@ -123,6 +149,7 @@ def executar() -> tuple[bool, str]:
 
         wb = load_workbook(saida)
         abas = set(wb.sheetnames)
+        wb.close()
         anotar("abas geradas", ", ".join(sorted(abas)))
         faltando = {"BP_GT", "DRE_GT", "_dados_padronizados"} - abas
         if faltando:
