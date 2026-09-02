@@ -1,231 +1,136 @@
-# Parsers — Módulo de Leitura de Balanços
+# 🧾 Parsers — os leitores de balancete
 
-Implementação completa de parsers para ler balanços patrimoniais em múltiplos formatos.
+> **Reuso natural:** qualquer automação que precise ler documento financeiro de cliente que vem em formato variado. Você não precisa de nada do resto do MAPA para usar só esta camada.
 
-## 📦 Parsers Disponíveis
+Todo parser recebe um caminho de arquivo e devolve **uma lista de dicionários uniforme**, independente do formato de origem:
 
-### 1. **ExcelParser** (`.xlsx`, `.xls`)
-Parser para arquivos Excel com detecção automática de colunas.
+```python
+[
+    {"codigo": "1.1.01", "descricao": "CAIXA", "saldo": 12345.67},
+    {"codigo": "1.1.02", "descricao": "BANCOS", "saldo": 98765.43},
+    ...
+]
+```
 
-**Características:**
-- ✅ Detecção automática de abas
-- ✅ Mapeamento inteligente de colunas (código, descrição, saldo, natureza)
-- ✅ Suporte para múltiplas abas
-- ✅ Tratamento de valores numéricos brasileiros (1.234,56)
+É esse contrato que faz o resto do sistema não se importar se o arquivo veio como `.xlsx`, `.pdf` ou `.txt` de largura fixa. E é ele que torna esta camada útil fora do MAPA.
 
-**Exemplo:**
+---
+
+## O caminho comum: `ParseyCaller`
+
+O jeito fácil de usar é o **dispatcher**: você entrega o caminho, ele descobre o parser certo, chama, e devolve o resultado.
+
+```python
+from src.bp.parsers.dispatcher import ParseyCaller
+
+contas = ParseyCaller("balancete_qualquer_formato.xlsx").parse()
+for c in contas:
+    print(c["codigo"], c["descricao"], c["saldo"])
+```
+
+O dispatcher olha a extensão e o conteúdo, escolhe entre os parsers concretos e ainda faz normalização numérica (vírgula-BR, negativos entre parênteses, milhares com ponto).
+
+---
+
+## Os parsers concretos
+
+Cada um lida com um formato específico. Todos herdam de `BaseParser` e implementam `.parse() -> ParseResult`.
+
+| Formato | Classe | Quando usa direto |
+|---|---|---|
+| `.xlsx` moderno | `ExcelParser` | quando você já sabe que é xlsx e quer controle da aba |
+| `.xls` legado | `XlsParser` | Excel 97-2003; usa COM no Windows quando disponível |
+| `.csv` | `CSVParser` | separador `;` ou `,`, com/sem preâmbulo |
+| `.txt` (largura fixa) | `TXTParser` | balancete "listagem" — colunas por coluna de caractere |
+| `.pdf` nativo | `PDFBalanceParser` | PDF com texto (não escaneado). Duas colunas ou coluna única. |
+
+Uso direto (quando você não quer o dispatcher):
+
 ```python
 from src.bp.parsers import ExcelParser
 
-parser = ExcelParser("balanco.xlsx")
-resultado = parser.parse()
-
-print(f"Total de contas: {len(resultado.contas)}")
-for conta in resultado.contas:
-    print(f"{conta['codigo']} - {conta['descricao']}: R$ {conta['saldo']}")
+r = ExcelParser("balancete.xlsx", aba="Balancete").parse()
+print(r.contas)      # lista de dicts
+print(r.metadata)    # {"origem": "...", "linhas_lidas": N, ...}
 ```
 
-### 2. **CSVParser** (`.csv`)
-Parser para arquivos CSV com auto-detecção de delimitador.
+---
 
-**Características:**
-- ✅ Auto-detecção de delimitador (`,`, `;`, `|`, tab)
-- ✅ Suporte para múltiplas codificações (UTF-8, Latin1, etc)
-- ✅ Mapeamento inteligente de colunas
-- ✅ Tratamento robusto de valores
-
-**Exemplo:**
-```python
-from src.bp.parsers import CSVParser
-
-parser = CSVParser("balanco.csv")  # Auto-detecta delimitador
-resultado = parser.parse()
-
-print(f"Delimitador: {resultado.metadata['delimiter']}")
-print(f"Total de contas: {len(resultado.contas)}")
-```
-
-### 3. **PDFParser** (`.pdf`)
-Parser para arquivos PDF usando extração de tabelas.
-
-**Características:**
-- ✅ Extração de tabelas com pdfplumber
-- ✅ Processamento de múltiplas páginas
-- ✅ Detecção automática de cabeçalhos
-- ✅ Suporte para páginas específicas
-
-**Exemplo:**
-```python
-from src.bp.parsers import PDFParser
-
-# Processar todas as páginas
-parser = PDFParser("balanco.pdf")
-
-# Ou páginas específicas
-parser = PDFParser("balanco.pdf", page_numbers=[0, 1, 2])
-
-resultado = parser.parse()
-print(f"Páginas processadas: {resultado.metadata['total_paginas']}")
-```
-
-### 4. **TXTParser** (`.txt`)
-Parser para arquivos texto estruturados.
-
-**Características:**
-- ✅ Auto-detecção de separador (tab, espaços, pipe, ponto-e-vírgula)
-- ✅ Suporte para colunas de largura fixa
-- ✅ Detecção automática de cabeçalhos
-- ✅ Robusto contra linhas mal formatadas
-
-**Exemplo:**
-```python
-from src.bp.parsers import TXTParser
-
-parser = TXTParser("balanco.txt")
-resultado = parser.parse()
-
-print(f"Tipo de separador: {resultado.metadata['separator_type']}")
-print(f"Total de contas: {len(resultado.contas)}")
-```
-
-## 🏗️ Arquitetura
-
-Todos os parsers herdam de `BaseParser` e implementam:
-
-- `validate()`: Valida se o arquivo é legível
-- `parse()`: Extrai contas e retorna `ParseResult`
-
-### Formato de Saída Padronizado
-
-Todos os parsers retornam objetos `ParseResult` com:
+## O contrato: `BaseParser` + `ParseResult`
 
 ```python
-{
-    "contas": [
-        {
-            "codigo": str,        # Código da conta (opcional)
-            "descricao": str,     # Descrição (obrigatório)
-            "saldo": float,       # Saldo/valor (opcional)
-            "natureza": str,      # "Devedora" ou "Credora" (opcional)
-            "tipo": str,          # "ATIVO", "PASSIVO", etc (opcional)
-            "fonte": str          # Nome do arquivo de origem
-        }
-    ],
-    "metadata": {
-        "fonte": str,
-        "caminho": str,
-        "tamanho_bytes": int,
-        "data_modificacao": str,
-        # ... metadados específicos de cada parser
-    }
-}
+class BaseParser(ABC):
+    def __init__(self, file_path: Path): ...
+
+    @abstractmethod
+    def parse(self) -> ParseResult:
+        """Devolve ParseResult(contas=[...], metadata={...})"""
 ```
 
-## 🧪 Testes
+**Cada conta** no `ParseResult.contas` tem estas chaves:
 
-Todos os parsers possuem testes completos:
+| Chave | Tipo | Sempre presente? |
+|---|---|---|
+| `codigo` | `str` — hierárquico (`"1.1.01"`) ou flat (`"CAIXA"` quando o arquivo não traz código) | sim |
+| `descricao` | `str` — descrição da conta, como o cliente escreveu | sim |
+| `saldo` | `float` ou `None` — valor numérico normalizado; `None` quando o parser não conseguiu ler | sim |
+| `natureza`, `tipo`, `nivel` | opcionais — quando o formato de origem traz | não |
 
-```bash
-# Executar testes dos parsers
-uv run pytest tests/test_parsers.py -v
+`saldo=None` é **diferente** de saldo zero. É o sinal para camadas de cima ("o parser viu a linha, mas não decifrou o número") — o exporter e a janela usam isso para avisar em vez de silenciar.
 
-# Executar todos os testes
-uv run pytest tests/ -v
-```
+---
 
-**Cobertura de Testes:**
-- ✅ 15 testes para parsers
-- ✅ Validação de arquivos
-- ✅ Parsing de contas
-- ✅ Detecção de delimitadores/separadores
-- ✅ Normalização de valores
-- ✅ Testes de integração
+## Estenda para um formato novo
 
-## 📊 Demonstração
-
-Execute o script de demonstração para ver todos os parsers em ação:
-
-```bash
-uv run python auxil/demo_parsers.py
-```
-
-## 🔧 Funcionalidades Comuns
-
-### Normalização de Saldos
-
-Todos os parsers normalizam valores automaticamente:
+Escrever um parser novo (`OFXParser`, `SAPExtratoParser`, o que for) é um exercício pequeno — e o dispatcher passa a aceitar o formato sozinho depois que ele é registrado.
 
 ```python
-# Formatos brasileiros
-"1.234,56"     → 1234.56
-"R$ 1.000,00"  → 1000.0
-"10.000,50"    → 10000.5
+# src/bp/parsers/meu_parser.py
+from .base_parser import BaseParser, ParseResult
 
-# Valores numéricos
-1234.56        → 1234.56
-0              → 0.0
-
-# Valores inválidos
-"abc"          → 0.0
-None           → 0.0
-""             → 0.0
+class MeuParser(BaseParser):
+    def parse(self) -> ParseResult:
+        contas = []
+        for linha in _abrir(self.file_path):   # sua leitura aqui
+            contas.append({
+                "codigo": linha.codigo,
+                "descricao": linha.descricao.strip(),
+                "saldo": _para_float(linha.valor),  # aceite None se não deu
+            })
+        return ParseResult(contas, metadata={"origem": self.file_path.name})
 ```
 
-### Detecção Inteligente de Colunas
+Depois é só ligar no dispatcher (`dispatcher.py` → `read()`/`parse()`) escolhendo pela extensão.
 
-Os parsers detectam automaticamente as colunas usando padrões:
+---
 
-| Tipo | Palavras-chave |
-|------|----------------|
-| **Código** | codigo, código, conta, cod, code |
-| **Descrição** | descricao, descrição, description, nome, name, titulo |
-| **Saldo** | saldo, valor, value, montante, total |
-| **Natureza** | natureza, tipo, d/c, dc |
+## Como reaproveitar fora do MAPA
 
-### Extração de Metadados
+Esta camada **não depende do resto do projeto**. Para levar para outra automação:
 
-Todos os parsers extraem automaticamente:
-- Nome do arquivo fonte
-- Caminho completo
-- Tamanho em bytes
-- Data de modificação
+1. Copie `src/bp/parsers/` inteiro (mais `src/bp/utils/numero.py`, que os parsers usam para normalizar valores).
+2. Instale as libs: `pandas`, `openpyxl`, `xlrd`, `pdfplumber`.
+3. Importe e use — a API de cima permanece a mesma.
 
-## 🚀 Próximos Passos
+Alguns casos onde essa camada vale sozinha:
 
-**Fase 4 (Próxima):** Matching + AI
-- Implementar FuzzyMatcher usando rapidfuzz
-- Integrar com PlanodeContas para classificação
-- Implementar fallback para API de AI
-- Sistema de confiança (auto_accept > 0.85, requery < 0.60)
+- **Accounting Advisory** — ler razão auxiliar em qualquer formato que o cliente mandar.
+- **Capital Markets** — extrair tabelas de laudos e DFPs de PDF nativo.
+- **Due Diligence** — normalizar planilhas de fluxo de caixa que vêm em mil layouts.
+- **Any-shape ingestion** — quando o "de-para" para um formato interno é o trabalho.
 
-**Fase 5:** CLI + Exporters + Validators
-- Interface de linha de comando
-- Exportadores (Excel, JSON, CSV)
-- Validadores de balanço
+---
 
-## 📝 Arquivos de Exemplo
+## Arquivos-chave
 
-Exemplos de balanços criados em `data/examples/`:
-- `balanco_exemplo.xlsx` - Excel
-- `balanco_exemplo.csv` - CSV com delimitador `;`
-- `balanco_exemplo.txt` - TXT com separação por tabs
+| Arquivo | Papel |
+|---|---|
+| `base_parser.py` | Contrato — `BaseParser`, `ParseResult` |
+| `dispatcher.py` | `ParseyCaller` — escolhe o parser certo por extensão/conteúdo |
+| `excel_parser.py`, `xls_parser.py` | Excel moderno e legado |
+| `csv_parser.py`, `txt_parser.py` | Delimitados e largura fixa |
+| `pdf_balance_parser.py`, `pdf_utils/` | PDF nativo (extração por texto) + utilitários OCR (opcional) |
+| `financial_statement_parser.py` | DFs completas (BP + DRE) em PDF/xlsx |
+| `registro.py` | Modelo intermediário compartilhado |
 
-Execute para recriar:
-```bash
-uv run python data/examples/create_parser_samples.py
-```
-
-## ✅ Status da Fase 3
-
-- ✅ BaseParser (interface abstrata)
-- ✅ ExcelParser (pandas)
-- ✅ CSVParser (auto-detect delimiter)
-- ✅ PDFParser (pdfplumber)
-- ✅ TXTParser (multi-format)
-- ✅ Testes completos (15 testes)
-- ✅ Arquivos de exemplo
-- ✅ Script de demonstração
-- ✅ Documentação
-
-**Total de Linhas de Código:** ~1.200 linhas
-**Testes Passando:** 28/28 ✅
+Testes: [`tests/test_parsers.py`](../../../tests/test_parsers.py), [`tests/test_dispatcher_roteamento.py`](../../../tests/test_dispatcher_roteamento.py), [`tests/test_pdf_balance.py`](../../../tests/test_pdf_balance.py).
