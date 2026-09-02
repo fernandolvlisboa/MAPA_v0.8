@@ -112,8 +112,16 @@ if not _tkdnd_raiz.is_dir():
         "incompleto. Reinstale com `uv sync`."
     )
 
+def _destino_no_bundle(_arq):
+    # `relative_to` devolve "." para arquivo na raiz de tkdnd/; normalizar
+    # aqui evita um destino "tkinterdnd2/tkdnd/." no manifesto.
+    _rel = _arq.parent.relative_to(_tkdnd_raiz)
+    _base = Path("tkinterdnd2/tkdnd")
+    return str(_base if str(_rel) == "." else _base / _rel)
+
+
 _tkdnd_datas = [
-    (str(_arq), str(Path("tkinterdnd2/tkdnd") / _arq.parent.relative_to(_tkdnd_raiz)))
+    (str(_arq), _destino_no_bundle(_arq))
     for _arq in sorted(_tkdnd_raiz.rglob("*"))
     if _arq.is_file()
 ]

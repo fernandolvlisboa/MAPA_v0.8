@@ -442,3 +442,43 @@ def test_falha_do_tkdnd_vira_motivo_legivel(monkeypatch):
 def test_sem_backend_nao_registra_alvo():
     """Não-vacuidade: sem backend, registrar_alvo é honesto e devolve False."""
     assert dnd.registrar_alvo(object(), dnd.SEM_SUPORTE, lambda _p: None) is False
+
+
+def test_relatorio_de_diagnostico_responde_as_perguntas_do_tkdnd():
+    """
+    O relatório que se pede a quem diz "não funciona".
+
+    Não afirma que o arrastar-e-soltar funciona — afirma que o relatório
+    **pergunta as coisas certas**: se está empacotado, onde o tkinterdnd2 mora,
+    se a pasta `tkdnd` existe, e qual variante de plataforma esta máquina
+    espera. Sem isso, um `.exe` `console=False` que falha não deixa pista
+    nenhuma, que foi como a v0.8 circulou quebrada.
+    """
+    from src.bp.app import diagnostico
+
+    texto = diagnostico.relatorio()
+    for pergunta in (
+        "empacotado (frozen)",
+        "pasta esperada nesta máquina",
+        "pasta tkdnd/",
+        "TENTATIVA REAL",
+    ):
+        assert pergunta in texto, f"o relatório não responde: {pergunta}"
+
+
+def test_relatorio_nao_vaza_dado_de_balancete(tmp_path, monkeypatch):
+    """
+    O relatório é para circular por e-mail — não pode levar nome de cliente.
+
+    Só caminhos de instalação e versões. A checagem é grosseira de propósito:
+    se um dia alguém acrescentar a lista de arquivos processados aqui, este
+    teste reclama.
+    """
+    from src.bp.app import diagnostico
+
+    monkeypatch.chdir(tmp_path)
+    destino = diagnostico.escrever()
+    texto = destino.read_text(encoding="utf-8").lower()
+    assert destino.name == diagnostico.ARQUIVO
+    for proibido in ("balancete", "balanço", "dfs_exemple", ".xlsx"):
+        assert proibido not in texto, f"o relatório vazou {proibido!r}"

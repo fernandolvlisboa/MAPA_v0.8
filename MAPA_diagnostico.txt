@@ -1,0 +1,25 @@
+RELATÓRIO DE DIAGNÓSTICO — MAPA
+
+== AMBIENTE ==
+executável                         /home/user/mapa_v0.8/.venv/bin/python3
+empacotado (frozen)                False
+_MEIPASS                           (não aplicável — rodando da fonte)
+python                             3.13.12
+sistema                            Linux 6.18.44-fc-v22
+platform.machine()                 x86_64
+PROCESSOR_ARCHITECTURE             (não definida)
+BP_SEM_DND                         (não definida)
+rodando como administrador         (só se aplica a Windows)
+
+== A EXTENSÃO tkdnd (arrastar-e-soltar) ==
+pasta esperada nesta máquina       linux-x64
+tkinterdnd2 em                     /home/user/mapa_v0.8/.venv/lib/python3.13/site-packages/tkinterdnd2
+pasta tkdnd/                       /home/user/mapa_v0.8/.venv/lib/python3.13/site-packages/tkinterdnd2/tkdnd  ->  existe=True
+variantes embarcadas               linux-arm64, linux-arm64-tcl9, linux-x64, linux-x64-tcl9, osx-arm64, osx-arm64-tcl9, osx-x64, win-arm64, win-x64, win-x64-tcl9, win-x86, win-x86-tcl9
+  linux-x64                        9 arquivo(s) | pkgIndex.tcl=True | nativa=['libtkdnd2.10.1.so']
+  linux-x64-tcl9                   9 arquivo(s) | pkgIndex.tcl=True | nativa=['libtcl9tkdnd2.10.1.so']
+
+== TENTATIVA REAL ==
+tkinter                            FALHOU: ModuleNotFoundError: No module named 'tkinter'
+
+Mande este arquivo inteiro para quem for analisar. Só há aqui caminhos de instalação e versões — nenhum dado de cliente.
