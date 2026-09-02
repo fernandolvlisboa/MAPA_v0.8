@@ -56,7 +56,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from conftest import CORPUS_DIR, corpus_disponivel
+from conftest import CORPUS_DIR, corpus_disponivel, require_corpus_file
 from openpyxl import load_workbook
 
 from src.bp.output.build_gt_output import (
@@ -127,8 +127,15 @@ def _conferir(caminho: Path) -> str:
         )
         return "sem-totalizador"
 
-    integra = bool(resultado.hierarquia and resultado.hierarquia.rollup_integro)
-    if not integra:
+    # "rollup íntegro" exige DUAS coisas: existir árvore E ela fechar. Só a
+    # segunda produz o aviso "BALANCETE DE ORIGEM não fecha". Um balancete SEM
+    # árvore (JRMA vem de CSV plano, sem código hierárquico) tem rollup_integro
+    # falso por vacuidade — não porque a origem esteja quebrada — e é conferido
+    # pelos TOTAIS, não pelo rollup. Exigir dele a mensagem do rollup era o bug:
+    # ele avisa, e avisa alto ("TOTAL DA ENTREGA NÃO BATE"), só que por outro
+    # caminho. A invariante real é uma só: entrega inconsistente TEM de avisar.
+    tem_arvore = bool(resultado.hierarquia and resultado.hierarquia.tem_hierarquia)
+    if tem_arvore and not resultado.hierarquia.rollup_integro:
         assert any("BALANCETE DE ORIGEM não fecha" in a for a in resultado.avisos), (
             f"{caminho.name}: a origem não fecha e a entrega não avisa. "
             "Entregar sem dizer que o insumo está quebrado é o pior caso."
@@ -138,13 +145,26 @@ def _conferir(caminho: Path) -> str:
     residuos = _residuos(resultado)
     assert residuos, f"{caminho.name}: nenhuma classe conferida"
     piores = {c: r for c, r in residuos.items() if abs(r) > TOLERANCIA}
-    assert not piores, (
-        f"{caminho.name}: o total da entrega não é o total do balancete.\n"
-        + "\n".join(f"  {c}" for c in resultado.entrega.conferencias)
-        + f"\n  resíduo por classe (entrega - origem + |não coberto|): {piores}\n"
-        "  Resíduo diferente de zero é valor inventado ou perdido — não é "
-        "conta sem destino, essas já entram no 'não coberto'."
-    )
+    if piores:
+        # Resíduo != 0 é valor inventado ou perdido. Num balancete bem-formado
+        # isso é bug do exportador e não pode acontecer calado. Mas um balancete
+        # que o programa não soube ler direito (CSV plano sem hierarquia, plano
+        # exótico) diverge de verdade — e aí a regra é a do §26: pode divergir,
+        # nunca em silêncio. Se a entrega AVISA que não bate, é diverge honesto;
+        # se não avisa, é o pior caso e falha.
+        avisou = any(
+            "NÃO BATE COM A ORIGEM" in a or "NÃO FOI CONFERIDO" in a
+            for a in resultado.avisos
+        )
+        assert avisou, (
+            f"{caminho.name}: o total da entrega não é o total do balancete "
+            "E A ENTREGA NÃO AVISA.\n"
+            + "\n".join(f"  {c}" for c in resultado.entrega.conferencias)
+            + f"\n  resíduo por classe (entrega - origem + |não coberto|): {piores}\n"
+            "  Resíduo diferente de zero sem aviso é valor inventado ou perdido "
+            "em silêncio — o pior caso."
+        )
+        return "entrega-diverge"
     return "conferido"
 
 
@@ -701,3 +721,72 @@ def test_origem_de_natureza_implicita_continua_usando_o_rotulo_da_linha():
         projector=TemplateProjector(), orientacao={},
     )
     assert despesa == pytest.approx(-50.0)
+
+
+# ============================================================================
+# 5. Entrega que não pôde ser conferida tem de DIZER isso (§26)
+# ============================================================================
+
+
+def test_entrega_sem_conferencia_avisa_alto(tmp_path):
+    """
+    Um balancete sem código hierárquico gera entrega, mas não pode ser conferido
+    contra a origem: não há totalizador de classe para comparar. O perigo é a
+    saída ter cara de perfeita — ``captura_integra`` verdadeiro, zero alertas —
+    escondendo que o balanço nunca foi checado.
+
+    Era o caso do "Balancete Real Life": 96 linhas escritas, nenhuma palavra de
+    que o total não fora verificado. O único caso em que o programa mentia por
+    omissão.
+
+    Aqui, um balancete propositalmente SEM árvore (descrição no lugar do código)
+    tem de sair carregando o aviso de que não foi conferido.
+    """
+    from openpyxl import Workbook
+
+    from src.bp.output.build_gt_output import build_gt_output
+
+    origem = tmp_path / "sem_arvore.xlsx"
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["Descrição da conta", "Saldo"])
+    # Sem coluna de código: o dispatcher cai para description-first e o
+    # relatório de hierarquia fica vazio — exatamente o gatilho da conferência
+    # que não roda.
+    for desc, saldo in (
+        ("Caixa e equivalentes", 1000.0),
+        ("Clientes", 2000.0),
+        ("Fornecedores", -1500.0),
+        ("Capital social", -1500.0),
+    ):
+        ws.append([desc, saldo])
+    wb.save(origem)
+
+    r = build_gt_output(origem, tmp_path / "saida.xlsx", ano_base=2024)
+
+    assert not r.entrega.conferivel, (
+        "o teste seria vacuoso: este balancete deveria ser inconferível"
+    )
+    assert any("NÃO FOI CONFERIDO" in a for a in r.avisos), (
+        "entrega inconferível saiu SEM avisar — é o defeito do Real Life, em "
+        f"que a saída parecia perfeita. Avisos: {r.avisos}"
+    )
+
+
+def test_entrega_conferida_nao_ganha_aviso_falso():
+    """
+    Não-vacuidade do lado oposto: um balancete que CONFERE não pode passar a
+    carregar o aviso de 'não conferido'. Sem esta trava, a mensagem viraria
+    ruído em toda entrega e ninguém mais leria os avisos.
+    """
+    caminho = require_corpus_file("Balancete SPEZZIA TUBOS 01012024-31122024.xls")
+    import tempfile
+
+    from src.bp.output.build_gt_output import build_gt_output
+
+    with tempfile.TemporaryDirectory() as tmp:
+        r = build_gt_output(caminho, f"{tmp}/s.xlsx", ano_base=2024)
+    assert r.entrega.conferivel, "controle mudou: SPEZZIA deveria conferir"
+    assert not any("NÃO FOI CONFERIDO" in a for a in r.avisos), (
+        f"balancete conferível ganhou aviso falso de não-conferido: {r.avisos}"
+    )

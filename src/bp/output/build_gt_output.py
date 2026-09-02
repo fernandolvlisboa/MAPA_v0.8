@@ -526,6 +526,17 @@ def build_gt_output(
                 f"TOTAL DA ENTREGA NÃO BATE COM A ORIGEM — {divergente}. "
                 f"O número que o cliente lê está errado; não use esta saída."
             )
+    elif not result.entrega.conferivel:
+        # A entrega saiu SEM ser conferida contra a origem. Sem este aviso, o
+        # arquivo tinha cara de perfeito — captura_integra=True, zero alertas —
+        # e ninguém sabia que o balanço nunca foi checado. Era o único caso em
+        # que o programa mentia por omissão: o balancete Real Life saía com 96
+        # linhas e nenhuma palavra de que o total não fora verificado. Ver §26.
+        result.avisos.append(
+            "O TOTAL DA ENTREGA NÃO FOI CONFERIDO contra a origem "
+            f"({result.entrega.motivo_nao_conferido}). Não há garantia de que o "
+            "Ativo entregue é o Ativo do balancete — confira à mão antes de usar."
+        )
 
     # E a mesma conferência do outro lado. O Balanço pode fechar com a DRE
     # inteira errada: uma receita que entra como custo não move o Ativo.
@@ -544,6 +555,11 @@ def build_gt_output(
                 f"A DRE NÃO BATE COM A ORIGEM — {divergente}. O Balanço pode "
                 f"estar fechando com a DRE errada; confira antes de usar."
             )
+    elif not result.dre.conferivel:
+        result.avisos.append(
+            "A DRE NÃO FOI CONFERIDA contra a origem "
+            f"({result.dre.motivo_nao_conferido}). Confira o resultado à mão."
+        )
 
     # 7. Cópia do balancete de origem — rastreio.
     #    Sem ela, responder "de onde saiu este número?" exige reencontrar, meses

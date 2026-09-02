@@ -2449,3 +2449,56 @@ e apontava para o lugar errado. **Mensagem de erro que adivinha a causa atrasa
 quem está depurando** — o traceback já estava ali, e dizia outra coisa.
 
 ---
+
+## 26. A entrega que saía limpa sem ter sido conferida
+
+Medindo o corpus inteiro (COM e SEM o aprendizado, para responder se o cache
+generaliza), apareceu um defeito pior que o da pergunta: **três balancetes
+entregavam sem conferir nada, e um deles saía com cara de perfeito.**
+
+`Balancete Real Life`: 96 linhas escritas, `captura_integra` verdadeiro, zero
+avisos. Nenhuma palavra de que o balanço nunca fora checado. O motivo é
+legítimo — o arquivo não traz código hierárquico (a hierarquia é por
+indentação), então não há totalizador de classe para comparar —, mas o
+silêncio não é: quem recebe lê uma entrega que parece validada.
+
+Era o único caso em que o programa mentia por omissão. É o oposto exato da
+regra que o próprio cliente formulou: *"entrega sem conferência é o único caso
+em que o programa mente."*
+
+### A correção (Fix A, universal)
+
+Quando `conferir_totais` ou `conferir_dre` não conseguem rodar
+(`conferivel=False`), a entrega passa a carregar um aviso alto:
+
+> O TOTAL DA ENTREGA NÃO FOI CONFERIDO contra a origem (…). Não há garantia de
+> que o Ativo entregue é o Ativo do balancete — confira à mão antes de usar.
+
+Vale para todos os balancetes inconferíveis, não só os três. Um balancete que
+CONFERE não ganha o aviso — testado dos dois lados para a mensagem não virar
+ruído.
+
+### O teste que estava errado junto
+
+O harness de amostra aleatória exigia o aviso "BALANCETE DE ORIGEM não fecha"
+sempre que `rollup_integro` fosse falso. Mas `rollup_integro` é falso por
+**dois** motivos: a árvore diverge, ou não há árvore. O `Balancete JRMA`, um
+CSV plano sem hierarquia, caía no segundo caso — e ele avisa, alto, por outro
+caminho ("TOTAL DA ENTREGA NÃO BATE"). O teste falhava só em certas sementes,
+escondido atrás do `BP_SEED` fixo.
+
+A invariante correta é uma só, e agora é ela que o teste exige: **entrega
+inconsistente tem de avisar — por qualquer mecanismo aplicável — nunca em
+silêncio.** Resíduo diferente de zero acompanhado de aviso é divergência
+honesta; sem aviso, é valor inventado ou perdido calado, e continua sendo o
+pior caso.
+
+### O que isto não resolve
+
+Avisar que não conferiu é honestidade, não capacidade. Os três arquivos
+continuam entregando sem conferência de verdade, cada um por um motivo
+diferente — Real Life (hierarquia por indentação), mlb bal ecd (plano flat sem
+totalizador), 2024-Ultimo.csv (coluna de saldo não lida). Fazê-los conferir é
+trabalho de parser, tratado a seguir, um de cada vez e medido.
+
+---
