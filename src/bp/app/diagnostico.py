@@ -204,6 +204,15 @@ def _secao_tentativa() -> list[str]:
     raiz2, backend = dnd.criar_root()
     try:
         saida.append(_linha("dnd.criar_root() backend", backend or "(nenhum)"))
+        # Carregar a biblioteca e REGISTRAR o alvo são passos distintos. O
+        # segundo é o que faz a janela realmente aceitar arquivo, e ele pode
+        # falhar sozinho — foi o ponto cego da primeira versão deste relatório.
+        recebidos: list = []
+        zona = tk.Canvas(raiz2, width=10, height=10)
+        registrou_zona = dnd.registrar_alvo(zona, backend, recebidos.append)
+        registrou_raiz = dnd.registrar_alvo(raiz2, backend, recebidos.append)
+        saida.append(_linha("registrar_alvo(Canvas)", "OK" if registrou_zona else "FALHOU"))
+        saida.append(_linha("registrar_alvo(janela)", "OK" if registrou_raiz else "FALHOU"))
         saida.append(_linha("dnd.diagnostico()", dnd.diagnostico() or "(sem queixa)"))
     finally:
         raiz2.destroy()

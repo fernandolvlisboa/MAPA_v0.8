@@ -101,6 +101,8 @@ def registrar_alvo(
     ``ao_soltar`` recebe já a lista de :class:`~pathlib.Path` — a tela não vê
     o formato de string de cada backend.
     """
+    global motivo_indisponivel
+
     if backend == "tkinterdnd2":
         try:
             from tkinterdnd2 import DND_FILES
@@ -108,7 +110,14 @@ def registrar_alvo(
             widget.drop_target_register(DND_FILES)
             widget.dnd_bind("<<Drop>>", lambda e: ao_soltar(caminhos_do_drop(e.data)))
             return True
-        except Exception:
+        except Exception as exc:
+            # Carregar a biblioteca e REGISTRAR o alvo são passos distintos, e
+            # o segundo falhava calado: `criar_root` dizia "sem queixa" e o
+            # arrastar continuava morto. O motivo tem de sobreviver aos dois.
+            motivo_indisponivel = (
+                f"tkdnd carregou, mas drop_target_register falhou em "
+                f"{type(widget).__name__}: {type(exc).__name__}: {exc}"
+            )
             return False
 
     if backend == "windnd":
@@ -123,7 +132,10 @@ def registrar_alvo(
                 ),
             )
             return True
-        except Exception:
+        except Exception as exc:
+            motivo_indisponivel = (
+                f"windnd.hook_dropfiles falhou: {type(exc).__name__}: {exc}"
+            )
             return False
 
     return False

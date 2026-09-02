@@ -20,10 +20,13 @@ a planilha que ele entrega.
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import queue
+import sys
 import threading
 import tkinter as tk
+from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, ttk
 from tkinter import font as tkfont
@@ -85,6 +88,7 @@ class AplicacaoBP:
 
     def __init__(self) -> None:
         self.root, self.backend_dnd = dnd.criar_root()
+        self.root.report_callback_exception = self._erro_em_callback
         self.fonte = _fonte_base()
 
         self.entradas: list[Entrada] = []
@@ -213,6 +217,8 @@ class AplicacaoBP:
         aceitou = dnd.registrar_alvo(self.zona, self.backend_dnd, self._receber_drop)
         self.dnd_ativo = aceitou
         if aceitou:
+            # A janela inteira também aceita: soltar dois centímetros fora da
+            # zona tracejada é o erro mais comum de quem usa pela primeira vez.
             dnd.registrar_alvo(self.root, self.backend_dnd, self._receber_drop)
 
         lista_cartao = ttk.Frame(pai, style="Cartao.TFrame", padding=(2, 2))
@@ -392,14 +398,34 @@ class AplicacaoBP:
             self._adicionar([Path(p) for p in escolhidos])
 
     def _receber_drop(self, caminhos: list[Path]) -> None:
+        """
+        Devolve **imediatamente** e faz o trabalho no próximo ciclo do Tk.
+
+        Não é otimização, é correção. O ``<<Drop>>`` roda dentro da operação
+        OLE do Windows: enquanto o callback não retorna, o Explorer — a origem
+        do arrasto — fica bloqueado esperando. E o que este handler chamava
+        direto era ``_adicionar``, que lê o arquivo inteiro para diagnosticar
+        as abas e pode abrir um ``Toplevel`` com ``grab_set()``. Modal dentro
+        do drop, com a origem travada, é receita de janela que não aparece e
+        arquivo que não entra — sem erro nenhum, porque o build é
+        ``console=False``.
+
+        ``after(1, ...)`` encerra o drop primeiro; o resto acontece com a
+        janela já livre.
+        """
         self._desenhar_zona(realce=False)
+        self._anotar(f"drop: {len(caminhos)} item(ns) -> {[str(c) for c in caminhos]}")
         if not caminhos:
             self.var_recado.set(dnd.AVISO_SEM_CAMINHO)
             return
-        self._adicionar(caminhos)
+        self.var_recado.set(f"Lendo {len(caminhos)} arquivo(s)...")
+        self.root.after(1, lambda: self._adicionar(caminhos))
 
     def _adicionar(self, caminhos: list[Path]) -> None:
         aceitos, recusados = service.selecionar(caminhos)
+        self._anotar(
+            f"selecionar: {len(aceitos)} aceito(s), {len(recusados)} recusado(s)"
+        )
         ja_tem = {(e.path, e.aba) for e in self.entradas}
 
         novos: list[service.Entrada] = []
@@ -407,8 +433,18 @@ class AplicacaoBP:
             # Pasta de trabalho traz vários exercícios em abas — ou já vem
             # consolidada pela empresa, com o balanço numa aba qualquer.
             # Escolher por conta própria seria palpite: quem decide é o analista.
-            diagnostico = service.diagnosticar_arquivo(aceito.path)
-            if diagnostico.abas:
+            try:
+                diagnostico = service.diagnosticar_arquivo(aceito.path)
+            except Exception as exc:
+                # Inspecionar abas é conveniência: falhar aqui não pode custar
+                # o arquivo. Sem o diagnóstico, segue como planilha de aba
+                # única — que é o caso da esmagadora maioria dos balancetes.
+                self.var_recado.set(
+                    f"Não consegui inspecionar as abas de {aceito.path.name} "
+                    f"({type(exc).__name__}); seguindo com a primeira."
+                )
+                diagnostico = None
+            if diagnostico is not None and diagnostico.abas:
                 escolhidas = self._perguntar_abas(aceito.path, diagnostico)
             else:
                 escolhidas = [None]
@@ -418,6 +454,7 @@ class AplicacaoBP:
                     ja_tem.add((candidata.path, candidata.aba))
                     novos.append(candidata)
         self.entradas.extend(novos)
+        self._anotar(f"adicionadas {len(novos)} entrada(s); total {len(self.entradas)}")
 
         if not self.var_cliente.get().strip():
             palpite = service.cliente_do_nome([e.path for e in self.entradas])
@@ -797,6 +834,69 @@ class AplicacaoBP:
         self.root.after(80, self._ler_fila)
 
     # -- preferências -------------------------------------------------------
+
+    def _erro_em_callback(self, tipo, valor, tb) -> None:
+        """
+        Erro dentro de um callback do Tk vira mensagem — não silêncio.
+
+        O padrão do Tkinter escreve o traceback em ``sys.stderr``. Num
+        executável ``console=False`` **não existe** ``sys.stderr``: a impressão
+        falha, o Tcl engole, e o programa segue como se nada tivesse
+        acontecido. Foi assim que um erro no caminho do arrastar-e-soltar
+        virou "o programa não traz o arquivo".
+
+        Aqui o erro aparece na barra de recado, vai para um arquivo de log ao
+        lado do executável, e — por ser coisa que o usuário precisa ver — abre
+        uma caixa de diálogo.
+        """
+        import traceback
+
+        texto = "".join(traceback.format_exception(tipo, valor, tb))
+        resumo = f"{tipo.__name__}: {valor}"
+
+        with contextlib.suppress(Exception):
+            self.var_recado.set(f"Erro: {resumo}")
+
+        destino = None
+        with contextlib.suppress(Exception):
+            destino = self._arquivo_de_log()
+            with destino.open("a", encoding="utf-8") as saida:
+                saida.write(f"\n--- {datetime.now():%Y-%m-%d %H:%M:%S} ---\n")
+                saida.write(texto)
+
+        with contextlib.suppress(Exception):
+            from tkinter import messagebox
+
+            messagebox.showerror(
+                "MAPA — erro",
+                f"{resumo}\n\n"
+                + (f"Detalhes em:\n{destino}" if destino else "")
+                + "\n\nO programa continua aberto; se o erro se repetir, "
+                "mande o arquivo de log.",
+            )
+
+    def _anotar(self, mensagem: str) -> None:
+        """
+        Uma linha no log, para o caminho que a gente não consegue ver rodar.
+
+        O arrastar-e-soltar é o único ponto do programa que depende do sistema
+        operacional e que nenhum teste alcança de verdade. Quando ele falha na
+        máquina de outra pessoa, não há terminal, não há traceback e a única
+        informação disponível é "não funciona". Estas linhas custam microssegundos
+        e transformam a próxima rodada de diagnóstico em leitura de arquivo.
+        """
+        with (
+            contextlib.suppress(Exception),
+            self._arquivo_de_log().open("a", encoding="utf-8") as saida,
+        ):
+            saida.write(f"{datetime.now():%H:%M:%S} {mensagem}\n")
+
+    @staticmethod
+    def _arquivo_de_log() -> Path:
+        """Ao lado do executável quando empacotado; no diretório atual se fonte."""
+        if getattr(sys, "frozen", False):
+            return Path(sys.executable).resolve().parent / "MAPA_erros.log"
+        return Path.cwd() / "MAPA_erros.log"
 
     def _pasta_saida_inicial(self) -> Path:
         from ..utils.json_store import load_json

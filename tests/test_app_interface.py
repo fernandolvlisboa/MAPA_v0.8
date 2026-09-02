@@ -383,6 +383,43 @@ _TEM_TK = importlib.util.find_spec("tkinter") is not None
 requer_tk = pytest.mark.skipif(not _TEM_TK, reason="tkinter ausente (apt install python3-tk)")
 
 
+def carregar_ui():
+    """
+    Importa ``app.ui`` mesmo onde não há Tk instalado.
+
+    ``ui.py`` faz ``import tkinter`` no topo, e num Linux sem ``python3-tk``
+    isso barra a importação inteira — inclusive dos trechos que são Python
+    puro. Como os testes de despacho do drop e de tratamento de erro NÃO tocam
+    Tk nenhum (chamam os métodos com um objeto de mentira), vale plantar um
+    módulo vazio para que eles rodem em qualquer lugar.
+
+    Onde o Tk existe de verdade, nada é plantado — o import é o real.
+    """
+    if _TEM_TK:
+        from src.bp.app import ui
+
+        return ui
+
+    import sys as _sys
+    from unittest.mock import MagicMock
+
+    plantados = [
+        n for n in ("tkinter", "tkinter.ttk", "tkinter.filedialog", "tkinter.font",
+                    "tkinter.messagebox")
+        if n not in _sys.modules
+    ]
+    for nome in plantados:
+        _sys.modules[nome] = MagicMock()
+    try:
+        from src.bp.app import ui
+
+        return ui
+    finally:
+        for nome in plantados:
+            _sys.modules.pop(nome, None)
+        _sys.modules.pop("src.bp.app.ui", None)
+
+
 def test_diagnostico_vazio_antes_de_tentar():
     """Sem tentativa, não há queixa a fazer."""
     dnd.motivo_indisponivel = ""
@@ -482,3 +519,112 @@ def test_relatorio_nao_vaza_dado_de_balancete(tmp_path, monkeypatch):
     assert destino.name == diagnostico.ARQUIVO
     for proibido in ("balancete", "balanço", "dfs_exemple", ".xlsx"):
         assert proibido not in texto, f"o relatório vazou {proibido!r}"
+
+
+def test_drop_devolve_na_hora_e_adia_o_trabalho(tmp_path):
+    """
+    O ``<<Drop>>`` não pode fazer trabalho pesado — nem abrir modal.
+
+    Ele roda dentro da operação OLE do Windows: enquanto o callback não
+    retorna, o Explorer fica bloqueado esperando. O handler chamava
+    ``_adicionar`` direto, que lê o arquivo inteiro para diagnosticar as abas e
+    pode abrir um ``Toplevel`` com ``grab_set()``. Modal dentro do drop, com a
+    origem travada, é janela que não aparece e arquivo que não entra — e
+    calado, porque o build é ``console=False``.
+
+    O teste não simula o Windows: afirma a propriedade que evita o problema —
+    ``_receber_drop`` agenda, não executa.
+    """
+    AplicacaoBP = carregar_ui().AplicacaoBP
+
+    agendados: list = []
+    chamou_adicionar: list = []
+
+    log = tmp_path / "MAPA_erros.log"
+
+    class _Falsa:
+        var_recado = type("V", (), {"set": staticmethod(lambda _t: None)})()
+        root = type("R", (), {"after": staticmethod(
+            lambda _ms, fn: agendados.append(fn))})()
+        # Métodos reais: o registro no log faz parte do caminho do drop.
+        _anotar = AplicacaoBP._anotar
+        _arquivo_de_log = staticmethod(lambda: log)
+
+        def _desenhar_zona(self, realce=False):
+            pass
+
+        def _adicionar(self, caminhos):
+            chamou_adicionar.append(caminhos)
+
+    falsa = _Falsa()
+    caminhos = [Path("qualquer.xlsx")]
+    AplicacaoBP._receber_drop(falsa, caminhos)
+
+    assert not chamou_adicionar, (
+        "_adicionar foi chamado DENTRO do callback do drop — é o que trava o "
+        "Explorer e engole o arquivo"
+    )
+    assert len(agendados) == 1, "o trabalho não foi agendado para depois do drop"
+
+    agendados[0]()  # o Tk chamaria isto no próximo ciclo
+    assert chamou_adicionar == [caminhos], "o trabalho agendado não roda"
+
+    # E o drop deixou rastro: é o que responde "chegou a acontecer?" quando
+    # alguém relata que arrastar não traz nada.
+    assert "qualquer.xlsx" in log.read_text(encoding="utf-8")
+
+
+def test_drop_vazio_avisa_e_nao_agenda_nada():
+    """Não-vacuidade: anexo do Outlook (sem caminho) continua avisando."""
+    from src.bp.app import dnd as _dnd
+
+    AplicacaoBP = carregar_ui().AplicacaoBP
+
+    recados: list[str] = []
+    agendados: list = []
+
+    class _Falsa:
+        var_recado = type("V", (), {"set": staticmethod(recados.append)})()
+        root = type("R", (), {"after": staticmethod(
+            lambda _ms, fn: agendados.append(fn))})()
+        _anotar = staticmethod(lambda _m: None)
+
+        def _desenhar_zona(self, realce=False):
+            pass
+
+    AplicacaoBP._receber_drop(_Falsa(), [])
+    assert recados == [_dnd.AVISO_SEM_CAMINHO]
+    assert not agendados
+
+
+def test_erro_em_callback_vira_mensagem_e_log(tmp_path, monkeypatch):
+    """
+    Erro dentro de callback do Tk não pode sumir.
+
+    O padrão do Tkinter escreve o traceback em ``sys.stderr``, que num
+    executável ``console=False`` **não existe**: a impressão falha, o Tcl
+    engole, e o programa segue como se nada tivesse acontecido.
+    """
+    AplicacaoBP = carregar_ui().AplicacaoBP
+
+    recados: list[str] = []
+    log = tmp_path / "MAPA_erros.log"
+
+    class _Falsa:
+        var_recado = type("V", (), {"set": staticmethod(recados.append)})()
+
+        @staticmethod
+        def _arquivo_de_log():
+            return log
+
+    try:
+        raise ValueError("estouro de teste")
+    except ValueError:
+        import sys as _sys
+
+        AplicacaoBP._erro_em_callback(_Falsa(), *_sys.exc_info())
+
+    assert recados and "estouro de teste" in recados[0]
+    assert log.exists(), "o erro não foi para o log"
+    conteudo = log.read_text(encoding="utf-8")
+    assert "ValueError" in conteudo and "estouro de teste" in conteudo
