@@ -2557,3 +2557,61 @@ A regra rígida: **valor não tem letra.** Se sobra qualquer caractere alfabéti
 e o rollup foi de novo quem denunciou.
 
 ---
+
+## 28. O CSV que lia a numeração de linha como código — e o número ambíguo
+
+Terceiro dos três de §26. `Balancete 2024 -Ultimo.csv` lia 335 contas e
+entregava **4 linhas**.
+
+### A coluna errada (corrigido)
+
+O `CSVParser` escolhe as colunas pelo NOME do cabeçalho, e este arquivo tem
+duas candidatas a código:
+
+```
+CONTA, CLASSIFICAÇÃO, NOME DA CONTA CONTÁBIL, SALDO ANTERIOR, DÉBITO, ...
+  1  ,      1       ,        ATIVO          ,  27.040.305   ,       , ...
+  2  ,     1.1      ,   ATIVO CIRCULANTE     ,  17.509.657   ,       , ...
+778  , 01.1.1.02.008,      BANCO ITAU        ,    20.00      ,       , ...
+```
+
+`CONTA` é numeração de linha (1, 2, 3, 778, 957…); `CLASSIFICAÇÃO` é o código
+hierárquico. O casamento por nome batia "conta" e tomava a **numeração** por
+código E por descrição, com saldo vazio — daí as 4 linhas.
+
+O fallback relê pelo CONTEÚDO (a mesma detecção do Excel: a coluna cujos
+valores *parecem* código é o código) e só substitui quando acha árvore onde o
+`CSVParser` não achou. Resultado: 4 linhas → **329 contas, a árvore inteira**,
+código vindo da `CLASSIFICAÇÃO`, saldo da `SALDO ANTERIOR` (a única preenchida).
+
+### O número que eu NÃO forcei
+
+Com as colunas certas, o rollup do arquivo **não fecha** — 21 agrupadores
+divergem — e a causa é o formato do número, que é ambíguo dentro do próprio
+arquivo:
+
+```
+02.2.1.04  PARCELAMENTOS         2.628.522     <- pai
+02.2.1.04.002  Parcelamento INSS   318.90      <- filhos, somam 2.628,52
+02.2.1.04.003  Parcelamento COFINS 161.98
+...
+```
+
+Os filhos somam **2.628,52**; o pai mostra **2.628.522**. É a mesma grandeza
+com escala diferente: os pais aparentam estar em reais (`2.628.522`), as folhas
+em milhares (`318.90` = 318,90 mil). "20.00" não pode ser milhar (milhar tem
+três dígitos), então é decimal; "2.628.522" com dois pontos é milhar. O mesmo
+arquivo usa as duas convenções.
+
+**Não dá para desambiguar sem um oráculo, e o oráculo seria o próprio rollup** —
+tentar as duas leituras e ficar com a que fecha. É uma heurística poderosa e
+arriscada, exatamente o tipo de "critério de corte" que pode inventar valor
+errado. Não a apliquei sem decisão explícita.
+
+O que o programa faz hoje é o certo pela regra do §26: lê as colunas
+corretamente, e **avisa alto** que o total não bate e que a origem não fecha,
+em vez de entregar 4 linhas em silêncio ou um Ativo 1000× errado com cara de
+validado. A correção honesta é a leitura; a desambiguação do número fica
+registrada como decisão pendente.
+
+---

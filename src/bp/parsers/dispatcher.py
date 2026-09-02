@@ -80,9 +80,24 @@ class ParseyCaller:
                 csvp = CSVParser(self.file_path)
                 if not csvp.validate():
                     return []
-                return normalizar_registros(csvp.parse().contas)
+                contas = normalizar_registros(csvp.parse().contas)
             except Exception:
                 return []
+            # Fallback de CONTEÚDO: o CSVParser escolhe as colunas pelo NOME do
+            # cabeçalho, e erra quando o balancete tem tanto "CONTA" (numeração
+            # de linha) quanto "CLASSIFICAÇÃO" (o código de verdade): casa
+            # "conta" e toma a numeração por código E descrição, com saldo
+            # vazio. Quando o resultado não tem árvore, relê a grade e deixa o
+            # extrator por conteúdo (o mesmo do Excel) escolher as colunas pelo
+            # que elas contêm. Puro fallback: só quando não há árvore, e só se
+            # a releitura melhorar. Ver §28.
+            from ..validators.hierarquia import conferir_hierarquia
+
+            if not conferir_hierarquia(contas).tem_hierarquia:
+                alternativa = self._csv_por_conteudo()
+                if alternativa is not None:
+                    return alternativa
+            return contas
 
         # PDF: extração por linha de texto (balancetes/DFs nativos). PDFs
         # escaneados (sem texto) retornam vazio — precisam de OCR.
@@ -161,6 +176,35 @@ class ParseyCaller:
         relatorio = conferir_hierarquia(registros)
         if relatorio.rollup_integro:
             return registros
+        return None
+
+    def _csv_por_conteudo(self) -> list[dict[str, Any]] | None:
+        """
+        Relê o CSV como grade e extrai pelo CONTEÚDO das colunas.
+
+        Só melhora: devolve a releitura apenas se ela achar árvore onde o
+        CSVParser não achou. Encoding e delimitador vêm do próprio CSVParser,
+        que já os detecta.
+        """
+        from ..validators.hierarquia import conferir_hierarquia
+
+        try:
+            csvp = CSVParser(self.file_path)
+            csvp.validate()
+            enc = csvp._detected_encoding or "utf-8"
+            sep = csvp._detect_delimiter()
+            bruto = pd.read_csv(
+                self.file_path, sep=sep, encoding=enc, engine="python", dtype=str
+            )
+        except Exception:
+            return None
+
+        try:
+            contas = normalizar_registros(self._parse_accounts_from_df(bruto))
+        except Exception:
+            return None
+        if conferir_hierarquia(contas).tem_hierarquia:
+            return contas
         return None
 
     def _grade_crua(self) -> pd.DataFrame | None:
