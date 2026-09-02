@@ -22,4 +22,15 @@ variantes embarcadas               linux-arm64, linux-arm64-tcl9, linux-x64, lin
 == TENTATIVA REAL ==
 tkinter                            FALHOU: ModuleNotFoundError: No module named 'tkinter'
 
+== O MOTOR (classificação) ==
+raiz dos recursos                  /home/user/mapa_v0.8
+  plano referencial                OK (1,793,057 bytes)
+  plano de contas                  OK (9,213,414 bytes)
+  sinônimos                        OK (9,405 bytes)
+  aprendizado do matcher           OK (53,596 bytes)
+  template GT                      OK (17,037 bytes)
+  contas no plano alvo             1226
+  aprendizado carregado            317 contas, 928 variações
+  template lido                    44 linha(s), 86 prefixo(s)
+
 Mande este arquivo inteiro para quem for analisar. Só há aqui caminhos de instalação e versões — nenhum dado de cliente.

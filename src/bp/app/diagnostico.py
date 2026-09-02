@@ -219,6 +219,92 @@ def _secao_tentativa() -> list[str]:
     return saida
 
 
+def _secao_motor() -> list[str]:
+    """
+    O motor achou os recursos dele — e quantos?
+
+    Existe porque um `.exe` pode classificar mal sem dar erro nenhum. Se o
+    plano referencial, os sinônimos ou o aprendizado do matcher não chegarem ao
+    bundle (ou chegarem truncados), o programa continua rodando: só passa a
+    casar menos contas, o corte da árvore muda, e o balanço entregue não bate
+    com o da origem. Foi exatamente o sintoma de um Trindade entregue com 34%
+    de aproveitamento enquanto a mesma versão, rodada da fonte, dava 100%.
+
+    Nenhum número aqui é opinião: cada linha é uma contagem do que foi
+    realmente carregado. Comparar este bloco entre a máquina que funciona e a
+    que não funciona resolve a questão em segundos.
+    """
+    saida = ["", "== O MOTOR (classificação) =="]
+
+    def raiz() -> Path:
+        # A MESMA conta que build_gt_output e conta_matcher fazem para achar os
+        # recursos. Reproduzida aqui de propósito: se ela apontar para o lugar
+        # errado dentro do bundle, é isto que o relatório precisa mostrar.
+        from ..output import build_gt_output as mod
+
+        return Path(mod.__file__).resolve().parent.parent.parent.parent
+
+    try:
+        base = raiz()
+    except Exception as exc:
+        saida.append(_linha("raiz dos recursos", f"FALHOU: {exc}"))
+        return saida
+    saida.append(_linha("raiz dos recursos", base))
+
+    for rotulo, rel in (
+        ("plano referencial", "data/plano_referencial.json"),
+        ("plano de contas", "data/plano_contas.json"),
+        ("sinônimos", "data/accounting_synonyms.json"),
+        ("aprendizado do matcher", "src/bp/training/account_variations.json"),
+        ("template GT", "templates/Template_GT_BP_Padrao_v3.xlsx"),
+    ):
+        caminho = base / rel
+        tamanho = caminho.stat().st_size if caminho.is_file() else None
+        saida.append(
+            _linha(
+                f"  {rotulo}",
+                f"{'OK' if tamanho else 'AUSENTE'}"
+                + (f" ({tamanho:,} bytes)" if tamanho else f" — {caminho}"),
+            )
+        )
+
+    # Contagens: arquivo presente mas vazio engana tanto quanto arquivo ausente.
+    try:
+        from ..generators.plano_contas import PlanodeContas
+
+        plano = PlanodeContas(base / "data" / "plano_referencial.json")
+        saida.append(_linha("  contas no plano alvo", len(plano.contas_flat)))
+    except Exception as exc:
+        saida.append(_linha("  contas no plano alvo", f"FALHOU: {exc}"))
+
+    try:
+        import json
+
+        alvo = base / "src" / "bp" / "training" / "account_variations.json"
+        variacoes = json.loads(alvo.read_text(encoding="utf-8"))
+        total = sum(len(v.get("variations", [])) for v in variacoes.values())
+        saida.append(
+            _linha("  aprendizado carregado", f"{len(variacoes)} contas, {total} variações")
+        )
+    except Exception as exc:
+        saida.append(_linha("  aprendizado carregado", f"FALHOU: {exc}"))
+
+    try:
+        from ..output.template_map import TemplateProjector
+
+        projetor = TemplateProjector()
+        saida.append(
+            _linha(
+                "  template lido",
+                f"{len(projetor.linhas)} linha(s), {len(projetor.prefixes)} prefixo(s)",
+            )
+        )
+    except Exception as exc:
+        saida.append(_linha("  linhas do template", f"FALHOU: {exc}"))
+
+    return saida
+
+
 def _secao_bundle() -> list[str]:
     """O que o PyInstaller descompactou — só quando empacotado."""
     meipass = getattr(sys, "_MEIPASS", "")
@@ -240,6 +326,7 @@ def relatorio() -> str:
     partes += _secao_ambiente()
     partes += _secao_tkdnd()
     partes += _secao_tentativa()
+    partes += _secao_motor()
     partes += _secao_bundle()
     partes += [
         "",
