@@ -2228,3 +2228,66 @@ em `docs/DADOS_PRIVADOS.md`. O repositório público está limpo — a verifica�
 exemplos sintéticos, o template e o plano master.
 
 ---
+
+
+## 23. O `.exe` saiu sem a biblioteca do arrastar-e-soltar
+
+Relatado por quem recebeu o binário da v0.8: **arrastar o arquivo para a janela
+não traz nada.** O executável compilado no repositório privado funcionava.
+
+### A causa
+
+`tkinterdnd2` são dois pedaços:
+
+| pedaço | o que é | o PyInstaller acha sozinho? |
+|---|---|---|
+| `__init__.py`, `TkinterDnD.py` | módulo Python | sim, por importação |
+| `tkdnd/<plataforma>/` (`.dll` + `pkgIndex.tcl`) | extensão Tcl | **não — é dado** |
+
+O `bp.spec` declarava só `hiddenimports = ["tkinterdnd2"]`, com um comentário
+que já admitia a dúvida: *"o hook oficial cobre, mas nomear aqui evita variação
+entre versões"*. Nomear o módulo **não traz a pasta**. No binário distribuído:
+
+```
+TkinterDnD.Tk()
+  -> tkroot.tk.call('package', 'require', 'tkdnd')
+  -> TclError -> RuntimeError('Unable to load tkdnd library.')
+```
+
+`app/dnd.py` capturava com `except Exception: pass`, caía para o `tkinter.Tk`
+puro, e a janela abria com a zona de soltar virada em botão. O build é
+`console=False`: **nenhuma mensagem, nenhum log, nenhuma pista.**
+
+### Por que nenhum teste podia ter pego
+
+Na máquina que compila, `tkinterdnd2` está instalado e tudo funciona. O defeito
+só existe **dentro do bundle**. É a mesma família do §22 — o código está certo,
+o que falha é o que foi (ou não foi) empacotado — e a lição se repete: só o
+conteúdo do artefato responde a pergunta.
+
+### As correções
+
+1. **`bp.spec` embarca a árvore `tkdnd`** (113 arquivos, 2,5 MB), declarada em
+   vez de herdada de hook. Todas as plataformas entram de propósito:
+   `_require()` escolhe a pasta em runtime por `platform.system()`,
+   `PROCESSOR_ARCHITECTURE` e versão do Tcl. Filtrar pela máquina que compila é
+   a mesma aposta que produziu o defeito. Usa `find_spec` em vez de `import`
+   para não morrer numa máquina sem `tkinter`.
+2. **`dnd.motivo_indisponivel` / `dnd.diagnostico()`** — a razão da queda
+   sobrevive ao `except`.
+3. **`ui.py`** diz *"arrastar-e-soltar indisponível nesta máquina"* em vez de só
+   oferecer o clique, e põe o motivo técnico no rodapé da zona.
+4. **`test_build_seguranca.py`** audita o binário: a pasta `tkdnd` tem de estar
+   lá, com `pkgIndex.tcl`, com a biblioteca nativa, e com a variante da
+   plataforma para a qual o `.exe` foi compilado.
+5. **`build.py` para** quando `pyinstxtractor-ng` falta, em vez de deixar a
+   auditoria pular calada. Build não auditado não sai.
+
+### A regra que fica
+
+Um `.exe` tem duas superfícies de falha: o que o código faz, e o que o
+empacotamento leva. A suíte cobria a primeira e era cega para a segunda em
+tudo que não fosse vazamento de dado de cliente. Agora a auditoria pergunta as
+duas coisas — o que **não pode** entrar, e o que **tem** que entrar.
+
+---
