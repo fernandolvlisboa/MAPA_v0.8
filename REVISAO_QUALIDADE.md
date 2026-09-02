@@ -2373,4 +2373,18 @@ Auditar o conteúdo do artefato é necessário e não é suficiente. **Um `.exe`
 se prova rodando** — e a prova tem de acontecer antes da distribuição, no mesmo
 comando que o gera, sem depender de alguém lembrar de testar.
 
+### E o caminho da distribuição
+
+A prova só vale se estiver no caminho por onde o binário sai. Por isso o `.exe`
+deixou de ser commitado (55 MB por build, e o histórico do git não encolhe
+depois) e passou a sair por **GitHub Release**, publicada pelo workflow
+`.github/workflows/release.yml`: `push` de tag `v*` → runner Windows →
+`pytest` → `build.py` (compila, audita, autotesta) → Release com o `.exe`
+anexado. Cinco a oito minutos, nenhum passo manual, e **falhou qualquer coisa,
+não há Release**.
+
+`tests/test_excludes_do_bundle.py` fecha o círculo: reprova se `dist/` voltar a
+ser versionado, se o workflow deixar de chamar o `build.py` ou o `pytest`, ou
+se o gatilho por tag sumir. O portão que só existe por convenção não é portão.
+
 ---
