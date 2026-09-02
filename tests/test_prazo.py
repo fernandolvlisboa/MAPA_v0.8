@@ -36,7 +36,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from conftest import CORPUS_DIR
+from conftest import CORPUS_DIR, corpus_disponivel
 from openpyxl import load_workbook
 
 from src.bp.parsers.dispatcher import ParseyCaller
@@ -279,7 +279,7 @@ def test_o_ativo_circulante_entregue_e_o_do_balancete(nome):
     """
     from src.bp.output.build_gt_output import build_gt_output
 
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
     caminho = CORPUS_DIR / nome
     if not caminho.exists():

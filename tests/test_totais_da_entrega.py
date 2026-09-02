@@ -56,7 +56,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from conftest import CORPUS_DIR
+from conftest import CORPUS_DIR, corpus_disponivel
 from openpyxl import load_workbook
 
 from src.bp.output.build_gt_output import (
@@ -164,7 +164,7 @@ def test_o_ativo_da_entrega_e_o_ativo_do_balancete():
     "sem totalizador" — verde que não valida nada, que é o que esta suíte
     existe para impedir.
     """
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
 
     ausentes = [n for n in CONTROLE if not (CORPUS_DIR / n).exists()]
@@ -199,7 +199,7 @@ def test_o_ativo_da_entrega_e_o_ativo_do_balancete():
 @pytest.fixture(scope="module")
 def amostra() -> list[Path]:
     """Sorteia fora do controle; a semente vai no log (``BP_SEED`` repete)."""
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
     candidatos = [
         p
@@ -559,7 +559,7 @@ def test_o_lucro_liquido_da_entrega_e_o_resultado_do_balancete():
 
     Medido no controle: os cinco batem ao centavo.
     """
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
 
     ausentes = [n for n in CONTROLE if not (CORPUS_DIR / n).exists()]

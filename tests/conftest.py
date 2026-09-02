@@ -50,17 +50,47 @@ _ESTADO_VERSIONADO = (
 )
 
 
+#: Extensões que contam como balancete de corpus. Um diretório que só tem
+#: ``README.md`` não é um corpus vazio por acidente — é um corpus ausente.
+_EXTENSOES_DE_CORPUS = {".xls", ".xlsx", ".csv", ".txt", ".pdf"}
+
+
+def corpus_disponivel(base: Path = CORPUS_DIR) -> bool:
+    """
+    Há corpus neste workspace?
+
+    Não basta o diretório existir. O repositório público versiona
+    ``data/samples/README.md`` e **nenhum balancete** — os dados são de
+    cliente e ficam só na máquina local (ver ``docs/DADOS_PRIVADOS.md``). Um
+    clone público tem o diretório e não tem o corpus.
+    """
+    if not base.exists():
+        return False
+    return any(p.suffix.lower() in _EXTENSOES_DE_CORPUS for p in base.iterdir())
+
+
 def require_corpus_file(relativo: str, *, base: Path = CORPUS_DIR) -> Path:
     """
     Resolve um arquivo do corpus, separando "ausente por design" de "bug".
 
-    - ``base`` inexistente → ``pytest.skip``: o clone não trouxe os dados de
-      exemplo, não há o que testar.
-    - ``base`` existe mas o arquivo não → ``pytest.fail``: o caminho no teste
-      está errado (foi exatamente esse caso que deixou 5 testes do exporter
-      passando sobre uma planilha vazia e 6 do parser de DF pulando à toa).
+    São três estados, não dois — e faltava o do meio:
+
+    - **sem corpus** (diretório inexistente, ou existente e vazio de
+      balancetes) → ``pytest.skip``. É o caso do clone público: os balancetes
+      são dados de cliente e não vão para o repositório.
+    - **corpus presente, arquivo ausente** → ``pytest.fail``: o caminho no
+      teste está errado (foi exatamente esse caso que deixou 5 testes do
+      exporter passando sobre uma planilha vazia e 6 do parser de DF pulando à
+      toa; e foi assim que um nome de arquivo que eu inventei sumiu em
+      silêncio).
+    - arquivo presente → devolve o caminho.
+
+    Distinguir os dois primeiros pela **existência do diretório** não bastava:
+    ``data/samples/README.md`` é versionado, então o diretório existe no clone
+    público e todo teste de corpus falhava em vez de pular. Quem decide é o
+    conteúdo.
     """
-    if not base.exists():
+    if not corpus_disponivel(base):
         pytest.skip(f"Corpus ausente neste workspace: {base}")
     caminho = base / relativo
     if not caminho.exists():

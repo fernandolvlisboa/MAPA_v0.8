@@ -55,7 +55,12 @@ data/samples/**
 src/bp/training/DFS_Exemple/*
 !src/bp/training/DFS_Exemple/README.md
 auxil/BP_PDF_ex/
-output/
+# Barra INICIAL obrigatoria: sem ela, "output/" casa qualquer diretorio com
+# esse nome em qualquer profundidade -- e engoliu src/bp/output/ inteiro, o
+# pacote que monta a entrega. O repositorio publico foi ao ar sem
+# build_gt_output.py, origem.py e template_map.py: a suite nao coletava 5
+# arquivos de teste e o programa morria na hora de gerar o Template GT.
+/output/
 src/bp/training/processed_files.json
 src/bp/training/training_cache.json
 data/match_cache.json

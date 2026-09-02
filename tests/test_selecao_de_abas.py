@@ -34,7 +34,7 @@ Referência: ``REVISAO_QUALIDADE.md`` §17.
 from __future__ import annotations
 
 import pytest
-from conftest import CORPUS_DIR
+from conftest import CORPUS_DIR, corpus_disponivel
 
 from src.bp.app import service
 from src.bp.parsers.abas import AbaCandidata, listar_abas, periodo_do_nome
@@ -45,7 +45,7 @@ COM_ABA_BALANCETE = "06.2026 - Mascara PCH - Balanco.vCore5.xlsx"
 
 
 def _corpus(nome: str):
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
     caminho = CORPUS_DIR / nome
     if not caminho.exists():

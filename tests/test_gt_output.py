@@ -18,6 +18,15 @@ BALANCETE = Path("data/samples/Balancete Real Life.xlsx")
 
 pytestmark = pytest.mark.skipif(not TEMPLATE.exists(), reason="Template GT ausente")
 
+#: Sete testes deste arquivo geram a entrega de verdade e precisam do
+#: balancete do corpus. Ele é dado de cliente e não vai para o repositório
+#: (``docs/DADOS_PRIVADOS.md``), então num clone público não existe — e sem
+#: esta marca a suíte do repositório público abre vermelha com sete
+#: ``FileNotFoundError`` que não são defeito nenhum.
+requer_balancete = pytest.mark.skipif(
+    not BALANCETE.exists(), reason=f"balancete do corpus ausente: {BALANCETE}"
+)
+
 
 @pytest.fixture(scope="module")
 def projector():
@@ -202,6 +211,7 @@ def test_template_alinhado_ano_a_ano():
         )
 
 
+@requer_balancete
 def test_ano_fora_do_padrao_do_template(tmp_path):
     """O template não fica preso a 2021-2025."""
     out = tmp_path / "b2019.xlsx"
@@ -214,6 +224,7 @@ def test_ano_fora_do_padrao_do_template(tmp_path):
     assert wb["BP_GT"].cell(7, 5).value is None
 
 
+@requer_balancete
 def test_serie_historica_multi_arquivo(tmp_path):
     """Um arquivo por exercício — como os balancetes existem no mundo real."""
     out = tmp_path / "serie.xlsx"
@@ -229,6 +240,7 @@ def test_serie_historica_multi_arquivo(tmp_path):
         assert lidos[ano] == col
 
 
+@requer_balancete
 def test_cada_ano_escreve_na_sua_coluna(tmp_path):
     """Valores de 2018 não podem vazar para a coluna de 2019."""
     out = tmp_path / "duplo.xlsx"
@@ -254,6 +266,7 @@ def test_recusa_anos_repetidos(tmp_path):
         )
 
 
+@requer_balancete
 def test_recusa_mais_anos_que_o_template_comporta(tmp_path):
     fontes = [FonteBalancete(BALANCETE, 2018 + i) for i in range(6)]
     with pytest.raises(ValueError, match="comporta"):
@@ -270,6 +283,7 @@ def test_arquivo_inexistente_falha_cedo(tmp_path):
         build_gt_output("nao_existe.xlsx", tmp_path / "x.xlsx", ano_base=2024)
 
 
+@requer_balancete
 def test_nao_polui_o_cache_compartilhado(tmp_path):
     """
     Gerar a entrega de um cliente não pode escrever no cache do projeto.
@@ -288,6 +302,7 @@ def test_nao_polui_o_cache_compartilhado(tmp_path):
     assert antes == depois, "o build alterou data/match_cache.json"
 
 
+@requer_balancete
 def test_cache_explicito_e_respeitado(tmp_path):
     """Quem quiser reaproveitar decisões entre execuções passa o caminho."""
     cache = tmp_path / "meu_cache.json"
@@ -295,6 +310,7 @@ def test_cache_explicito_e_respeitado(tmp_path):
     assert cache.exists() and cache.stat().st_size > 2
 
 
+@requer_balancete
 def test_resiste_a_template_desalinhado(tmp_path):
     """
     O código segue as FÓRMULAS, não os rótulos.

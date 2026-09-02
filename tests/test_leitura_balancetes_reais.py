@@ -42,7 +42,7 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
-from conftest import CORPUS_DIR
+from conftest import CORPUS_DIR, corpus_disponivel
 
 from src.bp.parsers.common import has_balance_keywords, parece_balancete
 from src.bp.parsers.dispatcher import ParseyCaller
@@ -231,7 +231,7 @@ def test_balancete_real_de_cliente_e_lido_e_fecha(nome):
     se trava é a invariante.
     """
     caminho = CORPUS_DIR / nome
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
     if not caminho.exists():
         pytest.skip(f"balancete ausente neste workspace: {nome}")
@@ -258,7 +258,7 @@ def test_nenhum_balancete_do_corpus_derruba_o_parser():
     Piso absoluto: ler um arquivo pode render zero contas — nem todo arquivo
     do corpus é balancete —, mas **nenhum pode levantar exceção**.
     """
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
     extensoes = {".xls", ".xlsx", ".csv", ".txt"}
     arquivos = [p for p in sorted(CORPUS_DIR.iterdir()) if p.suffix.lower() in extensoes]
@@ -391,7 +391,7 @@ def test_exercicio_com_codigo_plano_e_lido_com_arvore():
     origem", e estava errado.
     """
     caminho = CORPUS_DIR / "SmartRio Balancetes (2020 2026).xlsx"
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
     if not caminho.exists():
         pytest.skip("arquivo ausente neste workspace")

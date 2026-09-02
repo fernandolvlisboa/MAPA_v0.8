@@ -43,7 +43,7 @@ import random
 import re
 
 import pytest
-from conftest import CORPUS_DIR
+from conftest import CORPUS_DIR, corpus_disponivel
 from openpyxl import load_workbook
 
 from src.bp.output.build_gt_output import BuildResult, _conferir_captura, build_gt_output
@@ -206,7 +206,7 @@ def test_captura_integra_quando_cada_codigo_cai_em_uma_linha_so():
 
 
 def _arquivos_do_corpus() -> list:
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         return []
     return sorted(p for p in CORPUS_DIR.iterdir() if p.suffix.lower() in EXTENSOES)
 
@@ -228,7 +228,7 @@ def _conferir_arquivo(caminho, tmp_path) -> BuildResult:
 @pytest.mark.parametrize("nome", CONTROLE)
 def test_controle_toda_linha_escrita_aparece_uma_vez_na_entrega(nome, tmp_path):
     caminho = CORPUS_DIR / nome
-    if not CORPUS_DIR.exists():
+    if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
     if not caminho.exists():
         pytest.fail(f"controle ausente do corpus: {caminho}")
