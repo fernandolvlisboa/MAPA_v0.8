@@ -2502,3 +2502,58 @@ totalizador), 2024-Ultimo.csv (coluna de saldo não lida). Fazê-los conferir é
 trabalho de parser, tratado a seguir, um de cada vez e medido.
 
 ---
+
+## 27. Balancete indentado: a hierarquia que estava na coluna, não no código
+
+Primeiro dos três que entregavam sem conferir (§26). `Balancete Real Life` é um
+formato **comum** no Brasil: o sistema exporta sem coluna de código
+hierárquico e mostra a árvore pela **indentação** — a descrição de cada conta
+fica numa coluna mais à direita conforme a profundidade.
+
+```
+col 5   ATIVO
+col 7     ATIVO CIRCULANTE
+col 9       DISPONÍVEL
+col 10        CAIXA
+col 11          CAIXA GERAL
+col 10        BANCOS CONTA MOVIMENTO
+```
+
+O "Código" que o arquivo traz é numeração de linha (1, 2, 3, 646, 9…), inútil
+como árvore. Sem código hierárquico, o programa caía em "SEM HIERARQUIA" e a
+entrega saía sem ser conferida.
+
+### A reconstrução, e a régua que a valida
+
+`parsers/indentado.py` lê a grade crua, descobre a **banda de indentação** (as
+colunas onde as descrições aparecem) e numera a árvore por outline: cada nível
+mais fundo vira um segmento a mais. `CAIXA GERAL` acima vira `1.1.1.1.1`. O
+código sintético é hierárquico de verdade — o pai é prefixo do filho — então o
+pipeline inteiro funciona sem mudança.
+
+**A reconstrução só é aceita se o rollup fechar.** É a mesma régua do resto da
+suíte: um balancete indentado real tem o pai valendo a soma dos filhos, e a
+numeração por outline preserva isso. Se a árvore reconstruída não fecha, não é
+um balancete indentado — a função devolve `None` e o caminho normal segue. Por
+isso é um **fallback puro**: só roda quando o caminho normal não achou árvore,
+e só vale quando fecha. Medido no corpus: transformou o Real Life (`.xls` e
+`.xlsx`) em 52 pais conferindo, 0 divergindo, ATIVO batendo ao centavo — e
+**não tocou em nenhum** dos balancetes que já conferiam (RBM, SPEZZIA, VIVAE,
+SmartRio, os Infraestrutura), nem resgatou os que genuinamente não têm árvore.
+
+### O defeito que quase passou: nome com dígito não é valor
+
+A primeira versão usava `parse_saldo` para decidir "esta célula é descrição ou
+valor?". Mas `parse_saldo` é frouxo de propósito (para ler "R$ 1.820,20"), e
+`parse_saldo("BS2 EMPRESAS")` devolve **2.0** — extrai o dígito de dentro do
+texto. `"C6 BANK"` vira 6, `"B2W"` vira 2. Nomes de banco e empresa com número
+no meio são comuns, e cada um fazia a conta **desaparecer**: a célula era tomada
+por coluna de valor e a linha descartada. No Real Life sumia "BS2 EMPRESAS"
+(1.820,20), e o rollup do pai deixava de fechar por esse exato valor — o teste
+pegou.
+
+A regra rígida: **valor não tem letra.** Se sobra qualquer caractere alfabético,
+é descrição. É o mesmo erro do §21 numa forma nova — a régua frouxa que engana —
+e o rollup foi de novo quem denunciou.
+
+---

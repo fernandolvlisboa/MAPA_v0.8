@@ -123,7 +123,90 @@ class ParseyCaller:
         # implementações (esta e `_parse_accounts_from_df`), com conversão
         # numérica própria cada uma: o trainer via 0.0 onde o exporter via
         # None, para o MESMO arquivo. Ver REVISAO_QUALIDADE.md §3a.
-        return normalizar_registros(self._parse_accounts_from_df(df))
+        contas = normalizar_registros(self._parse_accounts_from_df(df))
+
+        # Fallback para balancete INDENTADO (a hierarquia está na coluna da
+        # descrição, não num código). Só quando o caminho normal não achou
+        # árvore, e só se a reconstrução FECHAR o rollup — pode melhorar, nunca
+        # sobrepor uma leitura que já funciona. Ver §27.
+        from ..validators.hierarquia import conferir_hierarquia
+
+        if not conferir_hierarquia(contas).tem_hierarquia:
+            indentado = self._tentar_indentado()
+            if indentado is not None:
+                return indentado
+        return contas
+
+    def _tentar_indentado(self) -> list[dict[str, Any]] | None:
+        """
+        Reconstrói um balancete indentado — mas só devolve se o rollup fechar.
+
+        O rollup fechando é a prova de que a numeração por indentação acertou a
+        árvore. Sem essa prova, devolve ``None`` e o caminho normal segue: é o
+        que impede a heurística de inventar hierarquia onde não há.
+        """
+        if self.file_path.suffix.lower() not in (".xls", ".xlsx"):
+            return None
+        from ..validators.hierarquia import conferir_hierarquia
+        from .indentado import reconstruir_de_grade
+
+        bruto = self._grade_crua()
+        if bruto is None:
+            return None
+
+        registros = reconstruir_de_grade(bruto)
+        if not registros:
+            return None
+        registros = normalizar_registros(registros)
+        relatorio = conferir_hierarquia(registros)
+        if relatorio.rollup_integro:
+            return registros
+        return None
+
+    def _grade_crua(self) -> pd.DataFrame | None:
+        """
+        A grade sem cabeçalho (``header=None``), com a indentação preservada.
+
+        A leitura normal aplica um cabeçalho e colapsa a grade; a reconstrução
+        por indentação precisa das colunas todas. Roteia por formato, e para
+        ``.xls`` segue a MESMA ordem do ``XlsParser``: sibling ``.xlsx`` antes de
+        tudo, depois a conversão via LibreOffice/Excel. Sem isso, um ``.xls``
+        que é HTML disfarçado (comum nesses exports) não abre com
+        ``pd.read_excel`` e o balancete indentado voltaria a cair em
+        "SEM HIERARQUIA".
+        """
+        aba = self.aba or 0
+
+        def _ler(caminho, engine=None) -> pd.DataFrame | None:
+            try:
+                return pd.read_excel(caminho, sheet_name=aba, header=None, engine=engine)
+            except Exception:
+                return None
+
+        if self.file_path.suffix.lower() == ".xlsx":
+            return _ler(self.file_path)
+
+        # .xls: sibling .xlsx primeiro (rápido e o que os testes usam).
+        irmao = self.file_path.with_suffix(".xlsx")
+        if irmao.exists():
+            grade = _ler(irmao, engine="openpyxl")
+            if grade is not None:
+                return grade
+
+        # Depois a conversão real (LibreOffice/Excel), como o XlsParser faz.
+        from .conversao import convertido_para_xlsx
+
+        try:
+            with convertido_para_xlsx(self.file_path) as convertido:
+                if convertido is not None:
+                    grade = _ler(convertido, engine="openpyxl")
+                    if grade is not None:
+                        return grade
+        except Exception:
+            pass
+
+        # Último recurso: .xls que na verdade é xlsx com nome errado.
+        return _ler(self.file_path)
 
     def parse_with_original(
         self, job_id: str | None = None, correlation_id: str | None = None

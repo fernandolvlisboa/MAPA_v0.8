@@ -252,12 +252,31 @@ def test_controle_com_hierarquia_e_integro(nome):
     assert relatorio.equacao_fecha
 
 
-def test_controle_sem_hierarquia_nao_finge_sucesso():
+def test_real_life_indentado_passa_a_conferir():
     """
-    ``Real Life`` não traz código hierárquico. O relatório tem de dizer isso,
-    não devolver "0 divergências" como se estivesse tudo bem.
+    ``Real Life`` traz a hierarquia por INDENTAÇÃO (a descrição migra de coluna
+    conforme a profundidade), não por código. Antes caía em "SEM HIERARQUIA" e
+    a entrega saía sem conferência; agora a reconstrução por outline fecha o
+    rollup. Ver §27.
     """
     caminho = CORPUS / "Balancete Real Life.xlsx"
+    if not caminho.exists():
+        pytest.skip(f"ausente: {caminho}")
+    relatorio = conferir_hierarquia(ParseyCaller(caminho).parse())
+    assert relatorio.total_contas > 0
+    assert relatorio.tem_hierarquia, "a reconstrução por indentação não disparou"
+    assert relatorio.rollup_integro, relatorio.resumo()
+
+
+def test_sem_hierarquia_de_verdade_nao_finge_sucesso():
+    """
+    A invariante do §21 continua: um balancete que REALMENTE não traz árvore
+    (plano flat sem totalizador — mlb bal ecd) não pode devolver "0
+    divergências" como se estivesse tudo bem. A reconstrução por indentação NÃO
+    o resgata (não há indentação), e é assim que tem de ser — inventar árvore
+    onde não há seria o defeito.
+    """
+    caminho = CORPUS / "mlb bal ecd (1).xlsx"
     if not caminho.exists():
         pytest.skip(f"ausente: {caminho}")
     relatorio = conferir_hierarquia(ParseyCaller(caminho).parse())
