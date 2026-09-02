@@ -2,6 +2,12 @@
 __pycache__/
 *.py[oc]
 build/
+# O .exe NAO entra no repositorio. Sao 55 MB por build, o git guarda todos
+# para sempre e o historico nao encolhe depois. A distribuicao e por GitHub
+# Release (ate 2 GB por arquivo, fora do historico) — veja README, secao
+# "Publicar uma versao". O workflow .github/workflows/release.yml faz isso
+# sozinho quando voce empurra uma tag.
+dist/
 wheels/
 *.egg-info
 

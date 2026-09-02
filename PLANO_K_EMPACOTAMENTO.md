@@ -180,3 +180,41 @@ foi (ou não foi) empacotado. Só o conteúdo do binário responde.
    plataforma para a qual o `.exe` foi compilado.
 5. `build.py` **para** quando `pyinstxtractor-ng` não está instalado, em vez
    de deixar a auditoria pular em silêncio. Build não auditado não sai.
+
+---
+
+## Distribuição: GitHub Release, não commit do binário
+
+O `.exe` chegou a ser commitado no repositório. São 55 MB por build, o git
+guarda todos para sempre e o histórico não encolhe depois. `dist/` voltou para
+o `.gitignore`, e a distribuição passou a ser por **GitHub Release** — até 2 GB
+por arquivo, fora do histórico, com link estável.
+
+### Automático por tag
+
+`.github/workflows/release.yml` dispara em `push` de tag `v*`, sobe um runner
+`windows-latest` (PyInstaller não faz cross-compile) e roda, em ordem:
+
+1. `uv sync --extra packaging`
+2. `uv run pytest -q`
+3. `uv run python build.py` — compila, audita e **autotesta** o binário
+4. publica a Release com o `MAPA.exe` anexado
+
+Cinco a oito minutos. **Falhou qualquer passo, não há Release.** Os relatórios
+(`MAPA_autoteste.txt`, `MAPA_diagnostico.txt`) ficam anexados à execução mesmo
+quando ela falha — é `if: always()` de propósito, porque é no build quebrado
+que eles importam.
+
+`workflow_dispatch` permite disparar a mão pela aba Actions, sem tag: compila e
+autotesta sem publicar nada. É como se testa o próprio workflow.
+
+### Por que o autoteste está no caminho da publicação
+
+Porque auditar o conteúdo do artefato não prova que ele funciona — foi a lição
+do §24 da nota de qualidade, aprendida três vezes. Pondo
+`MAPA.exe --autoteste` dentro do `build.py`, e o `build.py` dentro do workflow,
+a prova deixa de depender de alguém lembrar de testar antes de circular.
+
+`tests/test_excludes_do_bundle.py` fecha o círculo: reprova se `dist/` voltar a
+ser versionado, se o workflow deixar de chamar o `build.py`, ou se o gatilho
+por tag sumir.

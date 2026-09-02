@@ -16,7 +16,7 @@
 
 ## 🚀 Comece por aqui
 
-**Você só quer entregar a planilha:** baixe `MAPA.exe` da [aba Releases](../../releases), salve no Desktop, duplo-clique. Arrasta o balancete, confere cliente e ano, clica em *Gerar*. É isso.
+**Você só quer entregar a planilha:** baixe `MAPA.exe` da [última Release](../../releases/latest), salve no Desktop, duplo-clique. Arrasta o balancete, confere cliente e ano, clica em *Gerar*. É isso.
 
 **Você é o analista do MAPA:** clona, `uv sync`, `uv run python main.py`. A mesma janela. Quer treinar, revisar pendências ou compilar um `.exe` novo? Passe `--menu`.
 
@@ -24,7 +24,8 @@
 uv sync
 uv run python main.py             # abre a janela do usuário final
 uv run python main.py --menu      # bancada do analista (treinar, revisar)
-uv run python build.py            # compila MAPA.exe (Windows)
+uv run python build.py            # compila, audita e autotesta o MAPA.exe (Windows)
+git tag v0.8.1 && git push origin v0.8.1   # publica a Release, sozinho
 ```
 
 > **Sobre o nome:** o produto se chama **MAPA**. O pacote Python interno se chama `bp` por herança do desenvolvimento inicial — pense em MAPA como o produto e `bp` como o módulo. Não vale a pena quebrar imports só pelo nome.
@@ -105,14 +106,73 @@ O passo a passo detalhado de cada etapa está em [`docs/`](docs/) e nos guias po
 
 ## 🚨 Distribuindo o `.exe`
 
-O `MAPA.exe` sai em `dist/MAPA.exe`, ~70 MB, **onefile**:
+O `MAPA.exe` sai em `dist/MAPA.exe`, ~55 MB, **onefile**:
 
 - Roda por duplo-clique. Sem instalador.
 - **Não precisa de admin** — descompacta em `%TEMP%` do usuário na 1ª execução.
 - Nada é gravado em `Program Files`, nada mexe no registry.
 - SmartScreen pode alertar na primeira vez (executável não assinado). *Mais informações → Executar assim mesmo*.
+- **Abra com duplo clique normal.** O Windows bloqueia arrastar-e-soltar em janela aberta como administrador (UIPI) — e falha calado.
 
-O `build.py` compila **e** roda o [teste anti-vazamento](tests/test_build_seguranca.py) que abre o `.exe` gerado e falha se qualquer arquivo de cliente aparecer dentro. Ver [`PLANO_K_EMPACOTAMENTO.md`](PLANO_K_EMPACOTAMENTO.md).
+### O `.exe` não entra no repositório
+
+São 55 MB por build. Commitado, o git guarda **todos** para sempre e o histórico não encolhe depois. `dist/` está no `.gitignore` e é assim que fica.
+
+A distribuição é por **GitHub Release**: até 2 GB por arquivo, fora do histórico, com link estável para circular.
+
+### Publicar uma versão
+
+Duas linhas, e o resto é automático:
+
+```bash
+git tag v0.8.1
+git push origin v0.8.1
+```
+
+O workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) acorda sozinho, sobe uma máquina Windows e faz, nesta ordem:
+
+1. `uv sync --extra packaging`
+2. `uv run pytest -q` — a suíte inteira
+3. `uv run python build.py` — compila, **audita** e **autotesta** o binário
+4. publica a Release com o `MAPA.exe` anexado
+
+Leva **5 a 8 minutos**. Acompanhe na aba **Actions**; quando terminar, o arquivo está em **Releases**, e o link para circular é `https://github.com/<owner>/<repo>/releases/latest`.
+
+**Se qualquer passo falhar, não há Release.** Foi exatamente assim que um binário com o pandas quebrado chegou aos usuários — ver [`REVISAO_QUALIDADE.md`](REVISAO_QUALIDADE.md) §24. Os relatórios do build ficam anexados à execução do Actions mesmo quando ela falha.
+
+**Numeração das tags:** `v<maior>.<menor>.<correção>` — `v0.8.1` para correção, `v0.9.0` quando muda o comportamento. A tag precisa começar com `v`, senão o workflow não dispara.
+
+**Refazer uma versão** (algo saiu errado e você quer reaproveitar o número):
+
+```bash
+git tag -d v0.8.1 && git push origin :refs/tags/v0.8.1   # apaga local e remoto
+git tag v0.8.1 && git push origin v0.8.1                 # recria
+```
+
+Apague também a Release antiga pela interface do GitHub, senão ficam duas.
+
+**Testar o workflow sem criar tag:** aba *Actions* → *Release do MAPA.exe* → *Run workflow*. Ele compila e autotesta, e não publica nada.
+
+### Publicar à mão (sem esperar o CI)
+
+Quando você já compilou na sua máquina e quer subir agora — precisa do [`gh`](https://cli.github.com):
+
+```bash
+uv run python build.py
+gh release create v0.8.1 dist/MAPA.exe --generate-notes
+```
+
+O `build.py` só devolve `.exe` que passou na auditoria e no autoteste, então o que sobe por aqui tem a mesma garantia do CI.
+
+### O que o build confere antes de entregar
+
+| Passo | O que prova | Por que existe |
+|---|---|---|
+| `pytest -q` | o código faz o que promete | a suíte de sempre |
+| auditoria do bundle | nenhum dado de cliente dentro; template, plano e `tkdnd` presentes | §23 — o `.exe` saiu sem a biblioteca do arrastar-e-soltar |
+| `MAPA.exe --autoteste` | **o binário roda o pipeline completo** | §24 — o `.exe` saiu com o pandas quebrado |
+
+O autoteste monta um balancete sintético, chama o motor de verdade sobre o template embarcado e confere que a entrega saiu. É a diferença entre auditar o *conteúdo* do artefato e provar que ele *funciona*. Ver [`PLANO_K_EMPACOTAMENTO.md`](PLANO_K_EMPACOTAMENTO.md).
 
 ---
 

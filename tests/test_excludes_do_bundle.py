@@ -163,3 +163,59 @@ def test_build_exige_o_autoteste_antes_de_entregar():
         "main() do build.py não chama autotestar() — o binário sairia sem "
         "prova de que roda"
     )
+
+
+# ============================================================================
+# O caminho de distribuição: Release, não commit do binário
+# ============================================================================
+
+WORKFLOW = RAIZ / ".github" / "workflows" / "release.yml"
+
+
+def test_o_binario_nao_e_versionado():
+    """
+    55 MB por build, e o git guarda todos para sempre.
+
+    O `.exe` chegou a ser commitado uma vez. O histórico não encolhe depois —
+    a única defesa é não deixar entrar de novo.
+    """
+    rastreados = subprocess.run(
+        ["git", "ls-files", "dist"], capture_output=True, text=True, cwd=RAIZ
+    ).stdout.split()
+    assert not rastreados, (
+        "há arquivo(s) de `dist/` versionado(s): " + ", ".join(rastreados) +
+        "\nO binário se distribui por GitHub Release, não pelo repositório."
+    )
+
+    ignorado = subprocess.run(
+        ["git", "check-ignore", "dist/MAPA.exe"],
+        capture_output=True, text=True, cwd=RAIZ,
+    )
+    assert ignorado.returncode == 0, (
+        "`dist/` saiu do .gitignore — o próximo build entra no histórico"
+    )
+
+
+def test_o_workflow_de_release_existe_e_gateia_o_build():
+    """
+    O release é automático, e a automação tem de manter os portões.
+
+    Publicar sem rodar `build.py` seria publicar sem auditoria e sem autoteste
+    — que é o estado em que o binário com o pandas quebrado saiu. O teste não
+    valida YAML: afirma as três coisas que, se sumirem, devolvem o problema.
+    """
+    assert WORKFLOW.exists(), f"workflow de release ausente: {WORKFLOW}"
+    texto = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "windows-latest" in texto, (
+        "o PyInstaller não faz cross-compile: um .exe Windows só sai de uma "
+        "máquina Windows"
+    )
+    assert "python build.py" in texto, (
+        "o workflow não chama build.py — publicaria sem auditoria nem autoteste"
+    )
+    assert "pytest" in texto, "o workflow não roda a suíte antes de publicar"
+    assert 'tags: ["v*"]' in texto, "o gatilho por tag `v*` sumiu"
+    assert "contents: write" in texto, (
+        "sem essa permissão o job não consegue criar a Release"
+    )

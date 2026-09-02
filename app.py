@@ -34,7 +34,19 @@ RAIZ = Path(__file__).resolve().parent
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
-from src.bp.app import main  # noqa: E402  (precisa do sys.path acima)
+
+def _abrir_janela() -> int:
+    """
+    Importa a interface só quando ela vai ser usada.
+
+    ``ui.py`` importa ``tkinter`` no topo. Deixar isso no nível do módulo faria
+    ``--diagnostico`` e ``--autoteste`` morrerem antes de rodar numa máquina
+    sem Tk — justamente as duas bandeiras que existem para dizer o que está
+    faltando. O autoteste do build também roda sem janela nenhuma.
+    """
+    from src.bp.app import main
+
+    return main()
 
 
 def _diagnosticar() -> int:
@@ -94,4 +106,4 @@ if __name__ == "__main__":
         raise SystemExit(_diagnosticar())
     if "--autoteste" in sys.argv[1:]:
         raise SystemExit(_autotestar())
-    raise SystemExit(main())
+    raise SystemExit(_abrir_janela())
