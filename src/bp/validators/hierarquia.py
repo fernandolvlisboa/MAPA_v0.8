@@ -225,38 +225,9 @@ class RelatorioHierarquia:
         Devolve o menor resíduo entre as leituras possíveis: se alguma zera, é
         ela que vale.
         """
-        return min(self._residuos_possiveis(), key=abs, default=0.0)
-
-    def _residuos_possiveis(self) -> list[float]:
-        """
-        O resíduo da equação sob cada atribuição de sinais às classes.
-
-        Trabalha sobre ``totais_por_raiz`` — o dígito-raiz, não a classe — de
-        propósito: ``classe_from_codigo`` funde 3..9 num só "RESULTADO", e é
-        justamente separar Custos (3) de Receitas (4) que permite ver a
-        subtração. Fundidas, as duas só podem ser somadas.
-
-        Fixa o sinal da primeira classe em ``+1``: negar tudo dá o mesmo
-        resíduo em módulo, então metade das combinações é redundante.
-        """
-        totais = list(self.totais_por_raiz.values()) or list(
-            self.totais_por_classe.values()
+        return residuo_da_equacao(
+            self.totais_por_raiz.values() or self.totais_por_classe.values()
         )
-        if not totais:
-            return []
-        if len(totais) > self.MAX_CLASSES_PARA_BUSCA:
-            return [sum(totais)]
-
-        residuos = []
-        for combinacao in _product((1, -1), repeat=len(totais) - 1):
-            sinais = (1,) + combinacao
-            residuos.append(sum(s * v for s, v in zip(sinais, totais)))
-        return residuos
-
-    #: Acima disso a busca por sinais deixa de ser conservadora: com muitas
-    #: classes cresce a chance de uma combinação zerar por acaso, e aí o
-    #: "fecha" não significa mais nada. Plano contábil real tem 3 ou 4.
-    MAX_CLASSES_PARA_BUSCA = 5
 
     @property
     def equacao_fecha(self) -> bool:
@@ -296,6 +267,53 @@ class RelatorioHierarquia:
             + ("fecha" if self.equacao_fecha else f"NÃO fecha ({self.desequilibrio:,.2f})")
         )
         return " | ".join(linhas)
+
+
+#: Acima disso a busca por sinais deixa de ser conservadora: com muitas
+#: classes cresce a chance de uma combinação zerar por acaso, e aí o "fecha"
+#: não significa mais nada. Plano contábil real tem 3 ou 4.
+MAX_CLASSES_PARA_BUSCA = 5
+
+
+def residuo_da_equacao(totais: Iterable[float]) -> float:
+    """
+    O que sobra da equação contábil, sob a convenção de sinais que o arquivo usa.
+
+    Existem duas convenções no mundo real, e nenhuma é detectável olhando um
+    total isolado:
+
+    - **sinal explícito** (ECF, plano referencial): passivo e receita já vêm
+      negativos, então ``Ativo + Passivo + Resultado`` é que zera;
+    - **natureza implícita** (muito sistema brasileiro): tudo vem positivo e a
+      classe é que diz o lado — ``Ativo - Passivo - (Receitas - Custos) = 0``.
+
+    Em vez de adivinhar, procura-se a atribuição de sinais que zera a soma. A
+    atribuição toda-``+1`` é a convenção de sinal explícito, então tudo que
+    fechava pela soma simples continua fechando: este método só acrescenta
+    leituras, nunca remove.
+
+    O sinal do primeiro total fica fixo em ``+1`` — negar tudo dá o mesmo
+    resíduo em módulo, então metade das combinações é redundante.
+
+    **Passe os totais o mais desagregado possível.** Com Custos e Receitas já
+    somados num "RESULTADO" único, a subtração da DRE é invisível e nenhuma
+    combinação de sinais a recupera. Foi exatamente esse o defeito: a mesma
+    conta aparecia certa na conferência da origem e errada na reconciliação da
+    entrega, porque as duas somavam agregações diferentes. Esta função existe
+    para que haja **uma** implementação, e não duas que divergem.
+    """
+    valores = list(totais)
+    if not valores:
+        return 0.0
+    if len(valores) > MAX_CLASSES_PARA_BUSCA:
+        return sum(valores)
+    return min(
+        (
+            sum(s * v for s, v in zip((1, *combinacao), valores))
+            for combinacao in _product((1, -1), repeat=len(valores) - 1)
+        ),
+        key=abs,
+    )
 
 
 def _saldo(conta: dict[str, Any]) -> float:

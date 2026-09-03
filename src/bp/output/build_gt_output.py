@@ -52,7 +52,11 @@ from ..utils.natureza import mapear_natureza, resultado_do_periodo, totais_por_n
 from ..utils.prazo import mapear_prazo, prazo_do_codigo_referencial
 from ..utils.synonyms import is_garbage_description
 from ..validators.entrega import RelatorioEntrega, conferir_dre, conferir_totais
-from ..validators.hierarquia import conferir_hierarquia, selecionar_para_projecao
+from ..validators.hierarquia import (
+    conferir_hierarquia,
+    residuo_da_equacao,
+    selecionar_para_projecao,
+)
 from .origem import Origem, escrever_aba_origem, ler_origem, nome_da_aba
 from .template_map import TemplateProjector
 
@@ -202,6 +206,12 @@ class BuildResult:
     #: Os totais do lado do template passam por `abs() * sign_for()`, que
     #: descarta o sinal lido, então não servem para conferir nada. Estes servem.
     emitido_por_classe: dict[str, float] = field(default_factory=dict)
+    #: A mesma soma, aberta pelo DÍGITO-RAIZ em vez da classe. Existe porque
+    #: ``classe_from_codigo`` funde 3..9 num só "RESULTADO", e num plano de
+    #: quatro classes isso soma Custos (3) com Receitas (4) — que a DRE
+    #: subtrai. É esta abertura que a reconciliação usa; a por classe fundida
+    #: acusava 11,7 milhões de desequilíbrio num balancete que fecha.
+    emitido_por_raiz: dict[str, float] = field(default_factory=dict)
     nao_coberto_por_classe: dict[str, float] = field(default_factory=dict)
     #: Mesma abertura, mas por natureza de resultado (RECEITA/DESPESA). A
     #: abertura por classe não serve para conferir a DRE: receita e despesa
@@ -262,7 +272,12 @@ class BuildResult:
     def reconciliacao(self) -> Reconciliacao:
         """Prova de por que não fecha — e de que nada mais está faltando."""
         return Reconciliacao(
-            desequilibrio=sum(self.emitido_por_classe.values()),
+            # Pela raiz, nunca pela classe fundida: ver `emitido_por_raiz` e
+            # `residuo_da_equacao`. Somar "RESULTADO" inteiro faz um balancete
+            # de quatro classes parecer desequilibrado em milhões.
+            desequilibrio=residuo_da_equacao(
+                self.emitido_por_raiz.values() or self.emitido_por_classe.values()
+            ),
             soma_sem_destino=self.valor_nao_coberto,
             contas=sorted(
                 self.contas_sem_destino, key=lambda c: abs(c.valor), reverse=True
@@ -464,6 +479,13 @@ def build_gt_output(
         for classe, v in parcial.emitido_por_classe.items():
             result.emitido_por_classe[classe] = (
                 result.emitido_por_classe.get(classe, 0.0) + v
+            )
+        # A abertura por raiz acumula junto. Esquecer esta soma faria a série
+        # histórica cair de volta na classe fundida e reintroduzir o defeito
+        # exatamente onde ele é mais difícil de ver: com vários exercícios.
+        for raiz, v in parcial.emitido_por_raiz.items():
+            result.emitido_por_raiz[raiz] = (
+                result.emitido_por_raiz.get(raiz, 0.0) + v
             )
         result.contas_sem_destino.extend(parcial.contas_sem_destino)
         for classe, v in parcial.nao_coberto_por_classe.items():
@@ -917,6 +939,10 @@ def _padronizar(
         if classe:
             result.emitido_por_classe[classe] = (
                 result.emitido_por_classe.get(classe, 0.0) + bruto
+            )
+            raiz = str(codigo).lstrip("()- ").strip()[:1]
+            result.emitido_por_raiz[raiz] = (
+                result.emitido_por_raiz.get(raiz, 0.0) + bruto
             )
         natureza = naturezas.get(codigo)
         if natureza:

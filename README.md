@@ -267,13 +267,32 @@ O `MAPA.exe` sai em `dist/MAPA.exe`, ~55 MB, **onefile**:
 - SmartScreen pode alertar na primeira vez (executável não assinado). *Mais informações → Executar assim mesmo*.
 - **Abra com duplo clique normal.** O Windows bloqueia arrastar-e-soltar em janela aberta como administrador (UIPI) — e falha calado.
 
-### O `.exe` não entra no repositório
+### O `.exe` entra no repositório
 
-São 55 MB por build. Commitado, o git guarda **todos** para sempre e o histórico não encolhe depois. `dist/` está no `.gitignore` e é assim que fica.
+`dist/MAPA.exe` é **versionado**. Quem clona já tem o binário, sem depender de
+o workflow de Release passar — que é o motivo da mudança: o fluxo de Release
+falhou repetidamente e travava a entrega.
 
-A distribuição é por **GitHub Release**: até 2 GB por arquivo, fora do histórico, com link estável para circular.
+Só o binário entra. O resto de `dist/` (relatórios de auditoria e autoteste)
+continua ignorado: deriva a cada compilação e versionar só polui.
 
-### Publicar uma versão
+> **O custo, para constar:** são ~55 MB por build e o git guarda **todos** para
+> sempre — apagar depois não encolhe o histórico. Se o repositório ficar pesado
+> demais, o caminho é **Git LFS**, não um `git rm` (que não recupera espaço).
+
+Para publicar uma versão nova do binário:
+
+```bash
+uv run python build.py          # compila, audita e autotesta
+git add dist/MAPA.exe
+git commit -m "MAPA.exe v0.8.2"
+git push
+```
+
+O `build.py` só devolve `.exe` que passou na auditoria e no autoteste, então o
+que você commita tem a mesma garantia de antes.
+
+### Publicar uma versão por Release (opcional)
 
 Duas linhas, e o resto é automático:
 

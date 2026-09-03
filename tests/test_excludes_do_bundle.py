@@ -172,28 +172,39 @@ def test_build_exige_o_autoteste_antes_de_entregar():
 WORKFLOW = RAIZ / ".github" / "workflows" / "release.yml"
 
 
-def test_o_binario_nao_e_versionado():
+def test_so_o_binario_entra_de_dist():
     """
-    55 MB por build, e o git guarda todos para sempre.
+    O `.exe` é versionado de propósito; o resto de `dist/` não.
 
-    O `.exe` chegou a ser commitado uma vez. O histórico não encolhe depois —
-    a única defesa é não deixar entrar de novo.
+    A regra virou o oposto do que era. Antes `dist/` inteiro ficava fora do
+    repositório e a distribuição era por GitHub Release — o fluxo falhou
+    repetidamente, e o dono do projeto decidiu commitar o binário. O custo
+    (≈55 MB por build, que o histórico guarda para sempre) está anotado no
+    `.gitignore`; a alternativa, se pesar, é Git LFS.
+
+    O que este teste protege é o **recorte**: `dist/` também recebe os
+    relatórios de auditoria e autoteste a cada compilação. Versionar esses
+    junto encheria o histórico de ruído derivável sem nenhum ganho. Só o
+    `.exe` passa.
     """
-    rastreados = subprocess.run(
-        ["git", "ls-files", "dist"], capture_output=True, text=True, cwd=RAIZ
-    ).stdout.split()
-    assert not rastreados, (
-        "há arquivo(s) de `dist/` versionado(s): " + ", ".join(rastreados) +
-        "\nO binário se distribui por GitHub Release, não pelo repositório."
-    )
-
-    ignorado = subprocess.run(
+    regra_do_exe = subprocess.run(
         ["git", "check-ignore", "dist/MAPA.exe"],
         capture_output=True, text=True, cwd=RAIZ,
     )
-    assert ignorado.returncode == 0, (
-        "`dist/` saiu do .gitignore — o próximo build entra no histórico"
+    assert regra_do_exe.returncode == 1, (
+        "dist/MAPA.exe voltou a ser ignorado — o binário não chegaria a quem "
+        "clona, que é justamente o que a mudança quis resolver"
     )
+
+    for derivado in ("dist/MAPA_autoteste.txt", "dist/MAPA_diagnostico.txt"):
+        ignorado = subprocess.run(
+            ["git", "check-ignore", derivado],
+            capture_output=True, text=True, cwd=RAIZ,
+        )
+        assert ignorado.returncode == 0, (
+            f"{derivado} deixou de ser ignorado. Relatório de build é "
+            f"derivável e muda a cada compilação; versionar só polui."
+        )
 
 
 def test_o_workflow_de_release_existe_e_gateia_o_build():

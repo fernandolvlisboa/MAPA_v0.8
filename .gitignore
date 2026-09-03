@@ -2,11 +2,20 @@
 __pycache__/
 *.py[oc]
 build/
-# O .exe NAO entra no repositorio. Sao 55 MB por build, o git guarda todos
-# para sempre e o historico nao encolhe depois. A distribuicao e por GitHub
-# Release (ate 2 GB por arquivo, fora do historico) — veja README, secao
-# "Publicar uma versao". O workflow .github/workflows/release.yml faz isso
-# sozinho quando voce empurra uma tag.
+# dist/ FICA VERSIONADO — decisao deliberada, tomada depois de o fluxo de
+# GitHub Release falhar varias vezes seguidas. O .exe commitado e o caminho
+# que funciona hoje: quem clona ja tem o binario, sem depender de o workflow
+# passar.
+#
+# O custo, para constar: sao ~55 MB por build e o git guarda TODOS para
+# sempre — apagar depois nao encolhe o historico. Se o repositorio ficar
+# pesado demais, o caminho de volta e Git LFS (nao um `git rm`, que nao
+# recupera espaco).
+#
+# So o binario entra. O resto de dist/ e relatorio de build, deriva a cada
+# compilacao e nao tem por que ser versionado.
+dist/*
+!dist/MAPA.exe
 wheels/
 *.egg-info
 

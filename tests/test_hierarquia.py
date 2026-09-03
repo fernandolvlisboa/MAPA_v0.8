@@ -347,3 +347,32 @@ def test_convencao_de_sinal_explicito_continua_fechando():
     r = conferir_hierarquia(contas)
     assert r.equacao_fecha
     assert r.desequilibrio == pytest.approx(0.0, abs=0.01)
+
+
+def test_residuo_da_equacao_e_a_fonte_unica():
+    """
+    Uma implementacao so — a duplicacao foi o que gerou o segundo defeito.
+
+    A conferencia da ORIGEM ja procurava os sinais certos, mas a reconciliacao
+    da ENTREGA continuava somando `emitido_por_classe` cru. Resultado: a tela
+    mostrava "Balanco fecha: sim" no cartao e "o balanco nao fechou, nao
+    entregue esta planilha" no aviso, sobre o mesmo arquivo. Duas respostas
+    para a mesma pergunta porque eram duas contas diferentes.
+    """
+    from src.bp.validators.hierarquia import residuo_da_equacao
+
+    # Trindade: 4 classes, natureza implicita. Ativo = Passivo + (Rec - Cust).
+    assert residuo_da_equacao(
+        [2_361_053.53, 891_480.90, 3_472_327.21, 4_941_899.84]
+    ) == pytest.approx(0.0, abs=0.01)
+
+    # Sinal explicito (ECF): a soma simples ja zerava e tem de continuar zerando.
+    assert residuo_da_equacao([1_000.0, -600.0, -400.0]) == pytest.approx(0.0)
+
+    # Torto de verdade: nenhuma combinacao de sinais salva. Os valores sao
+    # escolhidos para nao se cancelarem em nenhuma delas — o melhor caso ainda
+    # deixa 619 de residuo sobre um total de 1.381.
+    assert abs(residuo_da_equacao([1_000.0, 300.0, 70.0, 11.0])) == pytest.approx(619.0)
+
+    # Sem totais nao ha o que conferir — nao pode explodir.
+    assert residuo_da_equacao([]) == 0.0
