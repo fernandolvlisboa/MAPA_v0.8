@@ -2,9 +2,10 @@
   "1.02.03.02.05": {
     "variations": [
       "moveis e utensilios",
-      "(-) moveis e utensilios - depreciacao"
+      "(-) moveis e utensilios - depreciacao",
+      "valor de origem de moveis e utensilios (manual)."
     ],
-    "frequency": 24
+    "frequency": 25
   },
   "1.02.03.02.04": {
     "variations": [
@@ -524,9 +525,11 @@
     "variations": [
       "provisoes",
       "outras provisoes",
-      "outras"
+      "outras",
+      "disposicao para outras vendas",
+      "previsao para outras taxas"
     ],
-    "frequency": 12
+    "frequency": 14
   },
   "2.90.20": {
     "variations": [
@@ -829,9 +832,12 @@
       "caixa",
       "disponibilidades",
       "caixa geral",
-      "disponivel"
+      "disponivel",
+      "boleto caixa",
+      "caixa pequeno alocado a gerencia",
+      "dinheiro e equivalentes de caixa"
     ],
-    "frequency": 49
+    "frequency": 52
   },
   "1.01.02": {
     "variations": [
@@ -910,9 +916,11 @@
       "bancos conta movimento",
       "conta corrente - caju beneficios",
       "bancos com movimento",
-      "conta corrente usd"
+      "conta corrente usd",
+      "itens em aberto do citibank bank - ml",
+      "renda a ser obtida: bonus de assinatura com bancos"
     ],
-    "frequency": 23
+    "frequency": 25
   },
   "1.01.02.03.01": {
     "variations": [
@@ -952,22 +960,32 @@
     "variations": [
       "(-) depreciacao acumulada",
       "depreciacao acumulada",
-      "(-) depreciacao"
+      "(-) depreciacao",
+      "depreciacao acumulada de edificios",
+      "depreciacao acumulada de veiculos",
+      "depreciacao acumulada de veiculos adquiridos",
+      "depreciacao acumulada do hardware do no site"
     ],
-    "frequency": 16
+    "frequency": 20
   },
   "1.02.05.01.29": {
     "variations": [
-      "intangivel"
+      "intangivel",
+      "conversao de ativo intangivel da axi"
     ],
-    "frequency": 19
+    "frequency": 20
   },
   "1.02.05.01.10": {
     "variations": [
       "software",
-      "de software"
+      "de software",
+      "conta de balanceamento da software aa",
+      "conta de regularizacao de vo de software",
+      "conversao de software aa para moeda do grupo",
+      "conversao de vo de software para moeda do grupo",
+      "saldo inicial software"
     ],
-    "frequency": 6
+    "frequency": 11
   },
   "1.01.03.07.01": {
     "variations": [
@@ -993,9 +1011,22 @@
   "2.01.01.03": {
     "variations": [
       "fornecedores/credores",
-      "fornecedores"
+      "fornecedores",
+      "faturas pend. de receb. de fornecedores comerciais",
+      "fornecedores comerciais",
+      "fornecedores de conv interco comercial local",
+      "fornecedores intercompanhados empresas locais",
+      "pagamentos diferidos a fornecedores",
+      "pagamentos diferidos emitidos aos fornecedores",
+      "provisao para fornecedores comerciais",
+      "retencao de iigg feita aos fornecedores",
+      "retencoes efetuadas a fornecedores suss",
+      "saldo de dif. de camb. de obrig. c/ fornecedores",
+      "saldo de fornecedores por mudancas de usr. dep/fit",
+      "saldo dos fornecedores comerciais",
+      "saldo migrado de fornecedores r3-s4"
     ],
-    "frequency": 40
+    "frequency": 53
   },
   "2.90.30": {
     "variations": [
@@ -1043,9 +1074,10 @@
       "adiantamento de clientes",
       "adiantamento de clientes - diversos",
       "adiantamentos de clientes",
-      "adiantamento de clientes - dni"
+      "adiantamento de clientes - dni",
+      "adiantamentos de salario concedidos a funcionarios"
     ],
-    "frequency": 17
+    "frequency": 18
   },
   "2.02.01.01": {
     "variations": [
@@ -1366,9 +1398,10 @@
   "2.02.01.05": {
     "variations": [
       "diferidos",
-      "passivos"
+      "passivos",
+      "passivos diversos a liquidar no longo prazo"
     ],
-    "frequency": 5
+    "frequency": 6
   },
   "2.03.03.01.90": {
     "variations": [
@@ -1389,9 +1422,10 @@
   },
   "1.01.02.09.03": {
     "variations": [
-      "dividendos a receber"
+      "dividendos a receber",
+      "distribuicoes de dividendos a receber"
     ],
-    "frequency": 2
+    "frequency": 3
   },
   "3.11.01.05.01.27": {
     "variations": [
@@ -1409,9 +1443,18 @@
   "1.02.01.15": {
     "variations": [
       "outros",
-      "outros creditos"
+      "outros creditos",
+      "conversao antecipada de outros pgds em ml",
+      "conversao de reserva e outros creditos",
+      "conversao de reserva e outros creditos concluidos",
+      "creditos a realizar em longo prazo",
+      "outros gastos antecipados em me a reconhecer no cp",
+      "outros gastos pagos antecip. no ml a apropriar no",
+      "outros result. abrangentes-titulos soberanos lp",
+      "saldo inicial a.a. outros",
+      "saldos de depositos judiciais por diversos motivos"
     ],
-    "frequency": 38
+    "frequency": 47
   },
   "1.02.03.01": {
     "variations": [
@@ -1429,9 +1472,18 @@
   },
   "1.02.05": {
     "variations": [
-      "diferido"
+      "diferido",
+      "ativo de imposto diferido lp fas 115/133",
+      "conversao do valor de origem de marcas e patentes",
+      "imposto diferido ativo cp fas 115/133",
+      "imposto diferido sobre encargos reconhecidos em",
+      "passivo fiscal diferido - corrente",
+      "passivo fiscal diferido - nao corrente",
+      "reivindicar posicao de imposto diferido",
+      "saldo inicial a.a. marcas e patentes",
+      "saldo inicial marcas e patentes"
     ],
-    "frequency": 1
+    "frequency": 10
   },
   "3.11.01.05.01.07": {
     "variations": [
@@ -1461,9 +1513,22 @@
   "1.02.03.01.31": {
     "variations": [
       "amortizacao acumulada",
-      "( - ) amortizacao"
+      "( - ) amortizacao",
+      "amort. acumulada dominios em con",
+      "amort.acumulada licencas intangiveis",
+      "amortizacao acumulada das licencas adquiridas",
+      "amortizacao acumulada de instalacoes",
+      "amortizacao acumulada de marcas adquir",
+      "amortizacao acumulada de obras em andamento",
+      "amortizacao acumulada de reparos e instalacoes",
+      "amortizacao acumulada de titulos corporativos cp",
+      "amortizacao acumulada dominios urls",
+      "amortizacao acumulada investimentos ml",
+      "amortizacao acumulada investimentos ml curto prazo",
+      "amortizacao acumulada veiculos",
+      "saldo inicial de amort. acumulada de intangiveis."
     ],
-    "frequency": 5
+    "frequency": 18
   },
   "1.02.03.01.97": {
     "variations": [
@@ -1513,9 +1578,12 @@
       "compra de acoes em tesouraria 22",
       "tesouraria 22",
       "venda de acoes em tesouraria",
-      "compra de acoes em tesouraria"
+      "compra de acoes em tesouraria",
+      "direitos de recebimento de tesouraria intercompany",
+      "interco tesouraria mlb - mcb",
+      "pagos de tesouraria intercompanhia"
     ],
-    "frequency": 10
+    "frequency": 13
   },
   "3.11.01.07.01.04": {
     "variations": [
@@ -1583,9 +1651,15 @@
   "2.01.01.07.05": {
     "variations": [
       "arrendamento mercantil",
-      "arrendamento"
+      "arrendamento",
+      "dividas de arrendamento atuais",
+      "dividas de arrendamento nao correntes",
+      "passivo arrendamento operacional ml",
+      "passivo por arrendamento operacional",
+      "reserva para conversao de divida de arrendamento",
+      "valor de origem de veiculos por arrendamento fin."
     ],
-    "frequency": 5
+    "frequency": 11
   },
   "3.11.01.09.01.25": {
     "variations": [
@@ -1607,9 +1681,14 @@
       "(-) depreciacoes de veiculos",
       "adiantamento consorcio de veiculos",
       "de veiculos automotores), encerrou o ano de",
-      "de veiculos de 10,5% em"
+      "de veiculos de 10,5% em",
+      "conv. de saldos vo veiculos para moeda do grupo",
+      "conversao saldos aa veiculos",
+      "imputacao manual do valor original dos veiculos",
+      "saldo inicial a.a. veiculos",
+      "saldo inicial veiculos"
     ],
-    "frequency": 22
+    "frequency": 27
   },
   "2.90.11": {
     "variations": [
@@ -1641,9 +1720,10 @@
     "variations": [
       "reserva de lucros",
       "reservas de lucros",
-      "de lucros"
+      "de lucros",
+      "resultados acumulados - resultados nao atribuidos"
     ],
-    "frequency": 8
+    "frequency": 9
   },
   "1.02.03.01.04": {
     "variations": [
@@ -1744,9 +1824,23 @@
     "variations": [
       "contas a pagar",
       "pagar",
-      "a pagar"
+      "a pagar",
+      "cide a pagar",
+      "cobrancas sociais para pagar",
+      "contribuicoes para a seguridade social a pagar",
+      "distribuicao de dividendos a pagar aos acionistas",
+      "dividendos - ajustes de adiantamentos",
+      "icms sao paulo a pagar",
+      "int para pagar ls lc",
+      "prov comissoes aura",
+      "prov comissoes entidades",
+      "prov comissoes hipercard",
+      "prov. comissoes amex",
+      "prov. comissoes master",
+      "sac para pagar",
+      "tickets a pagar"
     ],
-    "frequency": 31
+    "frequency": 45
   },
   "2.01.01.17.28": {
     "variations": [
@@ -1803,9 +1897,12 @@
   },
   "1.02.03": {
     "variations": [
-      "titulos a receber"
+      "titulos a receber",
+      "instalacoes",
+      "saldo inicial a.a. instalacoes",
+      "valor original dos arranjos e instalacoes"
     ],
-    "frequency": 2
+    "frequency": 5
   },
   "1.01.02.04.01": {
     "variations": [
@@ -1825,9 +1922,20 @@
   },
   "1.02.02.01.10": {
     "variations": [
-      "investimentos"
+      "investimentos",
+      "dinheiro e investimentos restritos",
+      "investimentos cdb",
+      "investimentos em conta ponte",
+      "investimentos em depositos a prazo fixo no brasil",
+      "investimentos em titulos corporativos",
+      "investimentos jp morgan chase",
+      "juros de investimentos em titulos soberan",
+      "ml investimentos titulos soberanos de curto prazo",
+      "ml investimentos titulos soberanos de longo prazo",
+      "reserva de conversao de investimentos",
+      "vpp investimentos"
     ],
-    "frequency": 11
+    "frequency": 22
   },
   "1.02.02.10.10": {
     "variations": [
@@ -1864,9 +1972,10 @@
   },
   "2.03.01.01.01": {
     "variations": [
-      "capital subscrito"
+      "capital subscrito",
+      "capital subscrito pelos proprietarios"
     ],
-    "frequency": 10
+    "frequency": 11
   },
   "3.90.01.02": {
     "variations": [
@@ -1902,9 +2011,12 @@
   },
   "3.02.01.01.01": {
     "variations": [
-      "provisao para ir"
+      "provisao para ir",
+      "prov. p/ incobravel adsales fluxo off. estima",
+      "provisao para causas comerciais a resolver no cp",
+      "provisao para honorarios de auditoria"
     ],
-    "frequency": 2
+    "frequency": 5
   },
   "3.01.01.01.01.06": {
     "variations": [
@@ -1981,9 +2093,21 @@
     "variations": [
       "(-) imposto de renda",
       "provisao para imposto de renda",
-      "imposto de renda"
+      "imposto de renda",
+      "adiantamentos pagos de irpj - credito fiscal",
+      "credito de imposto de renda",
+      "credito de imposto sobre valor agregado",
+      "imposto de renda e complementar a pagar",
+      "pagamentos irpj por conta",
+      "percecoes retidas de imposto renda",
+      "prov. imposto de renda a pagar (exemplo atual)",
+      "prov. imposto de renda a pagar no ano anterior",
+      "provisao irpj brasil a pagar",
+      "reserva de conversao do imposto de renda",
+      "retencoes de imposto de renda",
+      "retencoes efetuadas imposto renda"
     ],
-    "frequency": 9
+    "frequency": 21
   },
   "3.11.01.09.01.01": {
     "variations": [
@@ -2121,9 +2245,11 @@
   },
   "2.01.01.03.01": {
     "variations": [
-      "com"
+      "com",
+      "acordo com credores estrangeiros",
+      "obrigacoes comerciais com empresas"
     ],
-    "frequency": 1
+    "frequency": 3
   },
   "3.01.01.01.02.62": {
     "variations": [
@@ -2229,9 +2355,23 @@
   },
   "2.01.01.09": {
     "variations": [
-      "fiscais"
+      "fiscais",
+      "conta de itens em aberto de dividas fiscais",
+      "conv. de prov. para litigios fiscais e aduaneiros",
+      "conversao retencos fiscais a moeda",
+      "conversa£o de outros cra©ditos fiscais",
+      "dividas fiscais",
+      "imposto retido na fonte pago a intercompany isr",
+      "imposto retido na fonte sobre a segunda categoria",
+      "irrf a recolher",
+      "obrigacoes de contribuicoes e cargas soci",
+      "provisao de irrf retido a recolher ao fisco",
+      "reclassificacao de posicoes fiscais de credito",
+      "reserva de conv. de cred. e deb. fiscais realizada",
+      "reserva de conversao de creditos e debitos fiscais",
+      "retencoes de iss efetuadas a terceiros a recolher"
     ],
-    "frequency": 2
+    "frequency": 16
   },
   "1.01.02.04.02": {
     "variations": [
@@ -2266,15 +2406,25 @@
   },
   "1.01.02.01.04": {
     "variations": [
-      "terceiros"
+      "terceiros",
+      "dinheiro de terceiros - lancamentos bancarios",
+      "fundos de terceiros atraves do fluxo bcra",
+      "fundos de terceiros recebidos nao identificados",
+      "retencoes de cofins de terceiros",
+      "retencoes efetuadas a terceiros pagaveis",
+      "retencoes iss efetuadas a terceiros"
     ],
-    "frequency": 2
+    "frequency": 8
   },
   "3.01.01.03": {
     "variations": [
-      "custo dos produtos e servicos vendidos"
+      "custo dos produtos e servicos vendidos",
+      "custos divididos do documento",
+      "provisao custos programa protecao comprador",
+      "retencoes a terceiros - cofins importacao servicos",
+      "retencoes de iss a terceiros p/ servicos shipping"
     ],
-    "frequency": 2
+    "frequency": 6
   },
   "1.02.02.03.01": {
     "variations": [
@@ -2284,9 +2434,13 @@
   },
   "2.01.01.09.11": {
     "variations": [
-      "de pagamento e de"
+      "de pagamento e de",
+      "conversao de metodos de pagamento",
+      "dinheiro de terceiros pendente de pagamento",
+      "metodos de pagamento",
+      "metodos de pagamento para conversao de reservas"
     ],
-    "frequency": 1
+    "frequency": 5
   },
   "1.01.01.40.01": {
     "variations": [
@@ -2435,9 +2589,10 @@
   "2.03.02.01.02": {
     "variations": [
       "(incorporacao)",
-      "agio"
+      "agio",
+      "registro do agio por expectativa futu"
     ],
-    "frequency": 2
+    "frequency": 3
   },
   "3.11.01.03.01": {
     "variations": [
@@ -2508,8 +2663,300 @@
   },
   "2.01.01.01": {
     "variations": [
-      "encargos sociais"
+      "encargos sociais",
+      "conversao e ajuste da provisao de encargos sociais",
+      "divida de provisao externa intercompanhia",
+      "estornos de provisao",
+      "pensao alimenticia",
+      "prov estornos aura",
+      "prov estornos hipercard",
+      "prov. comisao visa",
+      "prov. estornos amex",
+      "prov. estornos master",
+      "prov. estornos visa",
+      "provisao de aporte ao fundo locti",
+      "provisao de bonificacoes e gratificacoes",
+      "provisao de encargos sociais sobre bonificacoes",
+      "provisao de encargos sociais sobre o 13o salario",
+      "provisao de faturas a receber",
+      "provisao do imposto de industria",
+      "provisao incobraveis visa",
+      "provisao inss",
+      "provisao intercompanhia divida local",
+      "provisao irpf retido pf",
+      "provision feriados",
+      "provisoes, creditos, incentivos, volume de vendas",
+      "salarios e salarios a pagar no cte"
+    ],
+    "frequency": 25
+  },
+  "1.01.01": {
+    "variations": [
+      "aplicacoes no fundo money market jp morgan",
+      "boleto banco do brasil",
+      "irrf s/aplic financ",
+      "provisao de juros sobre aplicacoes money market",
+      "provisao irff s/aplicacoes"
+    ],
+    "frequency": 5
+  },
+  "1.01.02.01": {
+    "variations": [
+      "adiant. de ferias concedidos aos funcionarios."
+    ],
+    "frequency": 1
+  },
+  "1.01.02.02": {
+    "variations": [
+      "aquisicao de creditos de clientes",
+      "conv. do valor de origem da base de clientes a",
+      "conversao de saldos de clientes",
+      "cred. fiscais por ret. nao realizadas clientes",
+      "provisao bonificacoes clientes",
+      "saldo inicial clientes",
+      "valor origem base clientes adq"
+    ],
+    "frequency": 7
+  },
+  "1.01.02.03": {
+    "variations": [
+      "contribuicao para o programa de integracao social",
+      "csll pago antecipado",
+      "imposto de renda retido na fonte",
+      "ret. realizada a 3° irrf por servicios",
+      "ret. sofrida de contribuicao social",
+      "retencao bancaria de pis sofrida a compensar",
+      "saldo favor contribuicao social renda"
+    ],
+    "frequency": 7
+  },
+  "1.01.02.09": {
+    "variations": [
+      "carregamento manual inicial do ativo fixo aa",
+      "provisao para contas a receber de vendas ad vendas",
+      "saldo inicial outros ativos"
+    ],
+    "frequency": 3
+  },
+  "1.02.01.05": {
+    "variations": [
+      "icms a recuperar sao paulo por compras"
+    ],
+    "frequency": 1
+  },
+  "1.02.05.01.28": {
+    "variations": [
+      "alocacao manual aa de outros ativos intangiveis",
+      "alocacao manual de outros ativos intangiveis"
     ],
     "frequency": 2
+  },
+  "2.03.01": {
+    "variations": [
+      "prov. contr. social sobre beneficio neto brasil",
+      "prov. contrib. financiam. seg. social",
+      "retencoes ao programa de integracao social"
+    ],
+    "frequency": 3
+  },
+  "2.03.02.01": {
+    "variations": [
+      "conversao de reservas de outras dividas",
+      "conversao de reservas dinheiro e bancos",
+      "conversao de reservas, dinheiro e bancos",
+      "despesas de conversao de reservas",
+      "outros resultados abrangentes - titulos corp. cp",
+      "outros resultados abrangentes - titulos soberanos",
+      "receita de juros de conversao de reservas",
+      "usuarios de conversao de reservas mp"
+    ],
+    "frequency": 8
+  },
+  "3.01.01.01.02.04": {
+    "variations": [
+      "cofins- credito ext",
+      "conv. de tributos iibb/cofins/icms/pis/iss p/",
+      "conversion pis cofins icms a moneda grupo",
+      "credito fiscal pis por importacao de serv. hosting",
+      "credito pis por ops. grav. en mercado interno 1/12",
+      "credito pis por ops. grav. en mercado interno x/12",
+      "pis - credito exterior",
+      "pis - credito publicidad onl interno",
+      "pis - credito publicidade onl exterior",
+      "pis - programa afiliado externo credito",
+      "retencao pis sobre importacao de servicos"
+    ],
+    "frequency": 11
+  },
+  "3.01.01.01.02.05": {
+    "variations": [
+      "cofins - credito publicidade onl exterior",
+      "cofins - programa afiliado externo credito",
+      "credito cofins p/ importacao de servico hosting",
+      "credito cofins por ops. grav. en mercado interno",
+      "ret. bancarias cofins sofridas, pend. de"
+    ],
+    "frequency": 5
+  },
+  "3.01.01.01.02.06": {
+    "variations": [
+      "prestacao de servicos iss pela interco"
+    ],
+    "frequency": 1
+  },
+  "3.01.01.03.01": {
+    "variations": [
+      "cupons vendidos aura",
+      "cupons vendidos visa"
+    ],
+    "frequency": 2
+  },
+  "3.01.01.05.01.05": {
+    "variations": [
+      "reserva para conversao de dividas financeiras"
+    ],
+    "frequency": 1
+  },
+  "3.01.01.07.01.01": {
+    "variations": [
+      "credito de ferias",
+      "disposicao sobre ferias",
+      "provisao de encargos sociais ferias",
+      "provisao de encargos sociais sobre ferias"
+    ],
+    "frequency": 4
+  },
+  "3.01.01.07.01.02": {
+    "variations": [
+      "os salarios serao pagos em usd.",
+      "outras responsabilidades trabalhistas",
+      "ret. seg. social efet. s/ salarios",
+      "retencao inss salarios",
+      "salarios que devem ser pagos",
+      "saldos de dep. judiciais por causas trabalhistas",
+      "transf. de salarios em dolares americ para a mpb",
+      "transferencia de salarios eba",
+      "transferencia de salarios mel",
+      "transferencia de salarios mlb",
+      "transferencia de salarios mpb",
+      "transferencia salarios da eba",
+      "transferencia salarios da ibz",
+      "transferencia salarios da mel",
+      "transferencia salarios da mlb",
+      "transferencia salarios da mpb"
+    ],
+    "frequency": 16
+  },
+  "3.01.01.07.01.04": {
+    "variations": [
+      "adiantamentos de despesas a regularizar",
+      "adiantamentos para despesas a render",
+      "conversao de provisao de despesas",
+      "despesas com seguro pre-pago",
+      "despesas de licenca pre-pagas",
+      "fundo fixo destinado a despesas legais",
+      "provisao de despesas pendentes de prestacao (cc)"
+    ],
+    "frequency": 7
+  },
+  "3.01.01.07.01.05": {
+    "variations": [
+      "inss parte empresa",
+      "ret. realizada a 3° inss 11%",
+      "ret. realizada a 3° inss 20%",
+      "retencao da previdencia social (20%) feita ao 3o"
+    ],
+    "frequency": 4
+  },
+  "3.01.01.07.01.16": {
+    "variations": [
+      "prov. para devedores duvidosos - outros (fluxo"
+    ],
+    "frequency": 1
+  },
+  "3.01.01.07.01.18": {
+    "variations": [
+      "credito cofins para alugueis",
+      "credito pis para alugueis"
+    ],
+    "frequency": 2
+  },
+  "3.01.01.07.01.19": {
+    "variations": [
+      "despesas de manutencao pagas antecipadamente"
+    ],
+    "frequency": 1
+  },
+  "3.01.01.07.01.20": {
+    "variations": [
+      "credito para vendas - users site-off fica flow",
+      "creditos de vendas de conversao de reserva",
+      "creditos para leiloes de vendas gl",
+      "disposicoes para vendas em leilao",
+      "faturamento usa vendas pu"
+    ],
+    "frequency": 5
+  },
+  "3.01.01.07.01.23": {
+    "variations": [
+      "amortizacao acum. mov. ut.",
+      "conv. da amort. acum. de licencas a moeda do grupo",
+      "conv. de amort. acum. de marcas & patentes a",
+      "imputacao manual amortizacao software"
+    ],
+    "frequency": 4
+  },
+  "3.01.01.07.01.40": {
+    "variations": [
+      "conv. ieps ret. impostos moeda grupo",
+      "impostos nao identificados",
+      "provisao diversas com col"
+    ],
+    "frequency": 3
+  },
+  "3.01.01.09.01.04": {
+    "variations": [
+      "juros cred mlb-dab cs",
+      "juros cred mlb-dab cs conv",
+      "juros cred mlb-ifb cs",
+      "juros cred mlb-ifb cs conv",
+      "juros cred mlb-soc cs",
+      "juros cred mlb-soc cs conv",
+      "juros cred rdc-mpc fluxo de fundos",
+      "juros de bonus corporativos de curto prazo ml",
+      "juros de titulos corporativos ml lp",
+      "juros deudas(dividas) mlb-ifb",
+      "juros deudas(dividas) mlb-kgb",
+      "juros deudas(dividas) mlb-soc",
+      "juros devengados de titulos soberanos cp",
+      "juros div presentes mlb-mpb",
+      "juros incorridos em contas remuneradas",
+      "juros tesouraria mlb-dab",
+      "juros tesouraria mlb-ifb",
+      "juros tesouraria mlb-soc"
+    ],
+    "frequency": 18
+  },
+  "3.01.01.09.01.05": {
+    "variations": [
+      "cartao de debito",
+      "reclassificacao posicao fiscal debito",
+      "reclassificacao posicao fiscal debito is"
+    ],
+    "frequency": 3
+  },
+  "3.01.01.09.01.08": {
+    "variations": [
+      "conversao de outros passivos para moeda do grupo",
+      "despesas financeiras de conversao de reservas",
+      "provisao para despesas bancarias"
+    ],
+    "frequency": 3
+  },
+  "3.01.01.09.01.99": {
+    "variations": [
+      "outras despesas com licencas pre-pagas"
+    ],
+    "frequency": 1
   }
 }

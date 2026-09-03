@@ -2615,3 +2615,61 @@ validado. A correção honesta é a leitura; a desambiguação do número fica
 registrada como decisão pendente.
 
 ---
+
+## §29 — Aprendizado do mlb bal ecd e correção do CI
+
+**Data**: 2026-09-03
+
+### Aprendizado do mlb bal ecd
+
+O balancete `mlb bal ecd (1).xlsx` é um plano flat sem totalizador (1.791 contas,
+nenhum código hierárquico). A entrega é inconferível por construção — não há como
+comparar os totais — e o programa avisa corretamente ("NÃO FOI CONFERIDO").
+
+O pipeline já extraía 313 linhas dele, mapeadas para 59 códigos GT distintos,
+mas todas com saldo zero (o formato numérico do arquivo não é reconhecido). O
+valor útil deste arquivo para o programa é o vocabulário: 307 descrições novas
+que nunca tinham aparecido no `account_variations.json`.
+
+Após a incorporação:
+
+| Métrica                     | Antes   | Depois  |
+|-----------------------------|---------|---------|
+| Códigos GT no aprendizado   | 317     | 345     |
+| Variações de descrição      | 928     | 1.235   |
+| Suite de testes              | 656     | 657     |
+
+Nenhuma regressão.
+
+### Avaliação dos 4 com total errado
+
+Medidos no corpus, 4 balancetes entregam total diferente da origem:
+
+| Arquivo       | Classe afetada  | Diferença    | Contas sem destino | Resíduo |
+|---------------|-----------------|-------------:|--------------------|---------|
+| 202404        | ATIVO           | −3.157,94    | 8                  | 0,00    |
+| RBM           | PASSIVO+PL      | −560,84      | 4                  | 0,00    |
+| ASP 2023      | PASSIVO+PL      | −18,22       | 2                  | 0,00    |
+| JRMA 1208.csv | ATIVO           | −9.703,79    | 52                 | 0,00    |
+
+Causa: **contas sem destino no template GT**. O resíduo da reconciliação é zero
+em todos — nenhum valor evaporou; a diferença é exatamente o que ficou de fora
+por falta de linha no template. O programa avisa corretamente
+("TOTAL DA ENTREGA NÃO BATE COM A ORIGEM"). Corrigir exige expandir o mapa do
+template, que é decisão de modelagem, não de código.
+
+### Correção do CI (Release workflow)
+
+O workflow falhava com "exceeded the maximum execution time of 30m0s" porque o
+timeout do job (30 min) é insuficiente para Windows: `uv sync` + pytest + build.py
+(PyInstaller) somam mais que isso em `windows-latest`.
+
+Correções:
+- Timeout do job: 30 → 60 minutos
+- Testes no CI: `pytest -m "not integration"` (555 testes, ~36s localmente;
+  testes de integração precisam do corpus que não está no runner)
+- Timeout individual: pytest 10 min, build.py 30 min
+- Node.js 20: é aviso de depreciação forçada do GitHub, não do código; as actions
+  ainda funcionam em Node.js 24
+
+---

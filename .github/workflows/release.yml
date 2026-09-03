@@ -36,7 +36,7 @@ jobs:
     # Windows obrigatorio: o PyInstaller nao faz cross-compile. Um .exe Windows
     # so sai de uma maquina Windows.
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
@@ -50,13 +50,14 @@ jobs:
         run: uv sync --extra packaging
 
       - name: Suite de testes
-        run: uv run pytest -q
+        run: uv run pytest -q -m "not integration"
+        timeout-minutes: 10
 
       - name: Compilar, auditar e autotestar o .exe
         run: uv run python build.py
+        timeout-minutes: 30
 
       - name: Guardar os relatorios do build
-        # `always()`: quando o build FALHA e que os relatorios importam.
         if: always()
         uses: actions/upload-artifact@v4
         with:
