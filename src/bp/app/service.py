@@ -23,6 +23,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from .. import versao
+
 #: O que o dispatcher sabe ler (ver src/bp/parsers/dispatcher.py).
 EXTENSOES_ACEITAS: tuple[str, ...] = (".xlsx", ".xls", ".csv", ".txt", ".pdf")
 
@@ -158,7 +160,20 @@ def sanitizar_nome(texto: str) -> str:
 
 
 def nome_de_saida(cliente: str, anos: Sequence[int]) -> str:
-    """``Cliente_2024.xlsx`` ou ``Cliente_2022-2024.xlsx``."""
+    """
+    ``Cliente_2024_v0.8.2.xlsx`` ou ``Cliente_2022-2024_v0.8.2.xlsx``.
+
+    A versão entra no NOME, não só dentro da planilha, porque é na pasta que a
+    comparação acontece. Quando dois arquivos do mesmo cliente e do mesmo
+    exercício convivem em ``Drop`` — um bom, um ruim —, o nome idêntico
+    obrigava a abrir os dois para saber qual era qual, e o único jeito de
+    distinguir virava a data de modificação. Com a versão no nome, a pasta já
+    conta a história: ``Trindade_2025_v0.8.1.xlsx`` ao lado de
+    ``Trindade_2025_v0.8.2.xlsx`` diz na hora o que mudou entre eles.
+
+    O sufixo ``(2)`` de ``caminho_sem_colisao`` continua valendo para duas
+    execuções da MESMA versão — ele resolve colisão, não identificação.
+    """
     base = sanitizar_nome(cliente).replace(" ", "_")
     ordenados = sorted(anos)
     if not ordenados:
@@ -167,7 +182,7 @@ def nome_de_saida(cliente: str, anos: Sequence[int]) -> str:
         periodo = str(ordenados[0])
     else:
         periodo = f"{ordenados[0]}-{ordenados[-1]}"
-    return f"{base}_{periodo}.xlsx"
+    return f"{base}_{periodo}_v{versao.VERSAO}.xlsx"
 
 
 def caminho_sem_colisao(pasta: Path, nome: str) -> Path:

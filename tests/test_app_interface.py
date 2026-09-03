@@ -88,8 +88,26 @@ def test_cliente_da_serie_usa_o_palpite_que_se_repete():
 
 
 def test_nome_de_saida_um_ano_e_serie():
-    assert service.nome_de_saida("RBM Ltda", [2024]) == "RBM_Ltda_2024.xlsx"
-    assert service.nome_de_saida("RBM", [2024, 2022, 2023]) == "RBM_2022-2024.xlsx"
+    from src.bp import versao
+
+    v = versao.VERSAO
+    assert service.nome_de_saida("RBM Ltda", [2024]) == f"RBM_Ltda_2024_v{v}.xlsx"
+    assert service.nome_de_saida("RBM", [2024, 2022, 2023]) == f"RBM_2022-2024_v{v}.xlsx"
+
+
+def test_nome_de_saida_carrega_a_versao():
+    """
+    Dois arquivos do mesmo cliente e exercicio precisam se distinguir NA PASTA.
+
+    Quando um bom e um ruim conviviam em `Drop` com o nome identico, o unico
+    jeito de saber qual era qual era abrir os dois. A versao no nome resolve
+    isso antes de abrir qualquer coisa.
+    """
+    from src.bp import versao
+
+    nome = service.nome_de_saida("Trindade", [2025])
+    assert f"_v{versao.VERSAO}" in nome, f"a versao sumiu do nome: {nome}"
+    assert nome.endswith(".xlsx")
 
 
 def test_sanitizar_nome_tira_o_que_o_windows_recusa():

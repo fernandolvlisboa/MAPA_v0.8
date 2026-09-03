@@ -719,6 +719,12 @@ class AplicacaoBP:
                   font=(self.fonte, 11)).pack(anchor="w", pady=(6, 0))
         ttk.Label(self.res_topo, text=str(saida.parent),
                   style="Fraco.TLabel").pack(anchor="w")
+        # A impressao digital NA TELA, nao so no Sumario. Quando o mesmo
+        # balancete da 100% numa maquina e 38% noutra, a diferenca esta em
+        # qual plano/vocabulario cada uma carregou — e a resposta precisa
+        # caber num print de tela, que e como o problema costuma chegar.
+        ttk.Label(self.res_topo, text=self._resumo_dos_dados(),
+                  style="Fraco.TLabel").pack(anchor="w", pady=(6, 0))
 
         cartoes = ttk.Frame(self.res_corpo, style="Cartao.TFrame", padding=(16, 14))
         cartoes.pack(fill="x")
@@ -763,6 +769,24 @@ class AplicacaoBP:
             side="right", padx=(0, 10))
         ttk.Button(self.res_rodape, text="Padronizar outro",
                    style="Secundaria.TButton", command=self._recomecar).pack(side="left")
+
+    @staticmethod
+    def _resumo_dos_dados() -> str:
+        """
+        Uma linha com o que esta execucao carregou.
+
+        ``plano 1226/16e45bdb · vocabulario 380/f43248b8 · template 144/9c7ed510``
+
+        Contagem responde "esta completo?", hash responde "e o mesmo?". Duas
+        maquinas na mesma versao do codigo entregam resultados diferentes se
+        estes tres numeros diferirem, e ate agora nao havia como comparar sem
+        abrir a planilha.
+        """
+        d = versao.impressao_digital()
+        return "  ·  ".join(
+            f"{rotulo.split()[0].lower()} {d[rotulo]}".replace(" / ", "/")
+            for rotulo in ("Plano referencial", "Vocabulário aprendido", "Mapa do template")
+        )
 
     #: Altura máxima da caixa de avisos, em linhas de texto. Acima disso ela
     #: rola em vez de crescer. Seis linhas cabem os avisos típicos inteiros;

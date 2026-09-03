@@ -16,6 +16,8 @@ ele existe, que mede o que precisa medir e que chega à planilha.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import openpyxl
 import pytest
 
@@ -116,3 +118,55 @@ def test_a_versao_chega_ao_sumario_da_entrega(tmp_path, balancete_xls):
     assert any("Plano referencial" in t for t in textos), (
         "o Sumário não carimba qual plano foi usado"
     )
+
+
+# ============================================================================
+# O balancete que expos dois defeitos — trava permanente
+# ============================================================================
+
+
+def test_trindade_e_lido_inteiro_pelo_caminho_do_app():
+    """
+    O caso Trindade, medido ponta a ponta pelo caminho que a JANELA usa.
+
+    Este balancete rendeu dois defeitos reais:
+
+    1. plano de QUATRO classes (1 Ativo, 2 Passivo, 3 Custos, 4 Receitas) com
+       tudo positivo — a equacao contabil somava Custos e Receitas em vez de
+       subtrair e acusava 11.666.761,48 de desequilibrio num arquivo que
+       fecha exatamente;
+    2. codigos em duas convencoes na mesma coluna — sinteticas pontuadas
+       (`1.1.1.01.001`) e analiticas planas alinhadas a direita (`11111`).
+
+    Vale como trava de nao-regressao do APROVEITAMENTO: a medicao passou de
+    38% para 100% e nao pode voltar. Chamar por `service.gerar` e proposital —
+    e o caminho da janela, com selecao de arquivo e escala, nao so o motor.
+
+    Pula quando o corpus nao esta no workspace (o arquivo e dado de cliente e
+    nao e versionado).
+    """
+    from src.bp.app import service
+    from tests.conftest import require_corpus_file
+
+    entrada = require_corpus_file("Balancete_Trindade_052025.xlsx")
+
+    aceitos, _ = service.selecionar([entrada])
+    assert aceitos, "o seletor recusou o balancete"
+
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as pasta:
+        r = service.gerar(aceitos, cliente="Trindade", pasta_saida=Path(pasta))
+
+        assert r.ok, r.erro
+        assert r.contas_lidas == 193, (
+            f"lidas {r.contas_lidas}, esperado 193 — o parser perdeu linhas"
+        )
+        assert r.contas_nao_identificadas == 0, (
+            f"{r.contas_nao_identificadas} conta(s) sem classificacao; este "
+            f"balancete casa 100% desde a correcao do plano de 4 classes"
+        )
+        assert r.match_rate == 1.0, f"aproveitamento caiu para {r.match_rate:.0%}"
+        assert f"_v{versao.VERSAO}" in r.saida.name, (
+            f"a versao sumiu do nome da entrega: {r.saida.name}"
+        )
