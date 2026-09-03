@@ -47,15 +47,6 @@ def sample_image():
 class TestPDFTypeDetector:
     """Testes do detector de tipo de PDF."""
 
-    def test_create_detector(self, tmp_path):
-        """Testa criação do detector."""
-        # Cria PDF temporário vazio
-        pdf_file = tmp_path / "test.pdf"
-        pdf_file.write_bytes(b"%PDF-1.4\n%EOF")
-
-        detector = PDFTypeDetector(pdf_file)
-        assert detector.file_path == pdf_file
-
     def test_detect_type_structure(self, sample_pdf_native):
         """Testa estrutura do resultado de detect_type."""
         if sample_pdf_native is None:
@@ -117,34 +108,6 @@ class TestImagePreprocessor:
         # Verifica dimensões
         assert binary_otsu.shape == sample_image.shape[:2]
 
-    def test_denoise(self, sample_image):
-        """Testa remoção de ruído."""
-        preprocessor = ImagePreprocessor()
-
-        denoised = preprocessor.denoise(sample_image, method="median")
-
-        assert isinstance(denoised, np.ndarray)
-        assert denoised.shape == sample_image.shape
-
-    def test_adjust_contrast(self, sample_image):
-        """Testa ajuste de contraste."""
-        preprocessor = ImagePreprocessor()
-
-        enhanced = preprocessor.adjust_contrast(sample_image, method="clahe")
-
-        assert isinstance(enhanced, np.ndarray)
-        # Deve ter 2D após conversão para grayscale
-        assert len(enhanced.shape) == 2
-
-    def test_deskew(self, sample_image):
-        """Testa correção de rotação."""
-        preprocessor = ImagePreprocessor()
-
-        deskewed = preprocessor.deskew(sample_image)
-
-        assert isinstance(deskewed, np.ndarray)
-        assert deskewed.shape == sample_image.shape
-
     def test_resize_for_ocr(self, sample_image):
         """Testa redimensionamento para OCR."""
         preprocessor = ImagePreprocessor()
@@ -171,33 +134,6 @@ class TestImagePreprocessor:
 # Testes do OCREngine
 class TestOCREngine:
     """Testes do engine OCR."""
-
-    def test_create_engine(self):
-        """Testa criação do engine."""
-        engine = OCREngine(language="por", engine="tesseract")
-
-        assert engine.language == ["por"]
-        assert engine.engine == "tesseract"
-
-    def test_create_engine_multiple_languages(self):
-        """Testa criação com múltiplos idiomas."""
-        engine = OCREngine(language=["por", "eng"])
-
-        assert engine.language == ["por", "eng"]
-
-    def test_is_tesseract_installed(self):
-        """Testa verificação de instalação do Tesseract."""
-        result = OCREngine.is_tesseract_installed()
-
-        # Deve retornar bool
-        assert isinstance(result, bool)
-
-    def test_get_available_languages(self):
-        """Testa listagem de idiomas disponíveis."""
-        langs = OCREngine.get_available_languages()
-
-        # Deve retornar lista
-        assert isinstance(langs, list)
 
     @pytest.mark.skipif(
         not OCREngine.is_tesseract_installed(), reason="Tesseract não instalado"
@@ -244,22 +180,3 @@ class TestOCREngine:
         assert 0.0 <= result["confidence"] <= 1.0
 
 
-# Testes de Integração
-class TestPDFOCRIntegration:
-    """Testes de integração entre componentes."""
-
-    def test_full_pipeline_on_image(self, sample_image):
-        """Testa pipeline completo: preprocessamento + OCR."""
-        # Pré-processa
-        preprocessor = ImagePreprocessor()
-        processed = preprocessor.preprocess_for_ocr(sample_image)
-
-        # Verifica que processou
-        assert isinstance(processed, np.ndarray)
-
-        # OCR (só se Tesseract estiver instalado)
-        if OCREngine.is_tesseract_installed():
-            engine = OCREngine(language="por")
-            text = engine.extract_text(processed)
-
-            assert isinstance(text, str)

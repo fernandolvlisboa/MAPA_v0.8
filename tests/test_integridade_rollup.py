@@ -28,7 +28,10 @@ import math
 import pytest
 
 from src.bp.exporters.xlsx_exporter import _compute_rollups, _primary_saldo
-from src.bp.validators.export_schema import validate_parsed_accounts
+from src.bp.validators.export_schema import (
+    validate_parsed_accounts,
+    validate_matched_accounts,
+)
 
 pytestmark = pytest.mark.contrato
 
@@ -209,3 +212,146 @@ def test_exporter_liga_ao_ancestral_mais_proximo():
 
     _compute_rollups(index)
     assert index["1"]["rollup_ok"] is True
+
+
+# ============================================================================
+# 5. Validadores de schema (consolidados de test_export_validators.py)
+# ============================================================================
+
+
+def test_validador_rejeita_lista_vazia():
+    result = validate_parsed_accounts([])
+    assert not result.valid
+    assert "empty list" in result.errors[0].lower()
+
+
+def test_validador_aceita_contas_validas():
+    accounts = [
+        {"descricao": "Ativo", "saldo": 1000.0, "nivel": 1, "codigo": "1"},
+        {"descricao": "Passivo", "saldo": -500.5, "nivel": 1, "codigo": "2"},
+    ]
+    result = validate_parsed_accounts(accounts)
+    assert result.valid
+    assert result.metrics["total_accounts"] == 2
+    assert result.metrics["valid_saldo"] == 2
+
+
+def test_validador_rejeita_descricao_vazia():
+    accounts = [
+        {"descricao": "", "saldo": 100, "nivel": 1},
+        {"descricao": "Valid", "saldo": 200, "nivel": 1},
+    ]
+    result = validate_parsed_accounts(accounts)
+    assert not result.valid
+    assert any("empty description" in e.lower() for e in result.errors)
+
+
+def test_validador_avisa_nivel_invalido():
+    accounts = [
+        {"descricao": "Test1", "saldo": 100, "nivel": 0},
+        {"descricao": "Test2", "saldo": 200, "nivel": "abc"},
+        {"descricao": "Test3", "saldo": 300, "nivel": 1},
+    ]
+    result = validate_parsed_accounts(accounts)
+    assert result.valid
+    assert any("invalid nivel" in w.lower() for w in result.warnings)
+
+
+def test_validador_avisa_codigo_nao_hierarquico():
+    accounts = [
+        {"descricao": "Test1", "saldo": 100, "nivel": 1, "codigo": "1.2.3"},
+        {"descricao": "Test2", "saldo": 200, "nivel": 1, "codigo": "ABC"},
+        {"descricao": "Test3", "saldo": 300, "nivel": 1},
+    ]
+    result = validate_parsed_accounts(accounts)
+    assert result.valid
+    assert any("non-hierarchical codigo" in w.lower() for w in result.warnings)
+
+
+# -- validate_matched_accounts -----------------------------------------------
+
+
+def test_matched_rejeita_lista_vazia():
+    result = validate_matched_accounts([])
+    assert not result.valid
+
+
+def test_matched_aceita_contas_validas():
+    accounts = [
+        {
+            "descricao": "Ativo",
+            "saldo": 1000,
+            "match_score": 0.95,
+            "match_codigo": "1",
+            "match_descricao": "ATIVO",
+            "is_analytical": False,
+        },
+        {
+            "descricao": "Passivo",
+            "saldo": -500,
+            "match_score": 0.80,
+            "match_codigo": "2",
+            "match_descricao": "PASSIVO",
+            "is_analytical": False,
+        },
+    ]
+    result = validate_matched_accounts(accounts)
+    assert result.valid
+    assert result.metrics["matched"] == 2
+    assert result.metrics["match_rate_%"] == 100.0
+
+
+def test_matched_rejeita_score_fora_do_intervalo():
+    accounts = [
+        {"descricao": "Test", "saldo": 100, "match_score": 1.5},
+        {"descricao": "Test2", "saldo": 200, "match_score": -0.1},
+    ]
+    result = validate_matched_accounts(accounts)
+    assert not result.valid
+    assert any("invalid match_score" in e.lower() for e in result.errors)
+
+
+def test_matched_rejeita_dados_inconsistentes():
+    accounts = [
+        {
+            "descricao": "Test",
+            "saldo": 100,
+            "match_score": 0.8,
+            "match_codigo": "1",
+            "match_descricao": None,
+        }
+    ]
+    result = validate_matched_accounts(accounts)
+    assert not result.valid
+    assert any("inconsistent match" in e.lower() for e in result.errors)
+
+
+def test_matched_calcula_taxa_excluindo_analiticas():
+    accounts = [
+        {
+            "descricao": "S1",
+            "saldo": 100,
+            "match_codigo": "1",
+            "match_descricao": "ATIVO",
+            "is_analytical": False,
+        },
+        {
+            "descricao": "S2",
+            "saldo": 200,
+            "match_codigo": None,
+            "match_descricao": None,
+            "is_analytical": False,
+        },
+        {
+            "descricao": "A1",
+            "saldo": 50,
+            "match_codigo": None,
+            "match_descricao": None,
+            "is_analytical": True,
+        },
+    ]
+    result = validate_matched_accounts(accounts)
+    assert result.valid
+    assert result.metrics["synthetic"] == 2
+    assert result.metrics["analytical"] == 1
+    assert result.metrics["match_rate_%"] == 50.0

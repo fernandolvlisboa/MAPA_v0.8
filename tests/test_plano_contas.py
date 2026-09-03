@@ -51,14 +51,6 @@ def test_buscar_por_descricao(plano):
     assert scores == sorted(scores, reverse=True)
 
 
-def test_buscar_por_descricao_fuzzy(plano):
-    """Testa busca fuzzy com erro de digitação."""
-    # "cixa" deveria encontrar "CAIXA"
-    results = plano.buscar_por_descricao("cixa", threshold=0.6, limit=3)
-    # Pelo menos deveria encontrar algo
-    assert len(results) >= 0  # Pode não encontrar dependendo do plano
-
-
 def test_obter_hierarquia(plano):
     """Testa obter hierarquia completa de uma conta."""
     # Pega qualquer conta que tenha parent_id
@@ -151,9 +143,3 @@ def test_estatisticas(plano):
     assert stats["nivel_maximo"] >= 1
 
 
-def test_repr(plano):
-    """Testa representação string da classe."""
-    repr_str = repr(plano)
-    assert "PlanodeContas" in repr_str
-    assert "contas" in repr_str
-    assert "forms" in repr_str

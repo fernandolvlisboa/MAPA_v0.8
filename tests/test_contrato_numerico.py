@@ -239,12 +239,6 @@ def test_nenhum_conversor_propaga_nan(base_parser, conversor, conversores):
     assert resultado is None or not math.isnan(resultado)
 
 
-@pytest.mark.parametrize("conversor", ["base_parser", "exporter"])
-def test_nao_propaga_nan(base_parser, conversor, conversores):
-    resultado = conversores(base_parser)[conversor](float("nan"))
-    assert resultado is None or not math.isnan(resultado), "NaN vazou do conversor"
-
-
 # ============================================================================
 # 7. Entrada inválida: zero legítimo vs. falha de conversão
 # ============================================================================

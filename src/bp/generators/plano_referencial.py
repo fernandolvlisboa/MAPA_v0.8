@@ -1,5 +1,5 @@
 """
-Gerador do Plano de Contas Referencial (alvo limpo de matching).
+Gerador do Plano de Contas Referencial (alvo limpo de matching — 3 setores).
 
 Contexto do problema
 ---------------------
@@ -19,8 +19,10 @@ para **PJ em Geral**, composto pelos formulários:
 - ``L100A`` — Balanço Patrimonial (Ativo / Passivo / PL) — raízes ``1`` e ``2``
 - ``L300A`` — Demonstração do Resultado (DRE) — raiz ``3``
 
-Resultado: ~1.109 contas, esquema de código único (``1.xx`` / ``2.xx`` / ``3.xx``),
-árvore íntegra (todos os pais presentes). É este arquivo que o matcher/treinador
+O vocabulário de L100B/C (Financeiras/Seguradoras) é incorporado como variações
+de descrição dos códigos L100A/L300A equivalentes via ``account_variations.json``
+— não misturados no plano referencial, pois seus esquemas de código são
+incompatíveis com o template GT. É este arquivo que o matcher/treinador
 devem usar como referência, no lugar do master heterogêneo.
 
 Uso
@@ -40,8 +42,11 @@ from typing import Any
 
 from ..utils.codigo import nivel_from_codigo
 
-# Formulários que compõem o plano referencial "PJ em Geral".
+# Formulários que compõem o plano referencial ALVO do matching.
 # L100A = Balanço Patrimonial; L300A = DRE. Ambos usam o mesmo esquema de código.
+# L100B/C e L300B/C (Financeiras/Seguradoras) NÃO entram aqui — seus códigos são
+# incompatíveis com o template GT. O vocabulário deles é aprendido como variações
+# dos códigos L100A/L300A equivalentes em account_variations.json.
 TARGET_FORMS: set[str] = {"L100A", "L300A"}
 
 

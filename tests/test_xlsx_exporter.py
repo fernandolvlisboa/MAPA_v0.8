@@ -252,3 +252,18 @@ def test_accounts_e_hierarchy_cobrem_o_mesmo_conjunto(workbook):
     assert len(accounts) == len(hierarchy), (
         f"Accounts tem {len(accounts)} linhas e Hierarchy {len(hierarchy)}"
     )
+
+
+def test_original_tab_handles_pd_na(tmp_path, balancete_xls):
+    """pd.NA no DataFrame original não pode estourar a escrita do Excel."""
+    import pandas as pd
+
+    out = tmp_path / "orig_na_export.xlsx"
+    original_df = pd.DataFrame({"colA": [1, pd.NA], "colB": [pd.NA, "x"]})
+    export_balance_sheet_to_xlsx(balancete_xls, out, original_data=original_df)
+    assert out.exists()
+    wb = openpyxl.load_workbook(out, data_only=True)
+    assert "Original" in wb.sheetnames
+    ws = wb["Original"]
+    assert ws.max_row == 3
+    assert ws["A3"].value is None or ws["B2"].value is None

@@ -60,9 +60,10 @@
       "adiantamento de ticket alimentacao",
       "adiantamento - plano de saude",
       "adiantamento de vale transporte",
-      "adiantamento sb comercio de pallets"
+      "adiantamento sb comercio de pallets",
+      "adiantamentos a empresas"
     ],
-    "frequency": 29
+    "frequency": 30
   },
   "1.90.11": {
     "variations": [
@@ -107,9 +108,10 @@
       "despesas antecipas",
       "despesas antecipadas com seguros",
       "despesas pagas antecipadas",
-      "despesas antecipadas (i)"
+      "despesas antecipadas (i)",
+      "receitas antecipadas"
     ],
-    "frequency": 15
+    "frequency": 16
   },
   "1.90.60": {
     "variations": [
@@ -119,9 +121,10 @@
       "benfeitorias em bens de terceiros",
       "benfeitorias em propriedade de terceiros",
       "amortizacao de benfeitorias em propriedades de terceiros",
-      "(-) depreciacoes benfeitorias imoveis de terceiros"
+      "(-) depreciacoes benfeitorias imoveis de terceiros",
+      "(-) benfeitorias em imoveis de terceiros"
     ],
-    "frequency": 19
+    "frequency": 20
   },
   "1.90.61": {
     "variations": [
@@ -139,9 +142,10 @@
       "instalacoes",
       "(-) instalacoes - depreciacao",
       "(-) depreciacoes de moveis e utensilios (",
-      "(-) depreciacoes de construcoes"
+      "(-) depreciacoes de construcoes",
+      "(-) amortizacao acumulada"
     ],
-    "frequency": 41
+    "frequency": 42
   },
   "1.90.40": {
     "variations": [
@@ -350,9 +354,10 @@
       "marketing, publicidade e propaganda - venda",
       "publicidade avulsa",
       "midias",
-      "marketing, publicidade e propaganda - vendas"
+      "marketing, publicidade e propaganda - vendas",
+      "despesas de propaganda e publicidade"
     ],
-    "frequency": 18
+    "frequency": 19
   },
   "3.90.01.10": {
     "variations": [
@@ -381,9 +386,10 @@
   "3.90.06.01": {
     "variations": [
       "juros sobre emprestimos e financiamentos",
-      "adicoes por capitalizacao de juros sobre emprestimos e financiamentos (nota"
+      "adicoes por capitalizacao de juros sobre emprestimos e financiamentos (nota",
+      "emprestimos e financiamentos"
     ],
-    "frequency": 8
+    "frequency": 9
   },
   "3.90.06.04": {
     "variations": [
@@ -639,9 +645,10 @@
   },
   "3.90.01.14": {
     "variations": [
-      "multas rescisorias"
+      "multas rescisorias",
+      "multa rescisoria"
     ],
-    "frequency": 5
+    "frequency": 6
   },
   "3.90.01.15": {
     "variations": [
@@ -688,9 +695,10 @@
   },
   "3.90.03.04": {
     "variations": [
-      "despesas com entrega"
+      "despesas com entrega",
+      "despesas com resgates"
     ],
-    "frequency": 5
+    "frequency": 6
   },
   "3.90.03.05": {
     "variations": [
@@ -783,9 +791,10 @@
   "3.90.02.20": {
     "variations": [
       "descontos concedidos",
-      "desconto concedidos"
+      "desconto concedidos",
+      "sfh - descontos concedidos"
     ],
-    "frequency": 6
+    "frequency": 7
   },
   "3.90.02.21": {
     "variations": [
@@ -1039,9 +1048,10 @@
       "obrigacoes sociais e fiscais a recolher",
       "obrigacoes sociais",
       "obrigacoes sociais e trabalhistas",
-      "obrigacoes trabalhistas e sociais"
+      "obrigacoes trabalhistas e sociais",
+      "outras obrigacoes"
     ],
-    "frequency": 16
+    "frequency": 17
   },
   "2.01.01.01.04": {
     "variations": [
@@ -1209,9 +1219,10 @@
   "3.11.01.07.01.40": {
     "variations": [
       "seguros",
-      "despesas c/seguros"
+      "despesas c/seguros",
+      "(-) despesas com sinistro"
     ],
-    "frequency": 21
+    "frequency": 22
   },
   "3.01.01.03.01.30": {
     "variations": [
@@ -1232,9 +1243,10 @@
     "variations": [
       "despesas administrativas",
       "outras despesas administrativas",
-      "administrativas"
+      "administrativas",
+      "provisao de despesas administrativas"
     ],
-    "frequency": 23
+    "frequency": 24
   },
   "3.90.01.01": {
     "variations": [
@@ -1310,9 +1322,11 @@
       "outras receitas operacionais, liquidas (nota 26)",
       "receitas operacionais",
       "receitas nao operacionais",
-      "outras receitas nao operacionais"
+      "outras receitas nao operacionais",
+      "outras rendas nao operacionais",
+      "outras rendas operacionais"
     ],
-    "frequency": 33
+    "frequency": 35
   },
   "3.90.06": {
     "variations": [
@@ -1335,9 +1349,10 @@
       "(-) despesas financeiras",
       "despesas financeiras",
       "outras despesas financeiras",
-      "outras despesas financeiras (i)"
+      "outras despesas financeiras (i)",
+      "despesas de letras financeiras"
     ],
-    "frequency": 22
+    "frequency": 23
   },
   "3.90.06.05": {
     "variations": [
@@ -1553,15 +1568,18 @@
   },
   "1.02.03.01.01": {
     "variations": [
-      "federais"
+      "federais",
+      "titulo publicos federais - outros",
+      "titulos publicos federais - outros"
     ],
-    "frequency": 1
+    "frequency": 3
   },
   "1.02.03.01.02": {
     "variations": [
-      "estaduais"
+      "estaduais",
+      "titulos publicos estaduais e municipais"
     ],
-    "frequency": 1
+    "frequency": 2
   },
   "2.01.01.09.03": {
     "variations": [
@@ -1686,9 +1704,10 @@
       "conversao saldos aa veiculos",
       "imputacao manual do valor original dos veiculos",
       "saldo inicial a.a. veiculos",
-      "saldo inicial veiculos"
+      "saldo inicial veiculos",
+      "(-) veiculos"
     ],
-    "frequency": 27
+    "frequency": 28
   },
   "2.90.11": {
     "variations": [
@@ -1712,9 +1731,11 @@
   },
   "1.02.03.05.28": {
     "variations": [
-      "imobilizados"
+      "imobilizados",
+      "outras imobilizacoes",
+      "outros imobilizados de uso"
     ],
-    "frequency": 1
+    "frequency": 3
   },
   "2.03.02.03.99": {
     "variations": [
@@ -1793,9 +1814,10 @@
     "variations": [
       "tributos e contribuicoes a recuperar",
       "outros impostos e taxas",
-      "impostos a recuperar"
+      "impostos a recuperar",
+      "impostos e contribuicoes sobre lucros"
     ],
-    "frequency": 5
+    "frequency": 6
   },
   "2.02.01": {
     "variations": [
@@ -1869,9 +1891,10 @@
     "variations": [
       "ferias",
       "provisao de encargos de ferias",
-      "prov.de ferias - adm"
+      "prov.de ferias - adm",
+      "provisao de ibner"
     ],
-    "frequency": 20
+    "frequency": 21
   },
   "3.11.01.07.01.27": {
     "variations": [
@@ -1940,9 +1963,10 @@
   "1.02.02.10.10": {
     "variations": [
       "outros investimentos permanentes",
-      "outros investimentos"
+      "outros investimentos",
+      "perdas em outros investimentos"
     ],
-    "frequency": 3
+    "frequency": 4
   },
   "2.02.01.21.50": {
     "variations": [
@@ -2085,9 +2109,10 @@
   },
   "3.12.01.01.01.11": {
     "variations": [
-      "(-) contribuicao social"
+      "(-) contribuicao social",
+      "(-) contribuicao social sobre o lucro liquido - lucros diferidos"
     ],
-    "frequency": 2
+    "frequency": 3
   },
   "3.02.01.01.01.02": {
     "variations": [
@@ -2125,9 +2150,10 @@
   },
   "3.11.01.07.01.11": {
     "variations": [
-      "doacoes"
+      "doacoes",
+      "doacoes a entidades civis"
     ],
-    "frequency": 2
+    "frequency": 3
   },
   "3.11.05": {
     "variations": [
@@ -2233,9 +2259,11 @@
   "3.11.01.05.01.04": {
     "variations": [
       "5.04.07 juros sobre capital proprio",
-      "distribuicao de dividendos e juros sobre o capital proprio"
+      "distribuicao de dividendos e juros sobre o capital proprio",
+      "juros sobre o capital proprio",
+      "receitas de juros sobre o capital proprior"
     ],
-    "frequency": 3
+    "frequency": 5
   },
   "3.01.01.07.01": {
     "variations": [
@@ -2476,9 +2504,10 @@
   "1.01.01.09.03": {
     "variations": [
       "vencimento",
-      "vencimento em"
+      "vencimento em",
+      "termo - hedge de titulo mantido ate o vencimento"
     ],
-    "frequency": 5
+    "frequency": 6
   },
   "1.02.03.02.55": {
     "variations": [
@@ -2614,9 +2643,10 @@
   },
   "2.03.02.03.08": {
     "variations": [
-      "emissao de debentures"
+      "emissao de debentures",
+      "premios na emissao de debentures"
     ],
-    "frequency": 1
+    "frequency": 2
   },
   "2.01.01.13.05": {
     "variations": [
@@ -2747,9 +2777,10 @@
   "1.02.05.01.28": {
     "variations": [
       "alocacao manual aa de outros ativos intangiveis",
-      "alocacao manual de outros ativos intangiveis"
+      "alocacao manual de outros ativos intangiveis",
+      "outros ativos intangiveis"
     ],
-    "frequency": 2
+    "frequency": 3
   },
   "2.03.01": {
     "variations": [
@@ -2956,6 +2987,228 @@
   "3.01.01.09.01.99": {
     "variations": [
       "outras despesas com licencas pre-pagas"
+    ],
+    "frequency": 1
+  },
+  "1.01.01.04.01": {
+    "variations": [
+      "numerario em transito",
+      "numerario em transito (+)"
+    ],
+    "frequency": 2
+  },
+  "1.01.01.06.01": {
+    "variations": [
+      "despesas de titulos e valores mobiliarios no exterior",
+      "obrigacoes por titulos e valores mobiliarios no exterior",
+      "rendas de titulos e valores mobiliarios no exterior"
+    ],
+    "frequency": 3
+  },
+  "1.01.01.09.02": {
+    "variations": [
+      "ape - titulos disponiveis para venda",
+      "titulos disponiveis para venda"
+    ],
+    "frequency": 2
+  },
+  "1.01.01.99.01": {
+    "variations": [
+      "outras exigibilidades"
+    ],
+    "frequency": 1
+  },
+  "1.01.02.04.18": {
+    "variations": [
+      "contribuicao social a compensar"
+    ],
+    "frequency": 1
+  },
+  "1.01.02.09.21": {
+    "variations": [
+      "outros creditos de liquidacao duvidosa"
+    ],
+    "frequency": 1
+  },
+  "1.02.02.03.30": {
+    "variations": [
+      "(-) depreciacao acumulada de propriedades para investimento avaliadas ao custo"
+    ],
+    "frequency": 1
+  },
+  "1.02.02.10.03": {
+    "variations": [
+      "depositos para investimentos decorrentes de incentivos fiscais"
+    ],
+    "frequency": 1
+  },
+  "1.02.03.01.11": {
+    "variations": [
+      "recursos internos"
+    ],
+    "frequency": 1
+  },
+  "1.02.03.02.03": {
+    "variations": [
+      "certificados de recebiveis imobiliarios"
+    ],
+    "frequency": 1
+  },
+  "2.03.02.03.02": {
+    "variations": [
+      "ape - reservas estatutarias",
+      "reservas estatutarias"
+    ],
+    "frequency": 2
+  },
+  "2.03.02.03.03": {
+    "variations": [
+      "ape - reservas para contingencias",
+      "provisao para contingencia",
+      "provisao para contingencias",
+      "reservas para contingencias"
+    ],
+    "frequency": 4
+  },
+  "2.03.02.03.04": {
+    "variations": [
+      "ape - reserva para incentivos ficais",
+      "reserva para incentivos fiscais"
+    ],
+    "frequency": 2
+  },
+  "2.03.02.03.06": {
+    "variations": [
+      "reservas de lucros a realizar"
+    ],
+    "frequency": 1
+  },
+  "2.03.03.01.30": {
+    "variations": [
+      "ape - outros ajustes de avaliacao patrimonial",
+      "outros ajustes de avaliacao patrimonial"
+    ],
+    "frequency": 2
+  },
+  "3.01.01.07.01.41": {
+    "variations": [
+      "beneficios previdenciarios a empregados"
+    ],
+    "frequency": 1
+  },
+  "3.01.01.07.01.42": {
+    "variations": [
+      "fundo de aposentadoria individual – fapi"
+    ],
+    "frequency": 1
+  },
+  "3.01.01.07.01.43": {
+    "variations": [
+      "planos de poupanca e investimento – pait"
+    ],
+    "frequency": 1
+  },
+  "3.01.01.11.01.02": {
+    "variations": [
+      "receitas de alienacoes de bens e direitos classificados nos subgrupos investimentos, imobilizado e intangivel do ativo permanente"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.05.01.16": {
+    "variations": [
+      "receitas decorrentes de ajustes a valor presente"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.01": {
+    "variations": [
+      "remuneracao a dirigentes e a conselho de administracao"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.02": {
+    "variations": [
+      "ordenados, salarios, gratificacoes e outras remuneracoes a empregados"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.08": {
+    "variations": [
+      "doacoes e patrocinios de carater cultural e artistico"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.09": {
+    "variations": [
+      "operacoes de aquisicao de vale-cultura (lei no 12.761/2012, art. 10)"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.14": {
+    "variations": [
+      "pis/pasep"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.16": {
+    "variations": [
+      "demais impostos, taxas e contribuicoes, exceto ir e csll"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.25": {
+    "variations": [
+      "premio em operacoes de credito"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.30": {
+    "variations": [
+      "gratificacoes a administradores"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.07.01.33": {
+    "variations": [
+      "(-) assistencia medica, odontologica e farmaceutica",
+      "assistencia medica, odontologica e farmaceutica"
+    ],
+    "frequency": 2
+  },
+  "3.11.01.07.01.34": {
+    "variations": [
+      "pesquisas cientificas e tecnologicas"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.09.01.02": {
+    "variations": [
+      "(-) perdas incorridas no mercado de renda variavel"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.09.01.04": {
+    "variations": [
+      "(-) juros sobre o capital proprio"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.09.01.15": {
+    "variations": [
+      "(-) despesas decorrentes de ajustes a valor presente"
+    ],
+    "frequency": 1
+  },
+  "3.11.01.09.01.99": {
+    "variations": [
+      "outras despesas nao operacionais",
+      "outras despesas operacionais"
+    ],
+    "frequency": 2
+  },
+  "3.11.05.01.03.99": {
+    "variations": [
+      "outras participacoes"
     ],
     "frequency": 1
   }

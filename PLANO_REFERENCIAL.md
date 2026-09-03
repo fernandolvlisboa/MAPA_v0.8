@@ -37,7 +37,7 @@ errado**. O sistema aprendia a partir desses matches → nunca convergia
 Extrair um **alvo único e consistente**: o Plano de Contas Referencial da RFB
 para **PJ em Geral** = `L100A` (Balanço) + `L300A` (DRE).
 
-- **1.109 contas**, um só esquema (`1.x` Ativo, `2.x` Passivo/PL, `3.x` DRE)
+- **1.226 contas**, um só esquema (`1.x` Ativo, `2.x` Passivo/PL, `3.x` DRE)
 - Árvore íntegra (todos os `parent_id` presentes)
 - **0% de contaminação por construção**
 
@@ -77,7 +77,7 @@ dicionário de aprendizado **100% consistente** (139 códigos, todos no alvo).
 ## Mudanças
 
 - **Novo:** `src/bp/generators/plano_referencial.py` (gerador)
-- **Novo:** `data/plano_referencial.json` (alvo limpo, 1.109 contas)
+- **Novo:** `data/plano_referencial.json` (alvo limpo, 1.226 contas)
 - **Alterado:** `AccountTrainer` agora usa `data/plano_referencial.json` como
   padrão (antes: `data/plano_contas.json`).
 - **Backup:** o estado de treino antigo (baseado no master, contaminado) foi

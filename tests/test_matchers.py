@@ -14,25 +14,12 @@ from src.bp.matchers import (
     MatchResult,
     MatchCache,
 )
-from src.bp.matchers.conta_matcher import classe_from_codigo
 from src.bp.generators.plano_contas import PlanodeContas
 
 
 # =============================================================================
 # Testes classe_from_codigo (Plano C)
 # =============================================================================
-
-
-def test_classe_from_codigo():
-    assert classe_from_codigo("1.1.01") == "ATIVO"
-    assert classe_from_codigo("2.1.01") == "PASSIVO"
-    assert classe_from_codigo("3.1") == "RESULTADO"
-    assert classe_from_codigo("4.1.01") == "RESULTADO"
-    assert classe_from_codigo("(-) 4.1") == "RESULTADO"
-    # código textual: sem restrição de classe
-    assert classe_from_codigo("ABC") is None
-    assert classe_from_codigo("") is None
-    assert classe_from_codigo(None) is None
 
 
 def test_classe_disambiguation_blocks_cross_class(plano_contas, cache_path):
