@@ -125,18 +125,41 @@ def test_exe_nao_carrega_dado_de_cliente(tmp_path: Path) -> None:
     )
 
 
+def _obrigatorios_do_spec() -> set[str]:
+    """
+    Os basenames que o `bp.spec` declara como OBRIGATORIOS, lidos do proprio
+    spec — nao de uma lista paralela mantida a mao.
+
+    A lista à mão foi exatamente o furo: ela exigia so o plano e o template,
+    entao o `.exe` saiu sem `template_projection.json` e a auditoria passou.
+    Derivando do spec, adicionar um recurso obrigatorio la estende esta
+    conferencia automaticamente — os dois nao podem mais divergir.
+    """
+    texto = (RAIZ / "bp.spec").read_text(encoding="utf-8")
+    bloco = re.search(r"_OBRIGATORIOS\s*=\s*\[(.*?)\]", texto, re.S)
+    assert bloco, "nao achei a lista `_OBRIGATORIOS` no bp.spec"
+    # Primeiro literal de cada tupla: o caminho de origem do recurso.
+    caminhos = re.findall(r'\(\s*"([^"]+)"', bloco.group(1))
+    assert caminhos, "nenhum recurso obrigatorio extraido do bp.spec"
+    return {Path(c).name.lower() for c in caminhos}
+
+
 def test_recursos_esperados_estao_presentes(tmp_path: Path) -> None:
     """
-    Espelho do teste anterior: o .exe PRECISA carregar o template GT e o
-    plano referencial — sem eles a janela abre e falha na primeira execucao.
+    Espelho do teste de vazamento: o .exe PRECISA carregar todo recurso que o
+    `bp.spec` declara obrigatorio — sem eles a janela abre e entrega errado.
+
+    A lista de esperados vem do PROPRIO spec (`_obrigatorios_do_spec`), nao de
+    uma copia aqui. Antes eram duas listas, e a daqui exigia so dois arquivos:
+    o `.exe` saiu sem o mapa de projecao e a auditoria nao viu. Uma fonte so.
     """
     raiz_extraida = _extrair_exe(tmp_path)
     nomes = {p.name.lower() for p in raiz_extraida.rglob("*") if p.is_file()}
-    obrigatorios = {"plano_referencial.json", "template_gt_bp_padrao_v3.xlsx"}
-    faltando = obrigatorios - nomes
+    faltando = _obrigatorios_do_spec() - nomes
     assert not faltando, (
-        f"Recursos obrigatorios ausentes do .exe: {sorted(faltando)}. "
-        "O `bp.spec` esta desalinhado com a lista de recursos do PLANO_K."
+        f"Recursos obrigatorios do bp.spec ausentes do .exe: {sorted(faltando)}. "
+        "O PyInstaller nao empacotou o que o spec declara — o binario entrega "
+        "errado em silencio. NAO distribua."
     )
 
 

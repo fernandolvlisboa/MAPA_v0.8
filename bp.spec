@@ -52,6 +52,14 @@ _OBRIGATORIOS = [
     ("data/plano_referencial.json",                 "data"),
     ("data/plano_contas.json",                       "data"),
     ("data/accounting_synonyms.json",                "data"),
+    # O mapa que traduz os 118 codigos ENRIQUECIDOS (x.90.*) para a linha do
+    # template. Sem ele, `TemplateProjector.project` devolve None para todas
+    # essas contas e elas caem em "nao identificadas": o .exe da v0.8.3 saiu
+    # sem este arquivo e entregou 38% de aproveitamento onde a fonte fazia
+    # 100%. A impressao digital na tela mostrava "mapa AUSENTE" — foi assim
+    # que se achou. E OBRIGATORIO, nao opcional: sem ele a entrega sai errada,
+    # nao apenas mais pobre.
+    ("data/template_projection.json",                "data"),
     ("templates/Template_GT_BP_Padrao_v3.xlsx",      "templates"),
 ]
 

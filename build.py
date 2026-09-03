@@ -21,13 +21,30 @@ precisa de admin porque o modo onefile descompacta em %TEMP% do usuario.
 from __future__ import annotations
 
 import importlib.util
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent
 SPEC = RAIZ / "bp.spec"
-EXE_ESPERADO = RAIZ / "dist" / ("MAPA.exe" if sys.platform == "win32" else "MAPA")
+_SUFIXO = ".exe" if sys.platform == "win32" else ""
+#: O que o PyInstaller gera (nome fixo no bp.spec). A auditoria e o autoteste
+#: rodam sobre ESTE arquivo.
+EXE_ESPERADO = RAIZ / "dist" / f"MAPA{_SUFIXO}"
+
+
+def _exe_versionado() -> Path:
+    """
+    O binario distribuivel, com a versao no nome: ``MAPA_v0.8.3.exe``.
+
+    A versao no nome resolve o mesmo que ela resolve na planilha: dois
+    binarios na mesma pasta deixam de ser indistinguiveis. ``MAPA.exe`` puro
+    e so o intermediario do build; o que circula e o versionado.
+    """
+    from src.bp import versao
+
+    return EXE_ESPERADO.with_name(f"MAPA_v{versao.VERSAO}{_SUFIXO}")
 
 
 def _passo(msg: str) -> None:
@@ -106,10 +123,43 @@ def autotestar() -> None:
         )
 
 
-def resumo() -> None:
-    tamanho_mb = EXE_ESPERADO.stat().st_size / (1024 * 1024)
+def nomear_com_versao() -> Path:
+    """
+    Copia o binario auditado para o nome versionado e o devolve.
+
+    Depois da auditoria e do autoteste, nao antes: o nome versionado so vale
+    para um binario ja provado. Copia (nao move) para o `MAPA.exe` continuar
+    existindo como intermediario, caso um proximo passo precise dele.
+    """
+    destino = _exe_versionado()
+    shutil.copy2(EXE_ESPERADO, destino)
+    return destino
+
+
+def publicar(exe: Path) -> None:
+    """
+    git add + commit + push do binario versionado. So com ``--publicar``.
+
+    Automatiza exatamente as tres linhas que o build antes exigia a mao. Roda
+    por ULTIMO, depois de o binario ter passado por auditoria e autoteste — um
+    `.exe` so e publicado se ja se provou. Interrompe no primeiro erro de git
+    (nada de `push` se o `commit` falhar).
+    """
+    from src.bp import versao
+
+    rel = exe.relative_to(RAIZ).as_posix()
+    _passo(f"Publicando {exe.name}")
+    _rodar(["git", "add", rel])
+    # `--` separa a mensagem do resto; `commit` falha se nada mudou (mesmo
+    # binario ja versionado), e ai o push nao roda — comportamento correto.
+    _rodar(["git", "commit", "-m", f"MAPA.exe v{versao.VERSAO}", "--", rel])
+    _rodar(["git", "push"])
+
+
+def resumo(exe: Path) -> None:
+    tamanho_mb = exe.stat().st_size / (1024 * 1024)
     _passo("Pronto")
-    print(f"  binario: {EXE_ESPERADO}")
+    print(f"  binario: {exe}")
     print(f"  tamanho: {tamanho_mb:.1f} MB")
     print("\nEntregue esse arquivo — sem instalar nada — para quem for usar.")
 
@@ -140,12 +190,30 @@ def carimbar_versao() -> None:
         )
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    quer_publicar = "--publicar" in argv
+
     carimbar_versao()
     compilar()
     auditar()
     autotestar()
-    resumo()
+    exe = nomear_com_versao()
+    resumo(exe)
+    if quer_publicar:
+        publicar(exe)
+    else:
+        from src.bp import versao
+
+        rel = exe.relative_to(RAIZ).as_posix()
+        print(
+            "\nPara publicar o binario (git add + commit + push), rode:\n"
+            "    uv run python build.py --publicar\n"
+            "ou, a mao:\n"
+            f"    git add {rel}\n"
+            f'    git commit -m "MAPA.exe v{versao.VERSAO}"\n'
+            "    git push"
+        )
     return 0
 
 

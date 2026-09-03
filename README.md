@@ -269,28 +269,40 @@ O `MAPA.exe` sai em `dist/MAPA.exe`, ~55 MB, **onefile**:
 
 ### O `.exe` entra no repositório
 
-`dist/MAPA.exe` é **versionado**. Quem clona já tem o binário, sem depender de
-o workflow de Release passar — que é o motivo da mudança: o fluxo de Release
-falhou repetidamente e travava a entrega.
+O binário **versionado** — `dist/MAPA_v0.8.3.exe` — é versionado no git. Quem
+clona já tem o binário, sem depender de o workflow de Release passar, que é o
+motivo da mudança: o fluxo de Release falhou repetidamente e travava a entrega.
 
-Só o binário entra. O resto de `dist/` (relatórios de auditoria e autoteste)
-continua ignorado: deriva a cada compilação e versionar só polui.
+A versão vai no **nome** do arquivo (`MAPA_v0.8.3.exe`, não `MAPA.exe` puro):
+dois binários na mesma pasta deixam de ser indistinguíveis, do mesmo jeito que
+a planilha de saída sai como `Cliente_2025_v0.8.3.xlsx`. O `MAPA.exe` sem
+versão é só o intermediário do build e fica de fora; os relatórios de auditoria
+e autoteste também.
 
 > **O custo, para constar:** são ~55 MB por build e o git guarda **todos** para
 > sempre — apagar depois não encolhe o histórico. Se o repositório ficar pesado
 > demais, o caminho é **Git LFS**, não um `git rm` (que não recupera espaço).
 
-Para publicar uma versão nova do binário:
+**Publicar em um comando** — compila, audita, autotesta, nomeia com a versão e
+faz `git add` + `commit` + `push` do binário, tudo só se cada passo anterior
+passar:
 
 ```bash
-uv run python build.py          # compila, audita e autotesta
-git add dist/MAPA.exe
-git commit -m "MAPA.exe v0.8.2"
+uv run python build.py --publicar
+```
+
+Ou, se preferir separar o build da publicação:
+
+```bash
+uv run python build.py                  # compila, audita, autotesta, nomeia
+git add dist/MAPA_v0.8.3.exe
+git commit -m "MAPA.exe v0.8.3"
 git push
 ```
 
-O `build.py` só devolve `.exe` que passou na auditoria e no autoteste, então o
-que você commita tem a mesma garantia de antes.
+Sem `--publicar`, o `build.py` para depois de gerar o binário e imprime essas
+três linhas já preenchidas com a versão atual. Ele só devolve `.exe` que passou
+na auditoria e no autoteste — o que você publica tem a mesma garantia.
 
 ### Publicar uma versão por Release (opcional)
 

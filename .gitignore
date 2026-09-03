@@ -12,10 +12,13 @@ build/
 # pesado demais, o caminho de volta e Git LFS (nao um `git rm`, que nao
 # recupera espaco).
 #
-# So o binario entra. O resto de dist/ e relatorio de build, deriva a cada
-# compilacao e nao tem por que ser versionado.
+# So o binario VERSIONADO entra: `MAPA_v0.8.3.exe`, nao `MAPA.exe` puro. A
+# versao no nome faz dois binarios na mesma pasta deixarem de ser
+# indistinguiveis, e casa com o nome versionado da planilha de saida. O
+# `MAPA.exe` sem versao e so o intermediario do build — fica de fora. O resto
+# de dist/ e relatorio de auditoria/autoteste, deriva a cada compilacao.
 dist/*
-!dist/MAPA.exe
+!dist/MAPA_v*.exe
 wheels/
 *.egg-info
 
