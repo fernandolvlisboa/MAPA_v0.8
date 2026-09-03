@@ -7,7 +7,6 @@ build/
 # Release (ate 2 GB por arquivo, fora do historico) — veja README, secao
 # "Publicar uma versao". O workflow .github/workflows/release.yml faz isso
 # sozinho quando voce empurra uma tag.
-dist/
 wheels/
 *.egg-info
 
