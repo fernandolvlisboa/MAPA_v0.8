@@ -78,9 +78,11 @@ def test_nenhum_arquivo_de_codigo_e_ignorado_pelo_git():
         f"so {len(arquivos)} arquivos de codigo sob src/ — o teste seria vacuoso"
     )
 
+    # Por argv, nao por stdin: ver a nota em
+    # test_dado_de_cliente_continua_ignorado. No Windows o `text=True`
+    # transforma `\n` em `\r\n` e o git passa a citar os caminhos.
     resultado = subprocess.run(
-        ["git", "check-ignore", "-v", "--stdin"],
-        input="\n".join(str(p.relative_to(RAIZ)) for p in arquivos),
+        ["git", "check-ignore", "-v", *(str(p.relative_to(RAIZ)) for p in arquivos)],
         capture_output=True,
         text=True,
         cwd=RAIZ,
@@ -127,10 +129,15 @@ def test_dado_de_cliente_continua_ignorado():
         "data/samples/Balancete de um cliente.xlsx",
         "output/saida.xlsx",
     ]
+    # Os caminhos vao como ARGUMENTOS, nao por stdin. Com `--stdin` e
+    # `text=True`, o Python traduz `\n` para `\r\n` no Windows; o git recebe o
+    # `\r` como parte do nome, considera o caminho "estranho" e devolve tudo
+    # entre aspas — `"src/.../Balancete de um cliente.xlsx\r"` —, que nunca
+    # casa com o alvo. Passando por argv nao ha traducao de fim de linha.
     resultado = subprocess.run(
-        ["git", "check-ignore", "--stdin"],
-        input="\n".join(alvos), capture_output=True, text=True, cwd=RAIZ,
+        ["git", "check-ignore", *alvos],
+        capture_output=True, text=True, cwd=RAIZ,
     )
-    ignorados = {linha.strip() for linha in resultado.stdout.split("\n")}
+    ignorados = {linha.strip() for linha in resultado.stdout.splitlines()}
     for alvo in alvos:
         assert alvo in ignorados, f"{alvo} deixou de ser ignorado pelo .gitignore"

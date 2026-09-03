@@ -20,6 +20,7 @@ Ver ``PLANO_J_INTERFACE.md`` para o desenho da janela.
 
 from __future__ import annotations
 
+import contextlib
 import sys
 from pathlib import Path
 
@@ -27,6 +28,33 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
+
+
+def _terminal_aceita_utf8() -> None:
+    """
+    Impede que um acento derrube o programa no console do Windows.
+
+    O console clássico usa cp1252, que não tem ``→``, ``✓``, ``✗`` nem meia
+    dúzia de outros caracteres que este menu imprime. Cada um deles é um
+    ``UnicodeEncodeError`` **fatal**: o processo morre com código 1 no meio de
+    um ``print``, e o usuário vê um traceback em vez do menu. Já aconteceu
+    duas vezes, com dois caracteres diferentes — trocar o caractere culpado
+    conserta um caso e deixa a armadilha armada para o próximo.
+
+    Reconfigurar a saída resolve a classe inteira. ``errors="replace"`` é o
+    complemento indispensável: se nem assim couber, sai um ``?`` no lugar do
+    símbolo em vez de o programa cair. Degradar o enfeite é sempre melhor que
+    perder a execução.
+
+    Silencioso quando não dá para reconfigurar (saída redirecionada, stream
+    substituído por um teste): nesse caso o comportamento é o de antes.
+    """
+    for fluxo in (sys.stdout, sys.stderr):
+        with contextlib.suppress(AttributeError, ValueError, OSError):
+            fluxo.reconfigure(encoding="utf-8", errors="replace")
+
+
+_terminal_aceita_utf8()
 
 PASTA_TREINO = RAIZ / "src" / "bp" / "training" / "DFS_Exemple"
 PASTA_SAIDA = RAIZ / "output" / "gt"
