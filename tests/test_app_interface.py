@@ -376,34 +376,35 @@ def test_traducao_do_nucleo_para_a_tela_esta_viva():
 # ============================================================================
 
 
-def _tk_realmente_abre() -> tuple[bool, str]:
-    """
-    Da para criar uma janela Tk NESTA maquina?
+#: `criar_root` cria uma janela Tk de verdade. Em Linux sem `python3-tk` (e o
+#: caso deste container de CI) nao ha o que criar — e o proprio app tambem nao
+#: rodaria ali. Os dois testes que precisam de raiz pulam; o resto nao precisa.
+_TEM_TK = importlib.util.find_spec("tkinter") is not None
+requer_tk = pytest.mark.skipif(not _TEM_TK, reason="tkinter ausente (apt install python3-tk)")
 
-    `find_spec("tkinter")` so responde "o modulo existe" — e isso nao basta.
-    Numa instalacao real do Python 3.13 no Windows o modulo importava e
-    `tk.Tk()` morria com `TclError: Can't find a usable tk.tcl` porque faltava
-    `icons.tcl` na arvore do tcl. O teste quebrava apontando para o nosso
-    codigo quando o defeito era da instalacao do Python.
 
-    A unica pergunta honesta e tentar criar a raiz e destrui-la. Custa
-    milissegundos, roda uma vez por sessao, e a mensagem do erro vira o motivo
-    do skip — quem ler sabe que precisa reinstalar o Python, nao mexer aqui.
+def _root_ou_pula():
     """
-    if importlib.util.find_spec("tkinter") is None:
-        return False, "tkinter ausente (apt install python3-tk)"
+    Cria a raiz Tk, ou PULA se o Tk desta maquina nao inicializa.
+
+    O modulo `tkinter` existir nao garante que `Tk()` funcione. Numa
+    instalacao real do Python 3.13 no Windows o import passava e `Tk()` morria
+    com `TclError: Can't find a usable tk.tcl` — arvore do tcl incompleta.
+    Pior: o arquivo faltante MUDAVA entre execucoes (`icons.tcl` numa,
+    `listbox.tcl` na seguinte), entao sondar uma vez na coleta nao serve; a
+    sonda passava e o teste falhava logo depois.
+
+    Por isso a guarda fica no ponto de uso, e nao na coleta. Cada teste tenta
+    de verdade, na hora, e um Tk quebrado vira SKIP com a causa — nunca uma
+    falha que aponte para o nosso codigo. Sondar na coleta ainda tinha o
+    efeito colateral de abrir uma janela so para decidir se pula.
+    """
+    import tkinter
+
     try:
-        import tkinter
-
-        raiz = tkinter.Tk()
-        raiz.destroy()
-    except Exception as exc:  # TclError e o caso real; qualquer falha serve
-        return False, f"Tk nao inicializa nesta maquina: {exc.__class__.__name__}"
-    return True, ""
-
-
-_TEM_TK, _MOTIVO_SEM_TK = _tk_realmente_abre()
-requer_tk = pytest.mark.skipif(not _TEM_TK, reason=_MOTIVO_SEM_TK)
+        return dnd.criar_root()
+    except tkinter.TclError as exc:
+        pytest.skip(f"Tk nao inicializa nesta maquina (instalacao do Python): {exc}")
 
 
 def carregar_ui():
@@ -458,7 +459,7 @@ def test_desligado_por_ambiente_diz_que_foi_de_proposito(monkeypatch):
     variável de ambiente" e "não achei a biblioteca" pedem ações opostas.
     """
     monkeypatch.setenv("BP_SEM_DND", "1")
-    root, backend = dnd.criar_root()
+    root, backend = _root_ou_pula()
     try:
         assert backend == dnd.SEM_SUPORTE
         assert "BP_SEM_DND" in dnd.diagnostico()
@@ -488,7 +489,7 @@ def test_falha_do_tkdnd_vira_motivo_legivel(monkeypatch):
     monkeypatch.delenv("BP_SEM_DND", raising=False)
     monkeypatch.setattr(builtins, "__import__", sem_tkdnd)
 
-    root, backend = dnd.criar_root()
+    root, backend = _root_ou_pula()
     try:
         assert backend == dnd.SEM_SUPORTE
         motivo = dnd.diagnostico()

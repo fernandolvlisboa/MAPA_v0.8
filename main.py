@@ -30,31 +30,35 @@ if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
 
-def _terminal_aceita_utf8() -> None:
+def _saida_nunca_derruba_o_programa() -> None:
     """
-    Impede que um acento derrube o programa no console do Windows.
+    Impede que um símbolo fora da tabela do console mate o processo.
 
-    O console clássico usa cp1252, que não tem ``→``, ``✓``, ``✗`` nem meia
-    dúzia de outros caracteres que este menu imprime. Cada um deles é um
-    ``UnicodeEncodeError`` **fatal**: o processo morre com código 1 no meio de
-    um ``print``, e o usuário vê um traceback em vez do menu. Já aconteceu
-    duas vezes, com dois caracteres diferentes — trocar o caractere culpado
-    conserta um caso e deixa a armadilha armada para o próximo.
+    O console clássico do Windows usa cp1252, que não tem ``→``, ``✓`` nem
+    ``✗``. Cada um deles é um ``UnicodeEncodeError`` **fatal**: o processo
+    morre com código 1 no meio de um ``print`` e o usuário vê um traceback em
+    vez do menu. Aconteceu duas vezes seguidas, com dois caracteres
+    diferentes — trocar o caractere culpado conserta um caso e deixa a
+    armadilha armada para o próximo.
 
-    Reconfigurar a saída resolve a classe inteira. ``errors="replace"`` é o
-    complemento indispensável: se nem assim couber, sai um ``?`` no lugar do
-    símbolo em vez de o programa cair. Degradar o enfeite é sempre melhor que
-    perder a execução.
+    Só ``errors="replace"``, mantendo a codificação do console. Forçar UTF-8
+    aqui foi a minha primeira tentativa e estava errada: o processo parava de
+    cair, mas o console decodificava os bytes pela tabela dele e o menu saía
+    ``BP â€” PadronizaÃ§Ã£o``. Trocar queda por texto ilegível não é conserto.
+
+    Mantendo a tabela do console, tudo que cabe nela sai correto — acentos e
+    travessão incluídos, que são cp1252 — e só o símbolo impossível vira
+    ``?``. Degradar o enfeite, nunca a execução nem o resto do texto.
 
     Silencioso quando não dá para reconfigurar (saída redirecionada, stream
-    substituído por um teste): nesse caso o comportamento é o de antes.
+    substituído por um teste): aí vale o comportamento de antes.
     """
     for fluxo in (sys.stdout, sys.stderr):
         with contextlib.suppress(AttributeError, ValueError, OSError):
-            fluxo.reconfigure(encoding="utf-8", errors="replace")
+            fluxo.reconfigure(errors="replace")
 
 
-_terminal_aceita_utf8()
+_saida_nunca_derruba_o_programa()
 
 PASTA_TREINO = RAIZ / "src" / "bp" / "training" / "DFS_Exemple"
 PASTA_SAIDA = RAIZ / "output" / "gt"
