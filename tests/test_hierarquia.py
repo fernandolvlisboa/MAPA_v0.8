@@ -259,3 +259,91 @@ def test_selecao_reproduz_o_total_da_origem():
         assert soma == pytest.approx(total_origem), (
             f"mapeados={sorted(mapeados)} reproduziu {soma}, esperado {total_origem}"
         )
+
+
+# ============================================================================
+# Plano de QUATRO classes — a equação que o BP declarava quebrada
+# ============================================================================
+
+
+def _quatro_classes(ativo, passivo, custos, receitas):
+    """
+    Balancete de natureza implícita: tudo positivo, a classe é que diz o lado.
+
+    Estrutura mínima com pai e filho em cada classe, porque a conferência só
+    vale quando há árvore (``tem_hierarquia``).
+    """
+    return [
+        {"codigo": "1", "descricao": "ATIVO", "saldo": ativo},
+        {"codigo": "1.1", "descricao": "CIRCULANTE", "saldo": ativo},
+        {"codigo": "2", "descricao": "PASSIVO", "saldo": passivo},
+        {"codigo": "2.1", "descricao": "CIRCULANTE", "saldo": passivo},
+        {"codigo": "3", "descricao": "CUSTOS E DESPESAS", "saldo": custos},
+        {"codigo": "3.1", "descricao": "CUSTOS", "saldo": custos},
+        {"codigo": "4", "descricao": "RECEITAS", "saldo": receitas},
+        {"codigo": "4.1", "descricao": "VENDAS", "saldo": receitas},
+    ]
+
+
+def test_quatro_classes_com_natureza_implicita_fecha():
+    """
+    O caso Trindade, com os números do arquivo real.
+
+    Ativo 2.361.053,53 = Passivo 891.480,90 + Lucro 1.469.572,63, onde o lucro
+    é Receitas 4.941.899,84 - Custos 3.472.327,21. Fecha exatamente.
+
+    A soma ingênua das classes dava 11.666.761,48 porque ``classe_from_codigo``
+    funde 3 e 4 em "RESULTADO" e as duas entravam SOMADAS — quando a DRE
+    subtrai. O programa mandava não entregar uma planilha correta.
+    """
+    r = conferir_hierarquia(
+        _quatro_classes(2_361_053.53, 891_480.90, 3_472_327.21, 4_941_899.84)
+    )
+    assert r.equacao_fecha, (
+        f"balancete que fecha foi reprovado: desequilíbrio {r.desequilibrio:,.2f}"
+    )
+    assert r.desequilibrio == pytest.approx(0.0, abs=0.01)
+
+    # Não-vacuidade: as quatro raízes têm de estar separadas, senão a
+    # subtração da DRE seria impossível de enxergar.
+    assert set(r.totais_por_raiz) == {"1", "2", "3", "4"}
+    assert r.totais_por_classe["RESULTADO"] == pytest.approx(8_414_227.05)
+
+
+def test_quatro_classes_com_prejuizo_tambem_fecha():
+    """Receitas < Custos: o Passivo supera o Ativo pelo prejuízo."""
+    # Ativo 800 = Passivo 1000 + Lucro (-200); Receitas 300 - Custos 500.
+    r = conferir_hierarquia(_quatro_classes(800.0, 1000.0, 500.0, 300.0))
+    assert r.equacao_fecha, f"prejuízo reprovado: {r.desequilibrio:,.2f}"
+
+
+def test_quatro_classes_realmente_torto_continua_reprovado():
+    """
+    A trava do lado oposto — sem ela a correção viraria "aprova tudo".
+
+    Se qualquer atribuição de sinais fechasse, o teste acima não provaria
+    nada. Aqui o Ativo não bate com Passivo + lucro por 500, e nenhuma
+    combinação de sinais zera.
+    """
+    r = conferir_hierarquia(_quatro_classes(1_300.0, 1_000.0, 500.0, 300.0))
+    assert not r.equacao_fecha, (
+        "balancete torto passou — a busca por sinais está aprovando qualquer coisa"
+    )
+
+
+def test_convencao_de_sinal_explicito_continua_fechando():
+    """
+    Não-regressão: o plano referencial (passivo e receita negativos) fechava
+    pela soma simples e tem de continuar fechando.
+    """
+    contas = [
+        {"codigo": "1", "descricao": "ATIVO", "saldo": 1_000.0},
+        {"codigo": "1.1", "descricao": "CIRCULANTE", "saldo": 1_000.0},
+        {"codigo": "2", "descricao": "PASSIVO", "saldo": -600.0},
+        {"codigo": "2.1", "descricao": "CIRCULANTE", "saldo": -600.0},
+        {"codigo": "3", "descricao": "RESULTADO", "saldo": -400.0},
+        {"codigo": "3.1", "descricao": "RECEITAS", "saldo": -400.0},
+    ]
+    r = conferir_hierarquia(contas)
+    assert r.equacao_fecha
+    assert r.desequilibrio == pytest.approx(0.0, abs=0.01)

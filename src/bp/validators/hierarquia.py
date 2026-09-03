@@ -48,6 +48,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from collections.abc import Callable, Iterable
+from itertools import product as _product
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -133,6 +134,11 @@ class RelatorioHierarquia:
     codigos_duplicados: dict[str, int] = field(default_factory=dict)
     #: classe contábil -> soma das raízes daquela classe
     totais_por_classe: dict[str, float] = field(default_factory=dict)
+    #: dígito-raiz -> soma das raízes com aquele dígito. Mais fino que
+    #: ``totais_por_classe``, que funde 3..9 em "RESULTADO": é o que permite
+    #: distinguir Custos (3) de Receitas (4) num plano de quatro classes e
+    #: reconhecer que a DRE **subtrai**. Ver ``desequilibrio``.
+    totais_por_raiz: dict[str, float] = field(default_factory=dict)
     #: Quantas contas chegaram com saldo legível. ``0`` significa que a coluna
     #: de valor não foi lida — e então **nada** aqui vale como conferência.
     contas_com_saldo: int = 0
@@ -184,19 +190,81 @@ class RelatorioHierarquia:
     @property
     def desequilibrio(self) -> float:
         """
-        Ativo + Passivo + Resultado. Deve ser ~0.
+        O quanto sobra da equação contábil, sob a convenção que o arquivo usa.
 
-        Usa a convenção de sinais do próprio balancete de origem (passivo e
-        receita costumam vir negativos), então a soma de tudo é que zera —
-        não ``ativo == passivo``.
+        Deve ser ~0. **Qual soma zera depende da convenção de sinais**, e há
+        duas no mundo real — daí este método não ser um ``sum()``:
+
+        - **sinal explícito** (ECF, plano referencial): o passivo e a receita
+          já vêm negativos, então ``Ativo + Passivo + Resultado`` é que zera;
+        - **natureza implícita** (muito balancete de sistema brasileiro): tudo
+          vem positivo e a classe é que diz o lado. Aí a equação é
+          ``Ativo - Passivo - (Receitas - Custos) = 0``.
+
+        Somar tudo sob a segunda convenção acusa um desequilíbrio que não
+        existe. Foi o que aconteceu com o balancete Trindade, um plano de
+        **quatro** classes (1 Ativo, 2 Passivo, 3 Custos, 4 Receitas), todas
+        positivas::
+
+            Ativo    2.361.053,53      soma ingênua:
+            Passivo    891.480,90        2.361.053,53
+            Custos   3.472.327,21      + 891.480,90
+            Receitas 4.941.899,84      + 8.414.227,05  (3 e 4 juntas)
+                                       = 11.666.761,48   "não fecha"
+
+        Mas 891.480,90 + (4.941.899,84 - 3.472.327,21) = 2.361.053,53 = Ativo.
+        **Fechava exatamente**, e o programa mandava não entregar a planilha.
+
+        Como se resolve sem adivinhar a convenção: procura-se a atribuição de
+        sinais às classes que zera a soma. A atribuição toda-``+1`` é a
+        convenção de sinal explícito, então tudo que fechava antes continua
+        fechando — este método só acrescenta leituras, nunca remove. Com no
+        máximo cinco classes são 16 combinações; o custo é irrelevante e a
+        chance de dois totais de balancete real se cancelarem por acaso, nula.
+
+        Devolve o menor resíduo entre as leituras possíveis: se alguma zera, é
+        ela que vale.
         """
-        return sum(self.totais_por_classe.values())
+        return min(self._residuos_possiveis(), key=abs, default=0.0)
+
+    def _residuos_possiveis(self) -> list[float]:
+        """
+        O resíduo da equação sob cada atribuição de sinais às classes.
+
+        Trabalha sobre ``totais_por_raiz`` — o dígito-raiz, não a classe — de
+        propósito: ``classe_from_codigo`` funde 3..9 num só "RESULTADO", e é
+        justamente separar Custos (3) de Receitas (4) que permite ver a
+        subtração. Fundidas, as duas só podem ser somadas.
+
+        Fixa o sinal da primeira classe em ``+1``: negar tudo dá o mesmo
+        resíduo em módulo, então metade das combinações é redundante.
+        """
+        totais = list(self.totais_por_raiz.values()) or list(
+            self.totais_por_classe.values()
+        )
+        if not totais:
+            return []
+        if len(totais) > self.MAX_CLASSES_PARA_BUSCA:
+            return [sum(totais)]
+
+        residuos = []
+        for combinacao in _product((1, -1), repeat=len(totais) - 1):
+            sinais = (1,) + combinacao
+            residuos.append(sum(s * v for s, v in zip(sinais, totais)))
+        return residuos
+
+    #: Acima disso a busca por sinais deixa de ser conservadora: com muitas
+    #: classes cresce a chance de uma combinação zerar por acaso, e aí o
+    #: "fecha" não significa mais nada. Plano contábil real tem 3 ou 4.
+    MAX_CLASSES_PARA_BUSCA = 5
 
     @property
     def equacao_fecha(self) -> bool:
         if not self.saldos_legiveis:
             return False
-        base = max((abs(v) for v in self.totais_por_classe.values()), default=1.0)
+        base = max(
+            (abs(v) for v in self.totais_por_classe.values()), default=1.0
+        )
         return abs(self.desequilibrio) <= max(TOLERANCIA, base * 1e-6)
 
     def resumo(self) -> str:
@@ -316,6 +384,12 @@ def conferir_hierarquia(contas: Iterable[dict[str, Any]]) -> RelatorioHierarquia
             total = sum(_saldo(c) for c in grupos[codigo])
             relatorio.totais_por_classe[classe] = (
                 relatorio.totais_por_classe.get(classe, 0.0) + total
+            )
+            # O dígito-raiz separado, para que Custos (3) e Receitas (4) não
+            # cheguem à equação já somados. Ver RelatorioHierarquia.desequilibrio.
+            raiz = str(codigo).lstrip("()- ").strip()[:1]
+            relatorio.totais_por_raiz[raiz] = (
+                relatorio.totais_por_raiz.get(raiz, 0.0) + total
             )
 
     relatorio.divergencias.sort(key=lambda d: abs(d.diferenca), reverse=True)

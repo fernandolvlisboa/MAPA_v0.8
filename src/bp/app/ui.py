@@ -673,10 +673,15 @@ class AplicacaoBP:
     def _construir_resultado(self, pai: ttk.Frame) -> None:
         self.res_topo = ttk.Frame(pai)
         self.res_topo.pack(fill="x")
-        self.res_corpo = ttk.Frame(pai)
-        self.res_corpo.pack(fill="both", expand=True, pady=(14, 0))
+        # O rodapé é empacotado ANTES do corpo de propósito. `pack` atende na
+        # ordem das chamadas: se o corpo (expand=True) vier primeiro, ele
+        # reivindica todo o espaço restante e os botões — que são a ação — são
+        # empurrados para fora da janela quando a lista de avisos cresce.
+        # Reservando o rodapé primeiro, ele nunca some; quem cede é o corpo.
         self.res_rodape = ttk.Frame(pai)
         self.res_rodape.pack(fill="x", side="bottom", pady=(16, 0))
+        self.res_corpo = ttk.Frame(pai)
+        self.res_corpo.pack(fill="both", expand=True, pady=(14, 0))
 
     def _pintar_resultado(self, r: service.Resultado) -> None:
         for area in (self.res_topo, self.res_corpo, self.res_rodape):
@@ -728,13 +733,7 @@ class AplicacaoBP:
             ttk.Label(celula, text=rotulo, style="CartaoFraco.TLabel").pack(anchor="w")
 
         if r.alertas:
-            aviso = tk.Frame(self.res_corpo, bg=ATENCAO_FUNDO,
-                             highlightbackground="#E8C98A", highlightthickness=1)
-            aviso.pack(fill="x", pady=(12, 0))
-            for texto in r.alertas:
-                tk.Label(aviso, text="-  " + texto, bg=ATENCAO_FUNDO, fg=ATENCAO,
-                         font=(self.fonte, 9), wraplength=720, justify="left",
-                         anchor="w").pack(fill="x", padx=12, pady=(8, 8))
+            self._caixa_de_avisos(self.res_corpo, r.alertas)
 
         if r.pendentes:
             ttk.Label(
@@ -758,6 +757,49 @@ class AplicacaoBP:
             side="right", padx=(0, 10))
         ttk.Button(self.res_rodape, text="Padronizar outro",
                    style="Secundaria.TButton", command=self._recomecar).pack(side="left")
+
+    #: Altura máxima da caixa de avisos, em linhas de texto. Acima disso ela
+    #: rola em vez de crescer. Seis linhas cabem os avisos típicos inteiros;
+    #: o caso do Trindade (5 avisos longos, ~14 linhas) rola.
+    LINHAS_DE_AVISO = 6
+
+    def _caixa_de_avisos(self, pai: ttk.Frame, alertas: list[str]) -> None:
+        """
+        Os avisos, em altura fixa e roláveis.
+
+        Antes eram `Label`s empilhados num `Frame`: a caixa crescia sem limite
+        e empurrava a tabela e os botões para fora da janela — justamente
+        quando havia MAIS a avisar, que é quando o analista mais precisa da
+        ação. Um `Text` resolve os dois de uma vez: teto de altura com rolagem
+        nativa, e o texto fica selecionável para copiar num e-mail.
+        """
+        quadro = tk.Frame(pai, bg=ATENCAO_FUNDO,
+                          highlightbackground="#E8C98A", highlightthickness=1)
+        quadro.pack(fill="x", pady=(12, 0))
+
+        texto = tk.Text(
+            quadro, bg=ATENCAO_FUNDO, fg=ATENCAO, font=(self.fonte, 9),
+            wrap="word", relief="flat", highlightthickness=0,
+            padx=12, pady=8, height=min(self.LINHAS_DE_AVISO, len(alertas) * 2),
+            cursor="arrow",
+        )
+        rolagem = ttk.Scrollbar(quadro, orient="vertical", command=texto.yview)
+        texto.configure(yscrollcommand=rolagem.set)
+
+        for i, alerta in enumerate(alertas):
+            texto.insert("end", ("\n" if i else "") + "-  " + alerta + "\n")
+
+        # `state="disabled"` só DEPOIS de inserir: um Text desabilitado recusa
+        # escrita. Desabilitado ele continua rolável e selecionável, e deixa de
+        # ser editável — que é o que se quer de um aviso.
+        texto.configure(state="disabled")
+
+        texto.pack(side="left", fill="both", expand=True)
+        # A barra só aparece quando há o que rolar; senão fica um traço morto
+        # ao lado de um aviso de duas linhas.
+        texto.update_idletasks()
+        if texto.yview() != (0.0, 1.0):
+            rolagem.pack(side="right", fill="y")
 
     def _tabela_pendentes(
         self, pai: ttk.Frame, pendentes: list[service.ContaPendente]
