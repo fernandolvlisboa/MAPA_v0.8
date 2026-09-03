@@ -114,7 +114,34 @@ def resumo() -> None:
     print("\nEntregue esse arquivo — sem instalar nada — para quem for usar.")
 
 
+def carimbar_versao() -> None:
+    """
+    Diz qual versão está sendo compilada e sobre quais dados.
+
+    Vem ANTES de tudo de propósito: se o plano ou o vocabulário estiverem
+    errados, o binário sai errado e não adianta auditar o resto. É a mesma
+    impressão digital que vai para o Sumário de cada entrega, então o que se
+    lê aqui é exatamente o que o usuário verá na planilha.
+    """
+    from src.bp import versao
+
+    print(f"\n=== {versao.linha_de_versao()} ===")
+    print(versao.relatorio())
+    ausentes = [
+        rotulo
+        for rotulo, valor in versao.impressao_digital().items()
+        if valor in ("AUSENTE", "ILEGIVEL")
+    ]
+    if ausentes:
+        raise SystemExit(
+            "ABORTADO: dado essencial ausente ou ilegível -> "
+            + ", ".join(ausentes)
+            + "\nO .exe sairia sem ele e entregaria planilha errada em silêncio."
+        )
+
+
 def main() -> int:
+    carimbar_versao()
     compilar()
     auditar()
     autotestar()

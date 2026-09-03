@@ -44,6 +44,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .. import versao as _versao
 from ..matchers import ContaMatcher
 from ..parsers.dispatcher import ParseyCaller
 from ..utils.codigo import classe_from_codigo
@@ -1373,6 +1374,14 @@ def _criar_aba_sumario(wb, nome_cliente, data_base, anos: tuple[int, ...], resul
         ("Data-base:", data_base),
         ("Exercícios preenchidos:", ", ".join(str(a) for a in anos)),
         ("Processado em:", datetime.now().strftime("%d/%m/%Y %H:%M")),
+        ("", ""),
+        # VERSÃO E DADOS — sem isto não há como responder "o que mudou?".
+        # Duas execuções do MESMO balancete deram 100% e 38%; o SHA-256 da
+        # entrada era idêntico, então a diferença estava aqui, e não havia
+        # onde olhar. Comparar dois Sumários agora resolve em segundos se a
+        # divergência é de código ou de dado.
+        ("VERSÃO E DADOS USADOS", ""),
+        *_versao.como_linhas(),
         ("", ""),
         ("Contas lidas (todos os exercícios):", result.contas_lidas),
         ("Contas com match:", result.contas_tratadas),

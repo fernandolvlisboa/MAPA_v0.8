@@ -31,6 +31,7 @@ from pathlib import Path
 from tkinter import filedialog, ttk
 from tkinter import font as tkfont
 
+from .. import versao
 from . import dnd, paths, service
 from .service import Entrada
 
@@ -187,6 +188,11 @@ class AplicacaoBP:
         ttk.Label(cabecalho, text="MAPA", style="Titulo.TLabel").pack(side="left")
         ttk.Label(cabecalho, text="   Mapeamento de Plano de Contas",
                   style="Subtitulo.TLabel").pack(side="left", padx=(4, 0))
+        # A versão à direita do cabeçalho, sempre visível. É a primeira coisa
+        # a perguntar quando "ontem saiu certo e hoje não" — e antes dela não
+        # havia como responder sem abrir a planilha.
+        ttk.Label(cabecalho, text=versao.VERSAO,
+                  style="Subtitulo.TLabel").pack(side="right")
 
         self.container = ttk.Frame(self.root, padding=0)
         self.container.pack(fill="both", expand=True)
