@@ -99,7 +99,7 @@ def acao_treinar() -> None:
 
 def acao_padronizar() -> None:
     """Lê um balancete e entrega o Template GT povoado."""
-    _titulo("PADRONIZAR — balancete → Template GT")
+    _titulo("PADRONIZAR -- balancete -> Template GT")
     entrada = _pedir_arquivo("Caminho do balancete")
     if not entrada:
         print("  cancelado.")
@@ -117,7 +117,7 @@ def acao_padronizar() -> None:
     PASTA_SAIDA.mkdir(parents=True, exist_ok=True)
     saida = PASTA_SAIDA / f"{_slug(cliente)}_{ano}.xlsx"
 
-    print("\nProcessando... (parse → matching → projeção → template)")
+    print("\nProcessando... (parse -> matching -> projecao -> template)")
     from src.bp.output.build_gt_output import build_gt_output
 
     try:
@@ -171,7 +171,7 @@ def acao_revisar() -> None:
 
 _OPCOES = {
     "1": ("Treinar (aprender com balancetes novos)", acao_treinar),
-    "2": ("Padronizar um balancete → Template GT", acao_padronizar),
+    "2": ("Padronizar um balancete -> Template GT", acao_padronizar),
     "3": ("Revisar contas pendentes (assistente)", acao_revisar),
     "0": ("Sair", None),
 }

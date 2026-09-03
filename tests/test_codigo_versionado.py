@@ -131,6 +131,6 @@ def test_dado_de_cliente_continua_ignorado():
         ["git", "check-ignore", "--stdin"],
         input="\n".join(alvos), capture_output=True, text=True, cwd=RAIZ,
     )
-    ignorados = set(resultado.stdout.split("\n"))
+    ignorados = {linha.strip() for linha in resultado.stdout.split("\n")}
     for alvo in alvos:
         assert alvo in ignorados, f"{alvo} deixou de ser ignorado pelo .gitignore"

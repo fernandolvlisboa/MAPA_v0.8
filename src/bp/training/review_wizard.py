@@ -190,12 +190,12 @@ def _review_one(trainer: AccountTrainer, item: dict[str, Any]) -> bool:
         )
 
     print("\nOpções:")
-    print("  s  → Buscar por descrição (fuzzy)")
-    print("  h  → Navegar por hierarquia")
-    print("  c  → Informar código diretamente")
-    print("  i  → Ignorar permanentemente (não treinar / não mostrar de novo)")
-    print("  k  → Pular (apenas nesta sessão)")
-    print("  q  → Sair")
+    print("  s  - Buscar por descricao (fuzzy)")
+    print("  h  - Navegar por hierarquia")
+    print("  c  - Informar codigo diretamente")
+    print("  i  - Ignorar permanentemente (nao treinar / nao mostrar de novo)")
+    print("  k  - Pular (apenas nesta sessao)")
+    print("  q  - Sair")
 
     plano = trainer.plano
 
