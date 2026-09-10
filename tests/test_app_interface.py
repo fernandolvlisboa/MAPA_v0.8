@@ -44,7 +44,7 @@ def test_ano_do_nome(nome, esperado):
 
 def test_ano_repetido_no_nome_vence():
     """"072022 122022" é o mesmo exercício escrito duas vezes."""
-    assert service.ano_do_nome("Balancete 072022 122022 - RBM.xls") == 2022
+    assert service.ano_do_nome("Balancete 072022 122022 - GMA.xls") == 2022
 
 
 def test_ano_futuro_distante_e_recusado():
@@ -58,8 +58,8 @@ def test_ano_futuro_distante_e_recusado():
 @pytest.mark.parametrize(
     "nome,esperado",
     [
-        ("Balancete 072022 122022 - RBM.xls", "RBM"),
-        ("BALANÇO-DRE 2024 - ADA.pdf", "ADA"),
+        ("Balancete 072022 122022 - GMA.xls", "GMA"),
+        ("BALANÇO-DRE 2024 - GMD.pdf", "GMD"),
         ("Balancete Real Life.xlsx", "Real Life"),
         ("2458-25 DF Neo Invest Controladora e Consolidado Dez24.pdf", "Neo Invest"),
     ],
@@ -80,8 +80,8 @@ def test_cliente_vazio_quando_o_nome_so_tem_data():
 
 
 def test_cliente_da_serie_usa_o_palpite_que_se_repete():
-    nomes = ["Balancete 2022 - RBM.xls", "Balancete 2023 - RBM.xls", "Anexo 2024.xls"]
-    assert service.cliente_do_nome(nomes) == "RBM"
+    nomes = ["Balancete 2022 - GMA.xls", "Balancete 2023 - GMA.xls", "Anexo 2024.xls"]
+    assert service.cliente_do_nome(nomes) == "GMA"
 
 
 # ------------------------------------------------------- nome do arquivo
@@ -91,8 +91,8 @@ def test_nome_de_saida_um_ano_e_serie():
     from src.bp import versao
 
     v = versao.VERSAO
-    assert service.nome_de_saida("RBM Ltda", [2024]) == f"RBM_Ltda_2024_v{v}.xlsx"
-    assert service.nome_de_saida("RBM", [2024, 2022, 2023]) == f"RBM_2022-2024_v{v}.xlsx"
+    assert service.nome_de_saida("GMA Ltda", [2024]) == f"GMA_Ltda_2024_v{v}.xlsx"
+    assert service.nome_de_saida("GMA", [2024, 2022, 2023]) == f"GMA_2022-2024_v{v}.xlsx"
 
 
 def test_nome_de_saida_carrega_a_versao():
@@ -105,7 +105,7 @@ def test_nome_de_saida_carrega_a_versao():
     """
     from src.bp import versao
 
-    nome = service.nome_de_saida("Trindade", [2025])
+    nome = service.nome_de_saida("Aurora", [2025])
     assert f"_v{versao.VERSAO}" in nome, f"a versao sumiu do nome: {nome}"
     assert nome.endswith(".xlsx")
 

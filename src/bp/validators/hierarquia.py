@@ -6,7 +6,7 @@ sintética declara um saldo que deve ser igual à soma dos seus filhos diretos.
 
     2.1.1.01        EMPRÉSTIMOS                       -194.622,59
     ├ ...0002       EMPRÉSTIMO BANCÁRIO SICOOB         -42.708,96
-    ├ ...0004       CONTA GARANTIDA - SICREDI RBM      -50.000,00
+    ├ ...0004       CONTA GARANTIDA - SICREDI GMA      -50.000,00
     ├ ...0010       EMPRESTIMO SANTANDER              -136.811,42
     ├ ...0010       JUROS A APROPRIAR - CURTO PRAZO     73.254,70
     └ ...009        EMPRESTIMO CREDIMATA - 624703      -38.356,91
@@ -20,14 +20,14 @@ perdeu nem inventou linha.
 Medido no corpus (31 arquivos, ver ``tests/test_corpus_regressao.py``): 17
 expõem hierarquia e **14 fecham em todos os agrupadores**. Os 3 que não fecham
 são os ``.TXT``, todos pela mesma causa — o parser de largura fixa perde o
-sinal das contas redutoras. O exemplo acima vem do balancete RBM, que é o
+sinal das contas redutoras. O exemplo acima vem do balancete GMA, que é o
 **pior caso** do corpus em cobertura de valor (88,6%, contra 100% em quatro
 dos sete medidos); usá-lo como ilustração é proposital, usá-lo como referência
 única seria sobreajuste.
 
 Duas armadilhas que este módulo trata e que custaram caro
 --------------------------------------------------------
-1. **Código repetido é normal.** No RBM, ``2.1.1.01.0010`` aparece duas vezes
+1. **Código repetido é normal.** No GMA, ``2.1.1.01.0010`` aparece duas vezes
    (EMPRESTIMO SANTANDER e JUROS A APROPRIAR). Nove códigos se repetem, o que
    representa 12 contas. Qualquer estrutura ``dict[codigo] = conta`` **descarta
    as repetidas em silêncio** — e foi exatamente o que fez 4 dos 80 rollups
@@ -35,7 +35,7 @@ Duas armadilhas que este módulo trata e que custaram caro
    Aqui tudo é agrupado em ``dict[codigo] -> list[conta]``.
 
 2. **Contas com nome próprio não devem ser mapeadas uma a uma.**
-   "SICOOB - UNISUDESTE - RBM 62540-0" não existe em plano de contas nenhum, e
+   "SICOOB - COOPCENTRO - GMA 62540-0" não existe em plano de contas nenhum, e
    nem precisa: o agrupador dela ("BANCOS CONTA MOVIMENTO") existe e já carrega
    o total. ``selecionar_para_projecao`` desce a árvore e **para no nível
    mapeado mais alto**, o que resolve de uma vez os dois erros opostos:
@@ -76,7 +76,7 @@ TOLERANCIA = 0.01
 #: descrição quando a origem não tem coluna de código, e linhas de totalização
 #: do balancete chegam com um NÚMERO nos dois campos (ex.: código
 #: ``"-2647871.8"``, descrição ``"3166245.14"``). Oito dessas linhas-fantasma
-#: no balancete RBM somavam 20,7 milhões de totais inexistentes e faziam a
+#: no balancete GMA somavam 20,7 milhões de totais inexistentes e faziam a
 #: equação contábil "não fechar" — o defeito estava no medidor, não no dado.
 _CODIGO_HIERARQUICO_RE = re.compile(r"^\d+(\.\d+)*$")
 
@@ -156,7 +156,7 @@ class RelatorioHierarquia:
         para saldo ilegível, então um balancete em que **nenhum** valor foi lido
         tem todo pai batendo com a soma dos filhos (0 == 0) e a equação contábil
         fechando (0 == 0). Foi o que aconteceu com as abas "Balancetes 2024" e
-        "Balancetes 2025" do SmartRio: 773 de 774 e 821 de 824 contas com
+        "Balancetes 2025" do Ravena: 773 de 774 e 821 de 824 contas com
         ``saldo=None``, e o relatório dizia "184 pais conferem, equação fecha".
 
         Meio a meio é folgado de propósito — balancete real tem conta zerada e
@@ -202,7 +202,7 @@ class RelatorioHierarquia:
           ``Ativo - Passivo - (Receitas - Custos) = 0``.
 
         Somar tudo sob a segunda convenção acusa um desequilíbrio que não
-        existe. Foi o que aconteceu com o balancete Trindade, um plano de
+        existe. Foi o que aconteceu com o balancete Aurora, um plano de
         **quatro** classes (1 Ativo, 2 Passivo, 3 Custos, 4 Receitas), todas
         positivas::
 
@@ -324,7 +324,7 @@ def agrupar_por_codigo(contas: Iterable[dict[str, Any]]) -> dict[str, list[dict]
     """
     Agrupa contas por código, **preservando as repetidas**.
 
-    Um ``dict[codigo] = conta`` perderia 12 das 537 contas do balancete RBM.
+    Um ``dict[codigo] = conta`` perderia 12 das 537 contas do balancete GMA.
     """
     grupos: dict[str, list[dict]] = defaultdict(list)
     for conta in contas:

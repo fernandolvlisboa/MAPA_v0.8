@@ -194,9 +194,9 @@ O projeto utiliza **4 estruturas complementares** no `data/plano_contas.json`:
    - Extrai metadados (empresa, período, moeda)
 
 2. ⏳ **Testes com PDFs reais**
-   - `auxil/BP_PDF_ex/ABT - BP 03.2024.pdf`
-   - `auxil/BP_PDF_ex/BALANÇO-DRE 2024 - ADA.pdf`
-   - `auxil/BP_PDF_ex/Voll S.A_60_DF 2023.pdf`
+   - `auxil/BP_PDF_ex/GMC - BP 03.2024.pdf`
+   - `auxil/BP_PDF_ex/BALANÇO-DRE 2024 - GMD.pdf`
+   - `auxil/BP_PDF_ex/Vertis S.A_60_DF 2023.pdf`
    - `auxil/BP_PDF_ex/DF_completa/2023 Q4 - Agger Report.pdf`
 
 3. ⏳ **Otimização e Performance**

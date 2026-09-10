@@ -168,10 +168,10 @@ File                                 Rows  Cols  Time    Status
 ─────────────────────────────────────────────────────────────────
 202404_2024 - Balancete.xlsx         486   18    0.50s   ✓ OK
 Balancete 042025 em excel.xlsx       153   18    0.07s   ✓ OK
-Balancete 072022 122022 - RBM.xlsx   542   16    0.15s   ✓ OK
-Balancete ASP 2023.xlsx              222   18    0.13s   ✓ OK
+Balancete 072022 122022 - GMA.xlsx   542   16    0.15s   ✓ OK
+Balancete GMB 2023.xlsx              222   18    0.13s   ✓ OK
 Balancete Real Life.xlsx             131   18    0.13s   ✓ OK
-Balancete SPEZZIA TUBOS.xlsx         568   13    0.13s   ✓ OK
+Balancete MONTELA TUBOS.xlsx         568   13    0.13s   ✓ OK
 Balancete-2025-06.xlsx               267   13    0.10s   ✓ OK
 ─────────────────────────────────────────────────────────────────
 TOTAL                               2369         Avg:0.17s  100%

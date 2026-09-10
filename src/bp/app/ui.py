@@ -96,6 +96,9 @@ class AplicacaoBP:
         self.pasta_saida: Path = self._pasta_saida_inicial()
         self.fila: queue.Queue = queue.Queue()
         self.resultado: service.Resultado | None = None
+        #: Marcado quando o usuário pede uma entrega por aba (empresas
+        #: diferentes no mesmo arquivo); senão, o caminho normal (uma entrega).
+        self._gerar_por_entidade: bool = False
 
         self.var_cliente = tk.StringVar()
         self.var_milhares = tk.BooleanVar(value=False)
@@ -450,9 +453,12 @@ class AplicacaoBP:
                     f"({type(exc).__name__}); seguindo com a primeira."
                 )
                 diagnostico = None
-            if diagnostico is not None and diagnostico.abas:
+            if diagnostico is not None and diagnostico.deve_perguntar:
                 escolhidas = self._perguntar_abas(aceito.path, diagnostico)
             else:
+                # Sem ambiguidade real (aba-balancete única entre abas de
+                # apoio): o dispatcher escolhe a aba certa sozinho. Não abrimos
+                # diálogo para não forçar um clique numa lista de um item só.
                 escolhidas = [None]
             for aba in escolhidas:
                 candidata = service.Entrada(aceito.path, aba=aba)
@@ -593,6 +599,24 @@ class AplicacaoBP:
             ttk.Label(linha, text=aba.rotulo_do_tipo, style="CartaoFraco.TLabel",
                       width=15, anchor="e").pack(side="left")
 
+        # Uma entrega por ABA (empresas diferentes) × várias colunas (exercícios
+        # do mesmo cliente). Só aparece quando há 2+ balancetes — que é quando a
+        # dúvida existe. Default inteligente: se as abas NÃO formam uma série de
+        # anos distintos (duas empresas do mesmo período), vem marcado; o usuário
+        # decide, porque só ele sabe se "Matriz" e "Filial" somam ou saem à parte.
+        balancetes = [a for a in abas if a.tem_hierarquia]
+        anos_bal = [a.ano for a in balancetes]
+        e_serie = None not in anos_bal and len(set(anos_bal)) == len(balancetes)
+        var_por_entidade = tk.BooleanVar(
+            value=(len(balancetes) >= 2 and not e_serie) and not perguntando_onde
+        )
+        if len(balancetes) >= 2 and not perguntando_onde:
+            ttk.Checkbutton(
+                moldura, variable=var_por_entidade, style="Cartao.TCheckbutton",
+                text=("Este arquivo tem mais de uma empresa — gerar uma entrega "
+                      "SEPARADA para cada aba marcada"),
+            ).pack(anchor="w", pady=(8, 0))
+
         ttk.Label(moldura, textvariable=var_recado, style="CartaoFraco.TLabel",
                   foreground=ERRO).pack(anchor="w", pady=(10, 0))
 
@@ -602,6 +626,8 @@ class AplicacaoBP:
 
         def confirmar() -> None:
             resultado.extend(marcadas())
+            # A escolha vale para a geração inteira; lida em _gerar.
+            self._gerar_por_entidade = bool(var_por_entidade.get())
             janela.destroy()
 
         botao = ttk.Button(
@@ -770,6 +796,71 @@ class AplicacaoBP:
         ttk.Button(self.res_rodape, text="Padronizar outro",
                    style="Secundaria.TButton", command=self._recomecar).pack(side="left")
 
+    def _pintar_varios_resultados(self, resultados: list[service.Resultado]) -> None:
+        """
+        Resumo de VÁRIAS entregas — uma por empresa (holding, controlada, …).
+
+        Cada entidade é um arquivo próprio; a tela lista todos com o essencial
+        (fecha? quantas a revisar?) e um botão para abrir cada um. Assim o
+        analista vê de relance que as duas empresas saíram, e qual precisa de
+        atenção, sem abrir planilha por planilha.
+        """
+        for area in (self.res_topo, self.res_corpo, self.res_rodape):
+            for filho in area.winfo_children():
+                filho.destroy()
+
+        ok = [r for r in resultados if r.ok]
+        falhas = [r for r in resultados if not r.ok]
+        atencao = [r for r in ok if r.precisa_atencao or not r.balanco_confere]
+        cor = SUCESSO if not atencao and not falhas else ATENCAO
+        marca = "OK" if not atencao and not falhas else "!"
+        ttk.Label(
+            self.res_topo,
+            text=f"{marca}  {len(ok)} entrega(s) geradas — uma por empresa",
+            style="Secao.TLabel", font=(self.fonte, 17, "bold"), foreground=cor,
+        ).pack(anchor="w")
+        if self.pasta_saida:
+            ttk.Label(self.res_topo, text=str(self.pasta_saida),
+                      style="Fraco.TLabel").pack(anchor="w", pady=(4, 0))
+        ttk.Label(self.res_topo, text=self._resumo_dos_dados(),
+                  style="Fraco.TLabel").pack(anchor="w", pady=(6, 0))
+
+        for r in resultados:
+            cartao = ttk.Frame(self.res_corpo, style="Cartao.TFrame", padding=(14, 10))
+            cartao.pack(fill="x", pady=(8, 0))
+            if not r.ok:
+                ttk.Label(cartao, text="Não deu para gerar", style="Cartao.TLabel",
+                          font=(self.fonte, 12, "bold"), foreground=ERRO).pack(anchor="w")
+                ttk.Label(cartao, text=r.erro or "Erro desconhecido.",
+                          style="CartaoFraco.TLabel", wraplength=680,
+                          justify="left").pack(anchor="w")
+                continue
+            saida = r.saida
+            assert saida is not None
+            fecha = r.balanco_confere
+            ttk.Label(
+                cartao, text=("OK  " if fecha else "!  ") + saida.name,
+                style="Cartao.TLabel", font=(self.fonte, 12, "bold"),
+                foreground=SUCESSO if fecha else ATENCAO,
+            ).pack(anchor="w")
+            resumo = (
+                f"Identificadas {r.contas_tratadas} · "
+                f"Para revisar {r.contas_nao_identificadas} · "
+                f"Aproveitamento {r.match_rate:.0%} · "
+                f"Balanço {'fecha' if fecha else 'NÃO fecha'}"
+            )
+            ttk.Label(cartao, text=resumo, style="CartaoFraco.TLabel").pack(anchor="w")
+            ttk.Button(
+                cartao, text="Abrir", style="Secundaria.TButton",
+                command=functools.partial(service.abrir_no_sistema, saida),
+            ).pack(anchor="w", pady=(6, 0))
+
+        ttk.Button(self.res_rodape, text="Abrir pasta", style="Acao.TButton",
+                   command=functools.partial(service.abrir_no_sistema, self.pasta_saida)).pack(
+            side="right")
+        ttk.Button(self.res_rodape, text="Padronizar outro",
+                   style="Secundaria.TButton", command=self._recomecar).pack(side="left")
+
     @staticmethod
     def _resumo_dos_dados() -> str:
         """
@@ -790,7 +881,7 @@ class AplicacaoBP:
 
     #: Altura máxima da caixa de avisos, em linhas de texto. Acima disso ela
     #: rola em vez de crescer. Seis linhas cabem os avisos típicos inteiros;
-    #: o caso do Trindade (5 avisos longos, ~14 linhas) rola.
+    #: o caso do Aurora (5 avisos longos, ~14 linhas) rola.
     LINHAS_DE_AVISO = 6
 
     def _caixa_de_avisos(self, pai: ttk.Frame, alertas: list[str]) -> None:
@@ -856,6 +947,7 @@ class AplicacaoBP:
         self.entradas.clear()
         self.var_cliente.set("")
         self.var_recado.set("")
+        self._gerar_por_entidade = False  # a escolha não vaza para o próximo
         self._atualizar_lista()
         self._mostrar("entrada")
 
@@ -878,13 +970,25 @@ class AplicacaoBP:
         cliente = self.var_cliente.get()
         milhares = self.var_milhares.get()
         pasta = self.pasta_saida
+        # Uma entrega por entidade só quando o usuário pediu E há mais de uma
+        # aba marcada para o mesmo arquivo; senão é o caminho normal (uma
+        # entrega, exercícios viram colunas).
+        por_entidade = self._gerar_por_entidade and len(entradas) > 1
 
         def trabalhar() -> None:
-            resultado = service.gerar(
-                entradas, pasta, cliente, em_milhares=milhares,
-                progresso=lambda t: self.fila.put(("passo", t)),
-            )
-            self.fila.put(("fim", resultado))
+            progresso = lambda t: self.fila.put(("passo", t))
+            if por_entidade:
+                resultados = service.gerar_por_entidade(
+                    entradas, pasta, cliente, em_milhares=milhares,
+                    progresso=progresso,
+                )
+                self.fila.put(("fim_varios", resultados))
+            else:
+                resultado = service.gerar(
+                    entradas, pasta, cliente, em_milhares=milhares,
+                    progresso=progresso,
+                )
+                self.fila.put(("fim", resultado))
 
         threading.Thread(target=trabalhar, daemon=True).start()
         self.root.after(80, self._ler_fila)
@@ -899,6 +1003,12 @@ class AplicacaoBP:
                     self.barra.stop()
                     self.resultado = carga
                     self._pintar_resultado(carga)
+                    self._mostrar("resultado")
+                    return
+                elif tipo == "fim_varios":
+                    self.barra.stop()
+                    self.resultado = carga[0] if carga else None
+                    self._pintar_varios_resultados(carga)
                     self._mostrar("resultado")
                     return
         except queue.Empty:

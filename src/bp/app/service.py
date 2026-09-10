@@ -110,7 +110,7 @@ def cliente_do_nome(nomes: str | Path | Iterable[str | Path]) -> str:
     Nome de cliente provável a partir do(s) nome(s) de arquivo.
 
     Tira datas, números soltos e as palavras que descrevem o documento; o que
-    sobra costuma ser o cliente (``Balancete 072022 122022 - RBM`` -> ``RBM``).
+    sobra costuma ser o cliente (``Balancete 072022 122022 - GMA`` -> ``GMA``).
 
     Devolve ``""`` quando não sobra nada — de propósito. Chutar "Balancete
     042025 em excel" como nome de cliente é pior do que não chutar: sai
@@ -168,8 +168,8 @@ def nome_de_saida(cliente: str, anos: Sequence[int]) -> str:
     exercício convivem em ``Drop`` — um bom, um ruim —, o nome idêntico
     obrigava a abrir os dois para saber qual era qual, e o único jeito de
     distinguir virava a data de modificação. Com a versão no nome, a pasta já
-    conta a história: ``Trindade_2025_v0.8.1.xlsx`` ao lado de
-    ``Trindade_2025_v0.8.2.xlsx`` diz na hora o que mudou entre eles.
+    conta a história: ``Aurora_2025_v0.8.1.xlsx`` ao lado de
+    ``Aurora_2025_v0.8.2.xlsx`` diz na hora o que mudou entre eles.
 
     O sufixo ``(2)`` de ``caminho_sem_colisao`` continua valendo para duas
     execuções da MESMA versão — ele resolve colisão, não identificação.
@@ -456,6 +456,69 @@ def gerar(
         alertas=_alertas(bruto.avisos),
         pendentes=ler_pendentes(bruto.output_path),
     )
+
+
+def e_serie_de_exercicios(entradas: Sequence[Entrada]) -> bool:
+    """
+    As abas marcadas são EXERCÍCIOS do mesmo cliente, ou EMPRESAS diferentes?
+
+    Série histórica (exercícios) = um ano distinto por aba ("Balancetes 2023",
+    "…2024", "…2025"): viram colunas de uma única entrega. Já uma pasta de
+    trabalho com holding + controlada traz duas empresas no MESMO período —
+    cada uma é uma entrega própria, não uma coluna da outra.
+
+    O discriminante é o ano: série tem um exercício distinto por aba. Duas abas
+    sem ano, ou do mesmo ano, **não** são série. É só um palpite de DEFAULT para
+    a caixa de seleção — quem decide é o usuário, porque só ele sabe se "Matriz"
+    e "Filial" devem somar ou sair separadas.
+    """
+    if len(entradas) <= 1:
+        return True  # uma aba só: caminho normal, uma entrega
+    anos = [e.ano for e in entradas]
+    return None not in anos and len(set(anos)) == len(entradas)
+
+
+def rotulo_da_entidade(entrada: Entrada, cliente: str) -> str:
+    """Nome que identifica a entidade desta aba na entrega (e no arquivo)."""
+    aba = (entrada.aba or "").strip()
+    cliente = (cliente or "").strip()
+    if aba and cliente:
+        return f"{cliente} - {aba}"
+    return aba or cliente or "Cliente"
+
+
+def gerar_por_entidade(
+    entradas: Sequence[Entrada],
+    pasta_saida: Path,
+    cliente: str,
+    em_milhares: bool = False,
+    progresso: Callable[[str], None] | None = None,
+) -> list[Resultado]:
+    """
+    Uma entrega SEPARADA por aba/entidade — holding e controlada, matriz e
+    filial, não viram colunas de uma só planilha.
+
+    Reusa :func:`gerar` por entrada, com um nome de cliente por entidade
+    (``"{cliente} - {aba}"``), para os arquivos não colidirem e a capa de cada
+    BP_GT nomear a empresa certa. Devolve um ``Resultado`` por entidade, na
+    ordem das entradas — nenhuma exceção sobe: falha de uma vira
+    ``Resultado(ok=False)`` e as outras seguem.
+    """
+    resultados: list[Resultado] = []
+    total = len(entradas)
+    for i, entrada in enumerate(entradas, 1):
+        rotulo = entrada.aba or entrada.path.name
+        if progresso:
+            progresso(f"Empresa {i} de {total}: {rotulo}...")
+        resultados.append(
+            gerar(
+                [entrada],
+                pasta_saida,
+                rotulo_da_entidade(entrada, cliente),
+                em_milhares=em_milhares,
+            )
+        )
+    return resultados
 
 
 #: Traduções de aviso do núcleo para a linguagem da tela. O núcleo fala com o

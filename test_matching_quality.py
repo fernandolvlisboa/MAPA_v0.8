@@ -17,7 +17,7 @@ def test_matching():
     """Testa matching em arquivo exemplo"""
 
     # Parsear arquivo
-    file_path = Path("src/bp/training/DFS_Exemple/Balancete 072022 122022 - RBM.xlsx")
+    file_path = Path("src/bp/training/DFS_Exemple/Balancete 072022 122022 - GMA.xlsx")
     print(f"[PARSING] {file_path}")
 
     parser = ParseyCaller(file_path)

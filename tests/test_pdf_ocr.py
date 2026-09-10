@@ -28,7 +28,7 @@ from src.bp.parsers.pdf_utils.preprocessor import ImagePreprocessor
 def sample_pdf_native():
     """Retorna caminho para PDF nativo se existir."""
     pdf_path = (
-        Path(__file__).parent.parent / "auxil" / "BP_PDF_ex" / "ABT - BP 03.2024.pdf"
+        Path(__file__).parent.parent / "auxil" / "BP_PDF_ex" / "GMC - BP 03.2024.pdf"
     )
     if pdf_path.exists():
         return pdf_path

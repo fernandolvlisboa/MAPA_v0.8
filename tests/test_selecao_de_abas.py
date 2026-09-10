@@ -7,9 +7,9 @@ O problema
 Balancete de cliente nem sempre é um arquivo com um período. Vem também como
 pasta de trabalho::
 
-    SmartRio Balancetes (2020 2026).xlsx    ->  Balancetes 2020 … Balancetes 2026
-    Mascara Balancete Core Jun-26.xlsx      ->  Balancete Dez-2024 … mensal Jun-2026
-    06.2026 - Mascara PCH.xlsx              ->  20 abas, incluindo "Balancete"
+    Ravena Balancetes (2020 2026).xlsx    ->  Balancetes 2020 … Balancetes 2026
+    Caravela Balancete Core Jun-26.xlsx      ->  Balancete Dez-2024 … mensal Jun-2026
+    06.2026 - Caravela PCH.xlsx              ->  20 abas, incluindo "Balancete"
 
 O leitor devolvia a **primeira** aba que passasse no portão — e num arquivo
 cuja aba 0 é "Output Modelo (BP)" isso rende zero contas, com nove abas de
@@ -40,8 +40,8 @@ from src.bp.app import service
 from src.bp.parsers.abas import AbaCandidata, listar_abas, periodo_do_nome
 from src.bp.parsers.dispatcher import ParseyCaller
 
-MULTI_ABA = "SmartRio Balancetes (2020 2026).xlsx"
-COM_ABA_BALANCETE = "06.2026 - Mascara PCH - Balanco.vCore5.xlsx"
+MULTI_ABA = "Ravena Balancetes (2020 2026).xlsx"
+COM_ABA_BALANCETE = "06.2026 - Caravela PCH - Balanco.vCore5.xlsx"
 
 
 def _corpus(nome: str):
@@ -256,8 +256,8 @@ def test_serie_historica_de_um_arquivo_so_chega_a_entrega(tmp_path):
 from src.bp.parsers.abas import BALANCETE, DEMONSTRATIVO, diagnosticar  # noqa: E402
 
 JA_CONSOLIDADO = (
-    "06.2026 - Mascara PCH - Balanco.vCore5.xlsx",
-    "Mascara Balancete Core Jun-26 2026 Sent to GT.xlsx",
+    "06.2026 - Caravela PCH - Balanco.vCore5.xlsx",
+    "Caravela Balancete Core Jun-26 2026 Sent to GT.xlsx",
 )
 
 
@@ -318,6 +318,35 @@ def test_classificacao_da_aba():
     assert AbaCandidata("x", 500, 2024, tem_hierarquia=True).tipo == BALANCETE
     assert AbaCandidata("x", 500, 2024).tipo == DEMONSTRATIVO
     assert AbaCandidata("x", 3, None).tipo == OUTRA
+
+
+def test_deve_perguntar_so_com_ambiguidade_real():
+    """
+    A interface abre o diálogo de seleção de abas apenas quando há ambiguidade:
+    arquivo que não é balancete puro, ou dois-ou-mais balancetes. Um único
+    balancete cercado de abas de apoio (Parâmetros, capa) é resolvido sozinho
+    pelo dispatcher — perguntar ali é atrito à toa.
+    """
+    from pathlib import Path
+
+    from src.bp.parsers.abas import AbaCandidata, DiagnosticoArquivo
+
+    def _diag(*abas, motivo=""):
+        return DiagnosticoArquivo(Path("x.xlsx"), list(abas), motivo=motivo)
+
+    balancete = AbaCandidata("Balancete", 400, 2025, tem_hierarquia=True)
+    outra = AbaCandidata("Parametros", 20, None)
+    balancete_2024 = AbaCandidata("Balancete 2024", 380, 2024, tem_hierarquia=True)
+
+    # Um balancete claro entre abas de apoio: NÃO pergunta.
+    assert _diag(balancete, outra).e_balancete_puro
+    assert not _diag(balancete, outra).deve_perguntar
+
+    # Dois ou mais balancetes (série histórica): pergunta quais exercícios.
+    assert _diag(balancete, balancete_2024).deve_perguntar
+
+    # Nenhum balancete (já padronizado): pergunta onde está o balanço.
+    assert _diag(outra, motivo="sem hierarquia").deve_perguntar
 
 
 def test_aba_unica_ilegivel_diz_o_motivo(tmp_path):

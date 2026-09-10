@@ -68,7 +68,7 @@ class ParseyCaller:
         - Saldo is for validation
 
         This approach works for ALL file structures:
-        - Hierarchical codes (RBM: 1.1.1.01)
+        - Hierarchical codes (GMA: 1.1.1.01)
         - Flat codes (Real Life: just descriptions)
         - Combined columns (Conta: code + description)
         """
@@ -340,14 +340,22 @@ class ParseyCaller:
             found = self._find_column(df, [candidate])
             if found:
                 # Validate: is it REALLY a description column, not a code column?
-                # Reject if >50% values are hierarchical codes (1.1, 1.1.1)
+                # Reject se for coluna de CÓDIGO — hierárquico ("1.1.1") OU plano
+                # ("110111002"). Um balancete de consolidação tinha DUAS colunas
+                # "Conta do Razão", uma com o código plano e outra com a
+                # descrição: casar "conta" pegava a de código, toda descrição
+                # virava número, o filtro anti-lixo derrubava tudo e a entrega
+                # saía VAZIA. Descrição de conta nunca é só dígitos. Ver §32.
                 sample = df[found].dropna().astype(str).head(20)
                 if len(sample) > 0:
-                    hierarchical_count = sum(
-                        1 for val in sample if re.match(r"^\d+\.\d+", val.strip())
+                    codigo_count = sum(
+                        1
+                        for val in sample
+                        if re.match(r"^\d+\.\d+", val.strip())
+                        or self._parece_codigo_plano(val)
                     )
-                    if hierarchical_count / len(sample) > 0.5:
-                        # This is actually a CODE column, not description - try next candidate
+                    if codigo_count / len(sample) > 0.5:
+                        # É coluna de CÓDIGO, não descrição — tenta o próximo.
                         continue
                     else:
                         return found  # Valid description column
@@ -375,7 +383,52 @@ class ParseyCaller:
                 if text_count / len(sample) > 0.5:  # >50% are text descriptions
                     return col
 
+        # Último recurso (ADITIVO — só quando nada acima achou): rankeia TODAS
+        # as colunas por "descritividade" e devolve a melhor, desde que clara.
+        # É o que impede a entrega VAZIA de um arquivo cujo cabeçalho de
+        # descrição não está na lista de nomes (ex.: coluna "DF" já com a conta
+        # padronizada, ou uma segunda "Conta do Razão" com o texto). Só dispara
+        # onde o caminho normal devolveria None, então não muda quem já funciona.
+        melhor, melhor_score = None, 0.0
+        codigo_col = self._find_codigo_column(df)
+        for col in df.columns:
+            if col is None or col == codigo_col:
+                continue
+            score = self._fracao_descritiva(df, col)
+            if score > melhor_score:
+                melhor, melhor_score = col, score
+        if melhor is not None and melhor_score >= 0.5:
+            return melhor
+
         return None
+
+    @staticmethod
+    def _parece_codigo_plano(valor: str) -> bool:
+        """Um valor que é só dígitos de código plano ("110111002", "11121")."""
+        v = str(valor).strip()
+        return bool(v) and v.isdigit() and len(v) >= 4
+
+    @staticmethod
+    def _fracao_descritiva(df: pd.DataFrame, col: str) -> float:
+        """
+        Quão "descrição de conta" é uma coluna, entre 0 e 1.
+
+        Conta a fração de valores com ao menos duas letras e que NÃO são código
+        (hierárquico ou plano). Penaliza coluna constante (uma razão social
+        repetida em todas as linhas não é descrição de conta) devolvendo 0.
+        """
+        serie = df[col].dropna().astype(str).str.strip()
+        if serie.empty:
+            return 0.0
+        if serie.nunique() <= 1:
+            return 0.0
+        bons = 0
+        for v in serie:
+            if re.match(r"^\d+\.\d+", v) or ParseyCaller._parece_codigo_plano(v):
+                continue
+            if sum(1 for c in v if c.isalpha()) >= 2:
+                bons += 1
+        return bons / len(serie)
 
     def _find_saldo_column(self, df: pd.DataFrame) -> str | None:
         """
@@ -386,7 +439,12 @@ class ParseyCaller:
         candidates = ["saldo anterior", "saldo atual", "saldo final", "saldo", "valor"]
 
         found = self._find_column(df, candidates)
-        if found:
+        # Nome é dica, não prova. Um balancete com cabeçalho DESALINHADO rotula a
+        # coluna de CÓDIGO como "saldo final" (visto num balancete de financeira
+        # real): a coluna casada pelo nome traz códigos hierárquicos, não saldos,
+        # e todas as contas chegavam com saldo=None. Só aceita o casamento por
+        # nome se o conteúdo for de fato numérico e não for a coluna de código.
+        if found and self._coluna_parece_saldo(df, found):
             return found
 
         # Fallback: Find columns with numeric values (excluding hierarchical codes)
@@ -432,11 +490,37 @@ class ParseyCaller:
         return None
 
     #: Fração mínima das linhas que uma coluna precisa preencher para ser saldo.
-    #: A aba "Balancetes 2025" do SmartRio termina em duas colunas de sobra: uma
+    #: A aba "Balancetes 2025" do Ravena termina em duas colunas de sobra: uma
     #: vazia e outra com **3 valores em 825 linhas**. Como o critério era "a
     #: última coluna numérica", era essa que virava saldo — 821 das 824 contas
     #: chegavam com ``saldo=None``. Ver REVISAO_QUALIDADE.md §21.
     COBERTURA_MINIMA_DE_SALDO = 0.2
+
+    @staticmethod
+    def _coluna_parece_saldo(df: pd.DataFrame, col: str) -> bool:
+        """
+        A coluna casada por NOME realmente contém saldos?
+
+        Rejeita dois enganos do casamento por rótulo:
+        - a coluna traz **códigos hierárquicos** (``1.1.2.30.00.00003``) — é a
+          coluna de código com um rótulo de saldo desalinhado, não saldo;
+        - a coluna é quase toda **não-numérica** (texto) — rótulo herdado de
+          uma mesclagem.
+
+        Basta que a maioria dos valores seja número e que poucos tenham cara de
+        código de conta (2+ pontos).
+        """
+        serie = df[col].dropna().astype(str).str.strip()
+        if serie.empty:
+            return False
+        codigos = sum(1 for v in serie if re.match(r"^\d+(\.\d+){2,}$", v))
+        if codigos / len(serie) > 0.3:
+            return False  # é coluna de código, não de saldo
+        # Usa o parser de saldo do projeto (entende "1.234,56 C", "(1.234,56)",
+        # sufixo D/C) — uma checagem numérica ingênua rejeitaria esses formatos
+        # contábeis legítimos.
+        numericos = sum(1 for v in serie if parse_saldo(v) is not None)
+        return numericos / len(serie) >= 0.5
 
     @staticmethod
     def _coluna_informativa(df: pd.DataFrame, col: str) -> bool:
@@ -444,7 +528,7 @@ class ParseyCaller:
         A coluna tem informação de saldo, ou é sobra de planilha?
 
         Duas formas de não ter: estar quase vazia (as colunas-fantasma à direita
-        do último mês) ou ser constante (a aba "Balancetes 2021" do SmartRio
+        do último mês) ou ser constante (a aba "Balancetes 2021" do Ravena
         traz uma coluna auxiliar com ``100`` em todas as linhas — que, sendo a
         última numérica, virava o saldo de **todas** as 513 contas).
 
@@ -471,7 +555,7 @@ class ParseyCaller:
 
     #: Proporção mínima de códigos de 3+ segmentos para uma coluna ser aceita
     #: como coluna de código. Baixa de propósito: em balancete com folhas de
-    #: código plano (o "11111" do Trindade), a coluna certa tinha só 29% —
+    #: código plano (o "11111" do Aurora), a coluna certa tinha só 29% —
     #: enquanto TODAS as outras tinham 0%. O que decide é a distância entre a
     #: melhor e o resto, não um piso alto.
     _LIMIAR_CODIGO = 0.10
@@ -606,8 +690,15 @@ class ParseyCaller:
     _MAX_ABAS = 12
 
     #: Linhas de cabeçalho testadas por aba. Balancete real põe empresa,
-    #: período e emissão antes da tabela.
-    _CABECALHOS_TESTADOS = (0, 1, 2, 3, 4, 5, 6, 7)
+    #: período e emissão antes da tabela — e às vezes MUITAS linhas: numa pasta
+    #: de trabalho real (holding + controlada), a aba da controlada trazia
+    #: "Grupo de Empresa", data de emissão, período e página antes do cabeçalho
+    #: "Conta | Descrição | Saldo Inicial | …" na LINHA 12. Com o teto antigo de
+    #: 7, essa aba não era lida e a leitura caía de volta na outra entidade —
+    #: a segunda empresa ficava invisível. Estender é seguro: `_pontuar` escolhe
+    #: sempre o melhor recorte (árvore + contagem), então um cabeçalho fundo pior
+    #: nunca vence um bom raso; só amplia o alcance. Ver §33.
+    _CABECALHOS_TESTADOS = tuple(range(16))
 
     def _aba_escolhida(self, df_atual: pd.DataFrame | None) -> pd.DataFrame | None:
         """
@@ -745,8 +836,15 @@ class ParseyCaller:
         # abas de todas as planilhas custa caro e não muda nada num arquivo que
         # já rendeu um balancete inteiro — e o preço apareceria no app do
         # analista, não só na suíte.
-        base = self._contar(df_atual)
-        if base >= self._CONTAS_SUFICIENTES:
+        #
+        # "Pobre" é medido por ÁRVORE, não só por contagem: uma aba-modelo
+        # ("Output Modelo (BP)") pode render centenas de linhas SEM hierarquia —
+        # e, sendo a primeira do arquivo, encurtava a varredura e escondia o
+        # balancete de verdade numa aba "Balancete Dez-2025" ao lado, deixando a
+        # entrega VAZIA. Só encurta quando a leitura atual já é um balancete com
+        # árvore conferível. Ver §32.
+        arvore_atual, base = self._pontuar(df_atual)
+        if arvore_atual and base >= self._CONTAS_SUFICIENTES:
             return None
 
         try:
@@ -761,7 +859,7 @@ class ParseyCaller:
         if len(abas) < 2:
             return None
 
-        melhor_df, melhor_pontos = df_atual, (0, 0, base)
+        melhor_df, melhor_pontos = df_atual, (0, arvore_atual, base)
         for aba in abas[: self._MAX_ABAS]:
             try:
                 bruto = pd.read_excel(self.file_path, sheet_name=aba, header=None)

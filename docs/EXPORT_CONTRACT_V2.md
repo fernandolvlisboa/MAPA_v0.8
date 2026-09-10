@@ -185,7 +185,7 @@ Tipo de Arquivo:
 | 1.1 | ATIVO CIRCULANTE | 800000.00 | 400000.00 | 0.00 | 1200000.00 |
 | 1.1.1 | CAIXA E EQUIVALENTES | 50000.00 | 30000.00 | 0.00 | 80000.00 |
 
-**Exemplo — RBM.xlsx:**
+**Exemplo — GMA.xlsx:**
 
 | Nivel | Descrição | Saldo Atual |
 |-------|-----------|-------------|
@@ -440,7 +440,7 @@ def export_and_validate(
 
 ---
 
-### Caso 2: RBM.xlsx (Controladora sem Histórico)
+### Caso 2: GMA.xlsx (Controladora sem Histórico)
 
 **Input:** Excel com 3 colunas [Nivel, Descrição, Saldo Atual]
 

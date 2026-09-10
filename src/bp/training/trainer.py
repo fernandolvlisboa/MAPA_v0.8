@@ -267,16 +267,20 @@ class AccountTrainer:
 
         # Realiza matching
         results = []
+        skipped_garbage = 0
         for conta in synthetic:
             descricao = conta.get("descricao", "")
             if not descricao:
+                skipped_garbage += 1
                 continue
             # Descarta linhas-lixo (descrições numéricas/vazias: totais e
             # colunas desalinhadas). Não entram no matching nem contam revisão.
             if is_garbage_description(descricao):
+                skipped_garbage += 1
                 continue
             # Ignora permanentemente se estiver na lista de ignorados
             if normalize(descricao) in self.ignored_descriptions:
+                skipped_garbage += 1
                 continue
 
             match_result = self.matcher.match(
@@ -310,6 +314,12 @@ class AccountTrainer:
             "total_accounts": len(accounts),
             "synthetic_accounts": len(synthetic),
             "analytical_filtered": len(accounts) - len(synthetic),
+            # Contas de fato SUBMETIDAS ao matcher (sintéticas menos linhas-lixo,
+            # vazias e ignoradas). É o denominador honesto do match rate: dividir
+            # pelo total sintético mistura "não casou" com "nem era conta"
+            # (totalizadores, linhas de separação), afundando a taxa sem motivo.
+            "attempted": len(results),
+            "skipped_garbage": skipped_garbage,
             "matched": sum(1 for r in results if r["match_codigo"]),
             "needs_review": sum(1 for r in results if r["needs_review"]),
             "results": results,
@@ -425,17 +435,20 @@ class AccountTrainer:
     def get_stats_summary(self) -> dict[str, Any]:
         """Retorna resumo das estatísticas."""
         total_synthetic = self.stats.get("total_synthetic", 0)
+        total_attempted = self.stats.get("total_attempted", 0)
         total_matched = self.stats.get("total_matched", 0)
 
-        match_rate = (
-            (total_matched / total_synthetic * 100) if total_synthetic > 0 else 0
-        )
+        # Denominador honesto: contas de fato submetidas ao matcher. Cai para
+        # o total sintético apenas em estatísticas antigas sem "total_attempted".
+        base = total_attempted if total_attempted > 0 else total_synthetic
+        match_rate = (total_matched / base * 100) if base > 0 else 0
 
         return {
             "total_files": self.stats.get("total_files", 0),
             "total_accounts": self.stats.get("total_accounts", 0),
             "total_synthetic": total_synthetic,
             "total_analytical_filtered": self.stats.get("total_analytical_filtered", 0),
+            "total_attempted": total_attempted,
             "total_matched": total_matched,
             "total_needs_review": self.stats.get("total_needs_review", 0),
             "total_ignored": self.stats.get("total_ignored", 0),
@@ -533,6 +546,7 @@ class AccountTrainer:
         total_accounts = sum(r["total_accounts"] for r in session_results)
         total_synthetic = sum(r["synthetic_accounts"] for r in session_results)
         total_analytical = sum(r["analytical_filtered"] for r in session_results)
+        total_attempted = sum(r.get("attempted", 0) for r in session_results)
         total_matched = sum(r["matched"] for r in session_results)
         total_needs_review = sum(r["needs_review"] for r in session_results)
 
@@ -540,6 +554,7 @@ class AccountTrainer:
         self.stats["total_accounts"] += total_accounts
         self.stats["total_synthetic"] += total_synthetic
         self.stats["total_analytical_filtered"] += total_analytical
+        self.stats["total_attempted"] = self.stats.get("total_attempted", 0) + total_attempted
         self.stats["total_matched"] += total_matched
         self.stats["total_needs_review"] += total_needs_review
 
@@ -550,6 +565,7 @@ class AccountTrainer:
                 "accounts": total_accounts,
                 "synthetic": total_synthetic,
                 "analytical_filtered": total_analytical,
+                "attempted": total_attempted,
                 "matched": total_matched,
                 "needs_review": total_needs_review,
                 "ignored": len(self.ignored_descriptions),
@@ -573,6 +589,7 @@ class AccountTrainer:
                 total_accounts,
                 total_synthetic,
                 total_analytical,
+                total_attempted,
                 total_matched,
                 total_needs_review,
             )
@@ -583,10 +600,12 @@ class AccountTrainer:
             "total_accounts": total_accounts,
             "synthetic_accounts": total_synthetic,
             "analytical_filtered": total_analytical,
+            "attempted": total_attempted,
             "matched": total_matched,
             "needs_review": total_needs_review,
+            # Match rate = casados / TENTADOS (não / sintéticas). Ver "attempted".
             "match_rate": (
-                (total_matched / total_synthetic * 100) if total_synthetic > 0 else 0
+                (total_matched / total_attempted * 100) if total_attempted > 0 else 0
             ),
         }
 
@@ -596,6 +615,7 @@ class AccountTrainer:
         total_accounts: int,
         total_synthetic: int,
         total_analytical: int,
+        total_attempted: int,
         total_matched: int,
         total_needs_review: int,
     ):
@@ -607,12 +627,13 @@ class AccountTrainer:
         print(f"Contas totais: {total_accounts}")
         print(f"Contas sintéticas: {total_synthetic}")
         print(f"Contas analíticas filtradas: {total_analytical}")
+        print(f"Contas tentadas (sem lixo/totais): {total_attempted}")
 
-        if total_synthetic > 0:
-            match_pct = (total_matched / total_synthetic) * 100
-            review_pct = (total_needs_review / total_synthetic) * 100
-            print(f"Matched: {total_matched} ({match_pct:.1f}%)")
-            print(f"Precisam revisão: {total_needs_review} ({review_pct:.1f}%)")
+        if total_attempted > 0:
+            match_pct = (total_matched / total_attempted) * 100
+            review_pct = (total_needs_review / total_attempted) * 100
+            print(f"Casados (auto): {total_matched} ({match_pct:.1f}% das tentadas)")
+            print(f"Precisam revisão: {total_needs_review} ({review_pct:.1f}% das tentadas)")
         if self.ignored_descriptions:
             print(f"Ignorados permanentes: {len(self.ignored_descriptions)} descrições")
 

@@ -173,7 +173,7 @@ def test_metrica_avg_saldo_nao_vira_nan():
 def test_exporter_funde_codigos_homonimos_em_vez_de_descartar():
     """
     ``index[codigo] = conta`` era last-write-wins. Código repetido é normal em
-    balancete real — no RBM, ``2.1.1.01.0010`` cobre duas contas distintas e
+    balancete real — no GMA, ``2.1.1.01.0010`` cobre duas contas distintas e
     nove códigos se repetem, o que descartava onze contas em silêncio.
     """
     from src.bp.exporters.xlsx_exporter import _build_hierarchy

@@ -4,7 +4,7 @@ A coluna de saldo: escolher a errada é ficar sem balancete — e sem aviso.
 O achado
 --------
 
-A pasta de trabalho de um cliente (SmartRio, sete exercícios em sete abas)
+A pasta de trabalho de um cliente (Ravena, sete exercícios em sete abas)
 expôs dois modos de a escolha da coluna de valor dar errado, e um terceiro
 defeito que fazia os dois passarem despercebidos.
 
@@ -199,11 +199,11 @@ def test_metade_lida_ainda_vale():
 
 #: A pasta de trabalho com sete exercícios em sete abas. Cada aba é um
 #: balancete completo, e as três de baixo eram as que caíam nos defeitos.
-_SMARTRIO = "SmartRio Balancetes (2020 2026).xlsx"
+_RAVENA = "Ravena Balancetes (2020 2026).xlsx"
 
 
 @pytest.mark.parametrize("aba", ["Balancetes 2021", "Balancetes 2024", "Balancetes 2025"])
-def test_abas_do_smartrio_chegam_com_saldo(aba):
+def test_abas_do_ravena_chegam_com_saldo(aba):
     """
     A invariante, sem asserção sobre conta nenhuma: o balancete tem valor.
 
@@ -211,7 +211,7 @@ def test_abas_do_smartrio_chegam_com_saldo(aba):
     773 de 774 em ``None``; 2025 com 821 de 824. Nenhum dos três aparecia em
     métrica alguma — todos os relatórios estavam verdes.
     """
-    caminho = require_corpus_file(_SMARTRIO)
+    caminho = require_corpus_file(_RAVENA)
     contas = ParseyCaller(str(caminho), aba=aba).parse()
     assert len(contas) > 200, "a aba nem foi lida — o teste seria vacuoso"
 
@@ -235,7 +235,7 @@ def test_aba_de_2021_fecha_o_rollup():
     divergindo. Com a coluna de dezembro: 136 conferindo, 0 divergindo, e a
     equação contábil fechando.
     """
-    caminho = require_corpus_file(_SMARTRIO)
+    caminho = require_corpus_file(_RAVENA)
     contas = ParseyCaller(str(caminho), aba="Balancetes 2021").parse()
     relatorio = conferir_hierarquia(contas)
     assert relatorio.tem_hierarquia
@@ -243,14 +243,14 @@ def test_aba_de_2021_fecha_o_rollup():
     assert relatorio.equacao_fecha, relatorio.resumo()
 
 
-def test_todas_as_abas_de_balancete_do_smartrio_tem_saldo():
+def test_todas_as_abas_de_balancete_do_ravena_tem_saldo():
     """
     A varredura, para o defeito não voltar por uma aba que ninguém olhou.
 
     Só as abas que o próprio programa reconhece como balancete — o critério é o
     da seleção de abas, não uma lista escrita à mão que envelhece.
     """
-    caminho = require_corpus_file(_SMARTRIO)
+    caminho = require_corpus_file(_RAVENA)
     candidatas = [a for a in listar_abas(str(caminho)) if a.tem_hierarquia]
     assert len(candidatas) >= 5, (
         "a varredura achou menos de cinco balancetes — ou o arquivo mudou, ou a "
