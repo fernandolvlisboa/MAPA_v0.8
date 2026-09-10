@@ -943,7 +943,7 @@ def _padronizar(
       ``BANCOS CONTA MOVIMENTO`` já contém as seis contas bancárias abaixo
       dele; emitir os sete valores soma o ramo duas vezes);
     - **valor perdido** quando uma folha com nome próprio não casava — e não
-      casa mesmo: "SICOOB - UNISUDESTE - RBM 62540-0" não existe em plano de
+      casa mesmo: "SICOOB - COOPCENTRO - GMA 62540-0" não existe em plano de
       contas nenhum. O valor dela simplesmente sumia do balanço.
 
     Era a causa de o balanço não fechar. Agora ``selecionar_para_projecao``
@@ -987,7 +987,7 @@ def _padronizar(
         grupo = por_codigo[codigo]
         resolvida = next(r for r in grupo if r.codigo_template)
         # Soma o grupo inteiro: códigos repetidos são normais em balancete real
-        # (no RBM, `2.1.1.01.0010` cobre duas contas distintas) e o nó vale a
+        # (no GMA, `2.1.1.01.0010` cobre duas contas distintas) e o nó vale a
         # soma do que está sob ele.
         bruto = 0.0
         for r in grupo:

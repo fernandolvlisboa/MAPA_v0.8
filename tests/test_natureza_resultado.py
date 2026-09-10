@@ -276,7 +276,7 @@ def test_a_receita_chega_a_entrega_como_receita(tmp_path):
     from src.bp.output.build_gt_output import build_gt_output
     from src.bp.output.template_map import TemplateProjector
 
-    caminho = CORPUS_DIR / "Balancete_Trindade_052025.xlsx"
+    caminho = CORPUS_DIR / "Balancete_Aurora_052025.xlsx"
     if not caminho.exists():
         pytest.skip(f"corpus ausente: {caminho}")
 

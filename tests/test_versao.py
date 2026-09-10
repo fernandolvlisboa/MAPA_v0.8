@@ -125,9 +125,9 @@ def test_a_versao_chega_ao_sumario_da_entrega(tmp_path, balancete_xls):
 # ============================================================================
 
 
-def test_trindade_e_lido_inteiro_pelo_caminho_do_app():
+def test_aurora_e_lido_inteiro_pelo_caminho_do_app():
     """
-    O caso Trindade, medido ponta a ponta pelo caminho que a JANELA usa.
+    O caso Aurora, medido ponta a ponta pelo caminho que a JANELA usa.
 
     Este balancete rendeu dois defeitos reais:
 
@@ -148,7 +148,7 @@ def test_trindade_e_lido_inteiro_pelo_caminho_do_app():
     from src.bp.app import service
     from tests.conftest import require_corpus_file
 
-    entrada = require_corpus_file("Balancete_Trindade_052025.xlsx")
+    entrada = require_corpus_file("Balancete_Aurora_052025.xlsx")
 
     aceitos, _ = service.selecionar([entrada])
     assert aceitos, "o seletor recusou o balancete"
@@ -156,7 +156,7 @@ def test_trindade_e_lido_inteiro_pelo_caminho_do_app():
     import tempfile
 
     with tempfile.TemporaryDirectory() as pasta:
-        r = service.gerar(aceitos, cliente="Trindade", pasta_saida=Path(pasta))
+        r = service.gerar(aceitos, cliente="Aurora", pasta_saida=Path(pasta))
 
         assert r.ok, r.erro
         assert r.contas_lidas == 193, (

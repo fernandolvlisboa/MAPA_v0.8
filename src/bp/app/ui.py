@@ -881,7 +881,7 @@ class AplicacaoBP:
 
     #: Altura máxima da caixa de avisos, em linhas de texto. Acima disso ela
     #: rola em vez de crescer. Seis linhas cabem os avisos típicos inteiros;
-    #: o caso do Trindade (5 avisos longos, ~14 linhas) rola.
+    #: o caso do Aurora (5 avisos longos, ~14 linhas) rola.
     LINHAS_DE_AVISO = 6
 
     def _caixa_de_avisos(self, pai: ttk.Frame, alertas: list[str]) -> None:

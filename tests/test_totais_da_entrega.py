@@ -78,11 +78,11 @@ EXTENSOES = {".xls", ".xlsx", ".csv", ".txt"}
 #: Controle escolhido por forma (emissores, profundidades e convenções
 #: diferentes), não por conveniência.
 CONTROLE = (
-    "Balancete 072022 122022 - RBM.xls",
-    "Balancete SPEZZIA TUBOS 01012024-31122024.xls",
+    "Balancete 072022 122022 - GMA.xls",
+    "Balancete MONTELA TUBOS 01012024-31122024.xls",
     "202404_2024 - Balancete.xls",
-    "Balancete_Trindade_052025.xlsx",
-    "VIVAE - Balancete Acumulado 12.2023 - Emitido em 03.05.2024.xls",
+    "Balancete_Aurora_052025.xlsx",
+    "SOLARIS - Balancete Acumulado 12.2023 - Emitido em 03.05.2024.xls",
 )
 TAMANHO_AMOSTRA = 3
 
@@ -191,7 +191,7 @@ def test_o_ativo_da_entrega_e_o_ativo_do_balancete():
     assert not ausentes, (
         f"controle ausente do corpus: {ausentes}. Nome errado aqui faz o "
         "arquivo sumir do controle em silêncio — e cair na amostra, onde a "
-        "cobertura é aleatória. Foi o que aconteceu com o VIVAE."
+        "cobertura é aleatória. Foi o que aconteceu com o SOLARIS."
     )
 
     veredito: dict[str, list[str]] = {}
@@ -371,7 +371,7 @@ def test_avaliador_reproduz_o_curinga_do_sumifs():
     Se o avaliador ignorasse o ``*``, ele nunca veria a dupla contagem que o
     curinga permite — e a conferência de totais seria decorativa.
     """
-    caminho = CORPUS_DIR / "Balancete_Trindade_052025.xlsx"
+    caminho = CORPUS_DIR / "Balancete_Aurora_052025.xlsx"
     if not caminho.exists():
         pytest.skip(f"corpus ausente: {caminho}")
     resultado = _gerar(caminho, ano=2025)
@@ -449,7 +449,7 @@ def test_balancete_aberto_fecha_com_o_resultado_no_pl(tmp_path):
     diferença 1.469,57 — exatamente ``Receitas - Despesas``. Sem levar o
     resultado ao PL, a entrega mostra "Check: NOK" para um balancete correto.
     """
-    caminho = CORPUS_DIR / "Balancete_Trindade_052025.xlsx"
+    caminho = CORPUS_DIR / "Balancete_Aurora_052025.xlsx"
     if not caminho.exists():
         pytest.skip(f"corpus ausente: {caminho}")
 
@@ -676,7 +676,7 @@ def test_um_discriminador_so_para_a_convencao_do_arquivo():
 
 def test_credito_dentro_do_ramo_de_despesa_mantem_o_sinal():
     """
-    O defeito que o VIVAE escondia, e o último a cair.
+    O defeito que o SOLARIS escondia, e o último a cair.
 
     "CREDITO DE PIS E COFINS" tem saldo -191.565,72 dentro do ramo de despesas
     financeiras: é um **crédito**, que reduz a despesa. Classificado DESPESA
@@ -779,14 +779,14 @@ def test_entrega_conferida_nao_ganha_aviso_falso():
     carregar o aviso de 'não conferido'. Sem esta trava, a mensagem viraria
     ruído em toda entrega e ninguém mais leria os avisos.
     """
-    caminho = require_corpus_file("Balancete SPEZZIA TUBOS 01012024-31122024.xls")
+    caminho = require_corpus_file("Balancete MONTELA TUBOS 01012024-31122024.xls")
     import tempfile
 
     from src.bp.output.build_gt_output import build_gt_output
 
     with tempfile.TemporaryDirectory() as tmp:
         r = build_gt_output(caminho, f"{tmp}/s.xlsx", ano_base=2024)
-    assert r.entrega.conferivel, "controle mudou: SPEZZIA deveria conferir"
+    assert r.entrega.conferivel, "controle mudou: MONTELA deveria conferir"
     assert not any("NÃO FOI CONFERIDO" in a for a in r.avisos), (
         f"balancete conferível ganhou aviso falso de não-conferido: {r.avisos}"
     )

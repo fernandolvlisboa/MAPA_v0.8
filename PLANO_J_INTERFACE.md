@@ -42,12 +42,12 @@ Nada de menu, abas ou assistente de vários passos. Uma tarefa só cabe numa tel
 │                                                              │
 │  ┌────────────────────────────────────────── Exercício ───┐  │
 │  │ 2 arquivo(s)                                           │  │
-│  │ Balancete 072022 122022 - RBM.xlsx        [ 2022 ]  ×  │  │
-│  │ Balancete 2024 - RBM.xlsx                 [ 2024 ]  ×  │  │
+│  │ Balancete 072022 122022 - GMA.xlsx        [ 2022 ]  ×  │  │
+│  │ Balancete 2024 - GMA.xlsx                 [ 2024 ]  ×  │  │
 │  └────────────────────────────────────────────────────────┘  │
 │                                                              │
 │  Cliente                     Valores no balancete            │
-│  [ RBM                   ]   (•) Em reais (o BP converte)    │
+│  [ GMA                   ]   (•) Em reais (o BP converte)    │
 │  vai impresso na capa        ( ) Já estão em milhares        │
 │                                                              │
 │  Salvar em                                                   │
@@ -66,7 +66,7 @@ congela, nunca vira "não está respondendo".
 
 ```
 !  Gerada — confira os avisos antes de entregar
-   RBM_2022-2024.xlsx
+   GMA_2022-2024.xlsx
    C:\Users\...\Documentos\BP
 
    663          321            324           50%             NÃO
@@ -78,7 +78,7 @@ congela, nunca vira "não está respondendo".
 
    Contas que o BP não soube classificar (324)
    ┌──────────────────────────────────────┬───────────┬──────────┐
-   │ SICOOB - UNISUDESTE - RBM 62540-0    │   2022    │     9,81 │
+   │ SICOOB - COOPCENTRO - GMA 62540-0    │   2022    │     9,81 │
    └──────────────────────────────────────┴───────────┴──────────┘
 
    [Padronizar outro]            [Abrir pasta]  [ Abrir planilha ]
@@ -137,7 +137,7 @@ cobre os formatos que existem no corpus real — `Balancete 2024`, `202404_2024`
 `1222024` (MMAAAA colado), `2012-12`, `Balanc dez 25`, `Dez24`, `3T25` — e
 `cliente_do_nome()` tira datas, números e as palavras que descrevem o documento
 ("balancete", "consolidado", "parecer") até sobrar o cliente: *Balancete 072022
-122022 - RBM* → **RBM**.
+122022 - GMA* → **GMA**.
 
 Tudo isso é **sugestão preenchida**, editável em um clique. E quando não sobra
 nada confiável, o campo fica **vazio de propósito**: chutar "Balancete 042025 em
@@ -158,7 +158,7 @@ para milhares)"**.
 
 ### 3.6 Nunca sobrescrever
 
-Gerar duas vezes cria `RBM_2022-2024 (2).xlsx`. Sobrescrever em silêncio a
+Gerar duas vezes cria `GMA_2022-2024 (2).xlsx`. Sobrescrever em silêncio a
 entrega anterior — possivelmente já revisada à mão — é a forma mais barata de
 perder trabalho. `caminho_sem_colisao()` é testado.
 

@@ -273,9 +273,9 @@ tests/
 └── test_pdf_real_cases.py           # Testes com PDFs reais
 
 auxil/BP_PDF_ex/                     # PDFs de exemplo
-├── ABT - BP 03.2024.pdf
-├── BALANÇO-DRE 2024 - ADA.pdf
-├── Voll S.A_60_DF 2023.pdf
+├── GMC - BP 03.2024.pdf
+├── BALANÇO-DRE 2024 - GMD.pdf
+├── Vertis S.A_60_DF 2023.pdf
 └── DF_completa/
     └── 2023 Q4 - Agger Report.pdf
 ```

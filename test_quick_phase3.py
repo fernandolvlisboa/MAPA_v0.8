@@ -3,7 +3,7 @@
 from src.bp.parsers.dispatcher import ParseyCaller
 from pathlib import Path
 
-file_path = "src/bp/training/DFS_Exemple/Balancete 072022 122022 - RBM.xlsx"
+file_path = "src/bp/training/DFS_Exemple/Balancete 072022 122022 - GMA.xlsx"
 print(f"Testing: {Path(file_path).name}")
 
 parser = ParseyCaller(file_path)

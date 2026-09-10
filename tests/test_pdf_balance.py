@@ -7,7 +7,7 @@ import pytest
 from src.bp.parsers.pdf_balance_parser import PDFBalanceParser
 from src.bp.parsers.dispatcher import ParseyCaller
 
-ABT = Path("data/samples/ABT - BP 03.2024.pdf")
+GMC = Path("data/samples/GMC - BP 03.2024.pdf")
 
 
 def test_to_float_formats():
@@ -37,17 +37,17 @@ def test_parse_line_preserves_short_name_with_number():
     assert p._parse_line("CD 3 45.000,00") == ("CD 3", pytest.approx(45000))
 
 
-@pytest.mark.skipif(not ABT.exists(), reason="PDF de exemplo ausente")
+@pytest.mark.skipif(not GMC.exists(), reason="PDF de exemplo ausente")
 def test_parses_real_balance_pdf():
-    accounts = PDFBalanceParser(ABT).parse()
+    accounts = PDFBalanceParser(GMC).parse()
     descs = {a["descricao"].lower() for a in accounts}
     assert len(accounts) >= 20
     assert any("caixa" in d for d in descs)
     assert any("fornecedores" in d for d in descs)
 
 
-@pytest.mark.skipif(not ABT.exists(), reason="PDF de exemplo ausente")
+@pytest.mark.skipif(not GMC.exists(), reason="PDF de exemplo ausente")
 def test_dispatcher_routes_pdf():
     # O dispatcher passa a extrair contas de PDF (antes retornava []).
-    accounts = ParseyCaller(ABT).parse()
+    accounts = ParseyCaller(GMC).parse()
     assert len(accounts) >= 20

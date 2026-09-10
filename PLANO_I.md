@@ -129,7 +129,7 @@ arquivos"** — a pergunta transfere ao usuário uma dúvida que o programa já
 resolve.
 
 Desenho sugerido: o usuário solta N arquivos e o programa **propõe o exercício
-de cada um**, deduzindo do nome (`Balancete ASP 2023`, `01012024-31122024`) ou
+de cada um**, deduzindo do nome (`Balancete GMB 2023`, `01012024-31122024`) ou
 do conteúdo; o usuário só confirma. Menos pergunta, menos erro. A API já está
 pronta para isso — `FonteBalancete(path, ano)` é exatamente o par que a tela
 precisa devolver.

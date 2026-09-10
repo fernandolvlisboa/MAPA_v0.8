@@ -59,11 +59,11 @@ def _build_hierarchy(accounts: list[dict[str, Any]]) -> dict[str, dict[str, Any]
     """
     Índice código -> conta, com ``parent_id`` preenchido.
 
-    Duas correções sobre a versão anterior, ambas medidas no balancete RBM:
+    Duas correções sobre a versão anterior, ambas medidas no balancete GMA:
 
     1. ``index[codigo] = c`` era **last-write-wins**. Código repetido é normal
        em balancete real (``2.1.1.01.0010`` cobre duas contas distintas); nove
-       códigos se repetem no RBM, e onze contas eram descartadas em silêncio.
+       códigos se repetem no GMA, e onze contas eram descartadas em silêncio.
        Agora as homônimas são fundidas num nó só, somando os saldos — que é o
        que o rollup precisa: o nó vale a soma do que está sob ele.
 

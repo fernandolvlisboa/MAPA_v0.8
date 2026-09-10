@@ -220,7 +220,7 @@ def test_copia_aponta_o_arquivo_realmente_lido_quando_ha_irmao_xlsx():
     ``.xlsx``, ela mostraria um arquivo que não gerou número nenhum. A aba
     tem que declarar de onde o conteúdo veio.
     """
-    xls = require_corpus_file("Balancete SPEZZIA TUBOS 01012024-31122024.xls")
+    xls = require_corpus_file("Balancete MONTELA TUBOS 01012024-31122024.xls")
     if not xls.with_suffix(".xlsx").exists():
         pytest.skip("este balancete não tem .xlsx irmão neste workspace")
 

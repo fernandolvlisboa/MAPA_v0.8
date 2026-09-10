@@ -106,7 +106,7 @@ def require_corpus_file(relativo: str, *, base: Path = CORPUS_DIR) -> Path:
 @pytest.fixture(scope="session")
 def balancete_xls() -> Path:
     """Balancete .xls real e estável (566 contas). Base dos testes de export."""
-    return require_corpus_file("Balancete SPEZZIA TUBOS 01012024-31122024.xls")
+    return require_corpus_file("Balancete MONTELA TUBOS 01012024-31122024.xls")
 
 
 @pytest.fixture(scope="session")

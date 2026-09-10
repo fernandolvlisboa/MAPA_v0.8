@@ -42,7 +42,7 @@ def output_dir(tmp_path) -> Path:
 
 def test_analyze_simple_pdf(pdf_dir):
     """Testa análise rápida de PDF simples."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -57,7 +57,7 @@ def test_analyze_simple_pdf(pdf_dir):
 
 def test_analyze_complex_pdf(pdf_dir):
     """Testa análise de PDF com múltiplas páginas."""
-    pdf_path = pdf_dir / "Voll S.A_60_DF 2023.pdf"
+    pdf_path = pdf_dir / "Vertis S.A_60_DF 2023.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -82,7 +82,7 @@ def test_analyze_nonexistent_pdf():
 
 def test_extract_balance_sheet(pdf_dir):
     """Testa extração apenas de BP."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -97,7 +97,7 @@ def test_extract_balance_sheet(pdf_dir):
 
 def test_extract_income_statement(pdf_dir):
     """Testa extração apenas de DRE."""
-    pdf_path = pdf_dir / "Voll S.A_60_DF 2023.pdf"
+    pdf_path = pdf_dir / "Vertis S.A_60_DF 2023.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -116,7 +116,7 @@ def test_extract_income_statement(pdf_dir):
 
 def test_parse_complete_single_statement(pdf_dir):
     """Testa parsing completo de PDF com apenas BP."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -131,7 +131,7 @@ def test_parse_complete_single_statement(pdf_dir):
 
 def test_parse_complete_full_statements(pdf_dir):
     """Testa parsing completo de PDF com BP e DRE."""
-    pdf_path = pdf_dir / "Voll S.A_60_DF 2023.pdf"
+    pdf_path = pdf_dir / "Vertis S.A_60_DF 2023.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -152,7 +152,7 @@ def test_parse_complete_full_statements(pdf_dir):
 
 def test_map_balance_sheet_structure(pdf_dir):
     """Testa mapeamento de estrutura do BP."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -168,7 +168,7 @@ def test_map_balance_sheet_structure(pdf_dir):
 
 def test_map_income_statement_structure(pdf_dir):
     """Testa mapeamento de estrutura da DRE."""
-    pdf_path = pdf_dir / "Voll S.A_60_DF 2023.pdf"
+    pdf_path = pdf_dir / "Vertis S.A_60_DF 2023.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -187,7 +187,7 @@ def test_map_income_statement_structure(pdf_dir):
 
 def test_export_to_standard_format(pdf_dir):
     """Testa exportação para formato padrão."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -206,7 +206,7 @@ def test_export_to_standard_format(pdf_dir):
 
 def test_export_to_json(pdf_dir, output_dir):
     """Testa exportação para arquivo JSON."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -226,7 +226,7 @@ def test_export_to_json(pdf_dir, output_dir):
 
 def test_generate_report(pdf_dir):
     """Testa geração de relatório."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -247,7 +247,7 @@ def test_generate_report(pdf_dir):
 
 def test_extraction_quality_assessment(pdf_dir):
     """Testa avaliação de qualidade da extração."""
-    pdf_path = pdf_dir / "Voll S.A_60_DF 2023.pdf"
+    pdf_path = pdf_dir / "Vertis S.A_60_DF 2023.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -266,7 +266,7 @@ def test_extraction_quality_assessment(pdf_dir):
 
 def test_validation_status(pdf_dir):
     """Testa status de validação das demonstrações."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -287,7 +287,7 @@ def test_validation_status(pdf_dir):
 
 def test_metadata_extraction(pdf_dir):
     """Testa extração completa de metadados."""
-    pdf_path = pdf_dir / "Voll S.A_60_DF 2023.pdf"
+    pdf_path = pdf_dir / "Vertis S.A_60_DF 2023.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 
@@ -308,7 +308,7 @@ def test_metadata_extraction(pdf_dir):
 
 def test_caching_analysis(pdf_dir):
     """Testa cache de análise."""
-    pdf_path = pdf_dir / "ABT - BP 03.2024.pdf"
+    pdf_path = pdf_dir / "GMC - BP 03.2024.pdf"
     if not pdf_path.exists():
         pytest.skip(f"PDF de teste não encontrado: {pdf_path}")
 

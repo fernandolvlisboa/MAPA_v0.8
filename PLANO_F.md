@@ -35,9 +35,9 @@ OCR (Tesseract), não instalado neste ambiente.
 
 | PDF | Tipo | Contas |
 |-----|------|-------:|
-| ABT - BP 03.2024 | balanço nativo 2-col | 35 |
-| BALANÇO-DRE 2024 - ADA | balanço+DRE nativo | 106 |
-| Voll S.A DF 2023 | DF nativo | 36 |
+| GMC - BP 03.2024 | balanço nativo 2-col | 35 |
+| BALANÇO-DRE 2024 - GMD | balanço+DRE nativo | 106 |
+| Vertis S.A DF 2023 | DF nativo | 36 |
 | 3T25 DFS MGLU3 | DF 59 pg | 382 |
 | DFP / DF 4T24 / DF 2021 / DF Internacional | DFs 100+ pg | ~500–600 cada |
 | BP_Image / dre_image | **escaneado** | 0 (requer OCR) |
@@ -70,7 +70,7 @@ classe certa entram no dicionário; o resto vai para revisão.
   pipeline `pdf_utils/ocr_engine.py` existe; falta ligar como fallback quando o
   PDF não tem texto.
 - **DFs consolidadas** (IFRS, 100+ pg) são material ruidoso para treino de
-  balancete; os balancetes limpos (ABT, ADA, Voll) são os mais valiosos.
+  balancete; os balancetes limpos (GMC, GMD, Vertis) são os mais valiosos.
 
 ## Arquivos
 

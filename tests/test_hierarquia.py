@@ -5,7 +5,7 @@ Um balancete é uma árvore em que cada agrupador declara um saldo igual à soma
 dos filhos. Essa identidade não estava sendo verificada em lugar nenhum, e a
 ausência dela é a causa direta de o balanço da entrega não fechar:
 
-- contas com nome próprio ("SICOOB - UNISUDESTE - RBM 62540-0") não casam com
+- contas com nome próprio ("SICOOB - COOPCENTRO - GMA 62540-0") não casam com
   plano de contas nenhum, e o valor delas simplesmente sumia;
 - quando o agrupador **e** os filhos casavam, o ramo era somado duas vezes.
 
@@ -44,9 +44,9 @@ BANCOS = [
     conta("1.1", "ATIVO CIRCULANTE", 1000.0),
     conta("1.1.1", "DISPONÍVEL", 1000.0),
     conta("1.1.1.02", "BANCOS CONTA MOVIMENTO", 1000.0),
-    conta("1.1.1.02.0005", "SICOOB - UNISUDESTE - RBM 62540-0", 600.0),
-    conta("1.1.1.02.0006", "BANCO DO BRASIL S.A - RBM", 250.0),
-    conta("1.1.1.02.0007", "SICREDI RBM - 92688-4", 150.0),
+    conta("1.1.1.02.0005", "SICOOB - COOPCENTRO - GMA 62540-0", 600.0),
+    conta("1.1.1.02.0006", "BANCO DO BRASIL S.A - GMA", 250.0),
+    conta("1.1.1.02.0007", "SICREDI GMA - 92688-4", 150.0),
 ]
 
 
@@ -112,7 +112,7 @@ def test_equacao_contabil():
 
 def test_codigo_repetido_nao_perde_conta():
     """
-    No balancete RBM, ``2.1.1.01.0010`` cobre duas contas distintas. Um
+    No balancete GMA, ``2.1.1.01.0010`` cobre duas contas distintas. Um
     ``dict[codigo] = conta`` descartaria uma delas em silêncio — foi o que fez
     4 dos 80 rollups "falharem" numa primeira medição.
     """
@@ -133,7 +133,7 @@ def test_linha_de_totalizacao_fica_fora_da_arvore():
     """
     O parser emite linhas de totalização com um NÚMERO nos dois campos. Elas
     casam o formato de código hierárquico e viravam raízes-fantasma: oito
-    delas somavam 20,7 milhões de totais inexistentes no balancete RBM.
+    delas somavam 20,7 milhões de totais inexistentes no balancete GMA.
     """
     assert participa_da_arvore(conta("1.1", "CIRCULANTE", 1.0))
     assert not participa_da_arvore(conta("2187555.9", "4389425.29", 1.0))
@@ -287,7 +287,7 @@ def _quatro_classes(ativo, passivo, custos, receitas):
 
 def test_quatro_classes_com_natureza_implicita_fecha():
     """
-    O caso Trindade, com os números do arquivo real.
+    O caso Aurora, com os números do arquivo real.
 
     Ativo 2.361.053,53 = Passivo 891.480,90 + Lucro 1.469.572,63, onde o lucro
     é Receitas 4.941.899,84 - Custos 3.472.327,21. Fecha exatamente.
@@ -361,7 +361,7 @@ def test_residuo_da_equacao_e_a_fonte_unica():
     """
     from src.bp.validators.hierarquia import residuo_da_equacao
 
-    # Trindade: 4 classes, natureza implicita. Ativo = Passivo + (Rec - Cust).
+    # Aurora: 4 classes, natureza implicita. Ativo = Passivo + (Rec - Cust).
     assert residuo_da_equacao(
         [2_361_053.53, 891_480.90, 3_472_327.21, 4_941_899.84]
     ) == pytest.approx(0.0, abs=0.01)

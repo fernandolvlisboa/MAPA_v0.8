@@ -7,9 +7,9 @@ O problema
 Balancete de cliente nem sempre é um arquivo com um período. Vem também como
 pasta de trabalho::
 
-    SmartRio Balancetes (2020 2026).xlsx    ->  Balancetes 2020 … Balancetes 2026
-    Mascara Balancete Core Jun-26.xlsx      ->  Balancete Dez-2024 … mensal Jun-2026
-    06.2026 - Mascara PCH.xlsx              ->  20 abas, incluindo "Balancete"
+    Ravena Balancetes (2020 2026).xlsx    ->  Balancetes 2020 … Balancetes 2026
+    Caravela Balancete Core Jun-26.xlsx      ->  Balancete Dez-2024 … mensal Jun-2026
+    06.2026 - Caravela PCH.xlsx              ->  20 abas, incluindo "Balancete"
 
 O leitor devolvia a **primeira** aba que passasse no portão — e num arquivo
 cuja aba 0 é "Output Modelo (BP)" isso rende zero contas, com nove abas de
@@ -40,8 +40,8 @@ from src.bp.app import service
 from src.bp.parsers.abas import AbaCandidata, listar_abas, periodo_do_nome
 from src.bp.parsers.dispatcher import ParseyCaller
 
-MULTI_ABA = "SmartRio Balancetes (2020 2026).xlsx"
-COM_ABA_BALANCETE = "06.2026 - Mascara PCH - Balanco.vCore5.xlsx"
+MULTI_ABA = "Ravena Balancetes (2020 2026).xlsx"
+COM_ABA_BALANCETE = "06.2026 - Caravela PCH - Balanco.vCore5.xlsx"
 
 
 def _corpus(nome: str):
@@ -256,8 +256,8 @@ def test_serie_historica_de_um_arquivo_so_chega_a_entrega(tmp_path):
 from src.bp.parsers.abas import BALANCETE, DEMONSTRATIVO, diagnosticar  # noqa: E402
 
 JA_CONSOLIDADO = (
-    "06.2026 - Mascara PCH - Balanco.vCore5.xlsx",
-    "Mascara Balancete Core Jun-26 2026 Sent to GT.xlsx",
+    "06.2026 - Caravela PCH - Balanco.vCore5.xlsx",
+    "Caravela Balancete Core Jun-26 2026 Sent to GT.xlsx",
 )
 
 

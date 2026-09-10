@@ -25,13 +25,13 @@ def main():
     """Test all corpus files."""
 
     test_cases = [
-        ("src/bp/training/DFS_Exemple/Balancete 072022 122022 - RBM.xlsx", 500),
+        ("src/bp/training/DFS_Exemple/Balancete 072022 122022 - GMA.xlsx", 500),
         ("src/bp/training/DFS_Exemple/Balancete Real Life.xlsx", 100),
         ("src/bp/training/DFS_Exemple/202404_2024 - Balancete.xlsx", 400),
         ("src/bp/training/DFS_Exemple/Balancete 042025 em excel.xlsx", 50),
-        ("src/bp/training/DFS_Exemple/Balancete ASP 2023.xlsx", 50),
+        ("src/bp/training/DFS_Exemple/Balancete GMB 2023.xlsx", 50),
         (
-            "src/bp/training/DFS_Exemple/Balancete SPEZZIA TUBOS 01012024-31122024.xlsx",
+            "src/bp/training/DFS_Exemple/Balancete MONTELA TUBOS 01012024-31122024.xlsx",
             50,
         ),
         ("src/bp/training/DFS_Exemple/Balancete-2025-06.xlsx", 50),
