@@ -690,8 +690,15 @@ class ParseyCaller:
     _MAX_ABAS = 12
 
     #: Linhas de cabeçalho testadas por aba. Balancete real põe empresa,
-    #: período e emissão antes da tabela.
-    _CABECALHOS_TESTADOS = (0, 1, 2, 3, 4, 5, 6, 7)
+    #: período e emissão antes da tabela — e às vezes MUITAS linhas: numa pasta
+    #: de trabalho real (holding + controlada), a aba da controlada trazia
+    #: "Grupo de Empresa", data de emissão, período e página antes do cabeçalho
+    #: "Conta | Descrição | Saldo Inicial | …" na LINHA 12. Com o teto antigo de
+    #: 7, essa aba não era lida e a leitura caía de volta na outra entidade —
+    #: a segunda empresa ficava invisível. Estender é seguro: `_pontuar` escolhe
+    #: sempre o melhor recorte (árvore + contagem), então um cabeçalho fundo pior
+    #: nunca vence um bom raso; só amplia o alcance. Ver §33.
+    _CABECALHOS_TESTADOS = tuple(range(16))
 
     def _aba_escolhida(self, df_atual: pd.DataFrame | None) -> pd.DataFrame | None:
         """

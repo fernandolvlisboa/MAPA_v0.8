@@ -2716,3 +2716,23 @@ qualquer nível de senioridade. Entrega vazia nunca sai marcada como pronta.
 **Match rate honesto.** O denominador passou a ser as contas de fato *tentadas*
 (sintéticas menos lixo/totais), não o total sintético — 85% de auto-aceite sobre
 os balancetes de exemplo.
+
+## §33 — A segunda entidade invisível (cabeçalho fundo) e o veredito "não conferível"
+
+**Cabeçalho fundo.** Uma pasta de trabalho com dois balanços (holding +
+controlada) em abas distintas processava só uma: a aba da holding punha "Grupo de
+Empresa", data, período e página antes do cabeçalho, que só aparecia na linha 12.
+A busca de cabeçalho ia só até a linha 7, a aba rendia zero conta e a leitura
+caía de volta na controlada — as duas entidades saíam com o mesmo ATIVO, e a
+holding (329 contas) sumia. Correção: estender `_CABECALHOS_TESTADOS` para as 16
+primeiras linhas (seguro: `_pontuar` escolhe sempre o melhor recorte). Agora o
+diagnóstico reconhece os dois balancetes e a interface pergunta qual usar.
+
+**Veredito "não conferível".** Um PDF de demonstração financeira pronta (notas e
+texto, em espanhol) casava fragmentos de narrativa como se fossem conta e o
+veredito dizia "COM RESSALVAS — 100% do valor coberto" — soando quase-pronto
+quando os totais não eram conferíveis contra nada. Novo nível **rascunho**:
+quando o arquivo não traz totalizador de classe nem código hierárquico
+(`entrega.conferivel` e `dre.conferivel` falsos), o Sumário diz **📝 ENTREGA NÃO
+CONFERÍVEL — trate como rascunho e confira à mão**. Não é entrega quase-pronta; é
+rascunho, e o veredito não pode fingir o contrário.

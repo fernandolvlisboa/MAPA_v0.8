@@ -378,6 +378,24 @@ class BuildResult:
                 "ENTREGA PRONTA — os totais batem com o balancete de origem. "
                 "As abas BP_GT e DRE_GT podem ser enviadas ao cliente.",
             )
+        # Totais NÃO conferíveis: o arquivo não traz totalizador de classe nem
+        # código hierárquico, então não há contra o que checar a entrega. Dizer
+        # "com ressalvas, X% do valor coberto" aqui ilude — soa como quase-pronto
+        # quando, na verdade, os números não foram conferidos contra nada. É o
+        # caso de um PDF de demonstração financeira PRONTA (notas e texto, sem
+        # contas): o casamento pega fragmentos de narrativa e os apresenta como
+        # se fossem conta. O honesto é dizer "rascunho, confira à mão".
+        if not self.entrega.conferivel and not self.dre.conferivel:
+            return (
+                "rascunho",
+                "ENTREGA NÃO CONFERÍVEL — o arquivo não traz totalizador de "
+                "classe nem código de conta hierárquico, então os totais NÃO "
+                "podem ser conferidos contra a origem. O template foi preenchido "
+                f"({self.contas_tratadas} de {base} contas), mas trate como "
+                "RASCUNHO e confira os valores à mão antes de enviar. Uma "
+                "demonstração financeira já pronta em PDF (com notas e texto) "
+                "cai aqui — não é um balancete com contas.",
+            )
         cobertura = self.cobertura_de_valor
         return (
             "ressalva",
@@ -1436,7 +1454,7 @@ def _criar_aba_sumario(wb, nome_cliente, data_base, anos: tuple[int, ...], resul
 
     ultimo = anos[-1] if anos else "—"
     nivel, mensagem = result.veredito
-    selo = {"ok": "✅ ", "ressalva": "⚠️ ", "vazio": "⛔ "}.get(nivel, "")
+    selo = {"ok": "✅ ", "ressalva": "⚠️ ", "rascunho": "📝 ", "vazio": "⛔ "}.get(nivel, "")
     linhas = [
         ("RESUMO DO PROCESSAMENTO", ""),
         ("Uso interno — a entrega ao cliente são as abas BP_GT e DRE_GT.", ""),
@@ -1476,7 +1494,7 @@ def _criar_aba_sumario(wb, nome_cliente, data_base, anos: tuple[int, ...], resul
     ws.cell(row=2, column=1).font = Font(italic=True, size=9)
     # SITUAÇÃO é a linha 4 (ver `linhas`): rótulo e mensagem em negrito, com cor
     # por nível — verde pronta, âmbar ressalva, vermelho vazio.
-    cor_veredito = {"ok": "2E7D32", "ressalva": "B26A00", "vazio": "C00000"}.get(nivel, "000000")
+    cor_veredito = {"ok": "2E7D32", "ressalva": "B26A00", "rascunho": "B26A00", "vazio": "C00000"}.get(nivel, "000000")
     ws.cell(row=4, column=1).font = Font(bold=True, color=cor_veredito)
     ws.cell(row=4, column=2).font = Font(bold=True, color=cor_veredito)
 
