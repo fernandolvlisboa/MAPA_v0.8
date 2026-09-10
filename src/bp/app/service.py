@@ -458,6 +458,69 @@ def gerar(
     )
 
 
+def e_serie_de_exercicios(entradas: Sequence[Entrada]) -> bool:
+    """
+    As abas marcadas são EXERCÍCIOS do mesmo cliente, ou EMPRESAS diferentes?
+
+    Série histórica (exercícios) = um ano distinto por aba ("Balancetes 2023",
+    "…2024", "…2025"): viram colunas de uma única entrega. Já uma pasta de
+    trabalho com holding + controlada traz duas empresas no MESMO período —
+    cada uma é uma entrega própria, não uma coluna da outra.
+
+    O discriminante é o ano: série tem um exercício distinto por aba. Duas abas
+    sem ano, ou do mesmo ano, **não** são série. É só um palpite de DEFAULT para
+    a caixa de seleção — quem decide é o usuário, porque só ele sabe se "Matriz"
+    e "Filial" devem somar ou sair separadas.
+    """
+    if len(entradas) <= 1:
+        return True  # uma aba só: caminho normal, uma entrega
+    anos = [e.ano for e in entradas]
+    return None not in anos and len(set(anos)) == len(entradas)
+
+
+def rotulo_da_entidade(entrada: Entrada, cliente: str) -> str:
+    """Nome que identifica a entidade desta aba na entrega (e no arquivo)."""
+    aba = (entrada.aba or "").strip()
+    cliente = (cliente or "").strip()
+    if aba and cliente:
+        return f"{cliente} - {aba}"
+    return aba or cliente or "Cliente"
+
+
+def gerar_por_entidade(
+    entradas: Sequence[Entrada],
+    pasta_saida: Path,
+    cliente: str,
+    em_milhares: bool = False,
+    progresso: Callable[[str], None] | None = None,
+) -> list[Resultado]:
+    """
+    Uma entrega SEPARADA por aba/entidade — holding e controlada, matriz e
+    filial, não viram colunas de uma só planilha.
+
+    Reusa :func:`gerar` por entrada, com um nome de cliente por entidade
+    (``"{cliente} - {aba}"``), para os arquivos não colidirem e a capa de cada
+    BP_GT nomear a empresa certa. Devolve um ``Resultado`` por entidade, na
+    ordem das entradas — nenhuma exceção sobe: falha de uma vira
+    ``Resultado(ok=False)`` e as outras seguem.
+    """
+    resultados: list[Resultado] = []
+    total = len(entradas)
+    for i, entrada in enumerate(entradas, 1):
+        rotulo = entrada.aba or entrada.path.name
+        if progresso:
+            progresso(f"Empresa {i} de {total}: {rotulo}...")
+        resultados.append(
+            gerar(
+                [entrada],
+                pasta_saida,
+                rotulo_da_entidade(entrada, cliente),
+                em_milhares=em_milhares,
+            )
+        )
+    return resultados
+
+
 #: Traduções de aviso do núcleo para a linguagem da tela. O núcleo fala com o
 #: analista; a tela fala com quem só quer entregar a planilha.
 #: A ordem importa, por dois motivos:

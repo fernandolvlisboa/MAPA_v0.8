@@ -2736,3 +2736,17 @@ quando o arquivo não traz totalizador de classe nem código hierárquico
 (`entrega.conferivel` e `dre.conferivel` falsos), o Sumário diz **📝 ENTREGA NÃO
 CONFERÍVEL — trate como rascunho e confira à mão**. Não é entrega quase-pronta; é
 rascunho, e o veredito não pode fingir o contrário.
+
+## §34 — Uma entrega por ENTIDADE (holding + controlada)
+
+Depois que a §33 fez as duas entidades aparecerem, faltava a outra metade: ao
+marcar as duas abas, a ferramenta as tratava como **exercícios** — somava holding
+e controlada numa só planilha, uma virando coluna da outra. Duas empresas
+distintas, do mesmo período, não são dois anos do mesmo cliente.
+
+Correção: `service.gerar_por_entidade` gera **um arquivo por aba marcada**, cada
+um com o nome da sua empresa (`"{cliente} - {aba}"`), reusando o caminho de
+geração já testado. A decisão exercícios × entidades fica com o usuário, via uma
+caixa no diálogo de abas, com default inteligente (`e_serie_de_exercicios`):
+"entidades" quando as abas não formam série de anos (mesmo período), "exercícios"
+quando formam. É a regra de ouro da §32 de novo — perguntar em vez de chutar.
