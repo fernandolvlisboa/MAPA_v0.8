@@ -450,9 +450,12 @@ class AplicacaoBP:
                     f"({type(exc).__name__}); seguindo com a primeira."
                 )
                 diagnostico = None
-            if diagnostico is not None and diagnostico.abas:
+            if diagnostico is not None and diagnostico.deve_perguntar:
                 escolhidas = self._perguntar_abas(aceito.path, diagnostico)
             else:
+                # Sem ambiguidade real (aba-balancete única entre abas de
+                # apoio): o dispatcher escolhe a aba certa sozinho. Não abrimos
+                # diálogo para não forçar um clique numa lista de um item só.
                 escolhidas = [None]
             for aba in escolhidas:
                 candidata = service.Entrada(aceito.path, aba=aba)

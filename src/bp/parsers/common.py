@@ -33,6 +33,16 @@ BALANCE_KEYWORDS = [
     "atual",
     "movimento",
     "nome da conta",
+    # Exports de ERP com cabeçalho em inglês (ex.: consolidação com colunas
+    # "DESCR | ACCNT_CODE | AMOUNT_Ant | AMOUNT_Deb | AMOUNT_Fim | AMOUNT_Cre |
+    # Nivel"). Sem estes termos, a linha de cabeçalho verdadeira casava ZERO
+    # keywords e a detecção promovia uma linha de dados (que continha a palavra
+    # "conta" no texto) a cabeçalho, arruinando todas as colunas. Ver §31.
+    "descr",
+    "amount",
+    "accnt",
+    "account",
+    "nivel",
 ]
 
 #: Um código de conta hierárquico: "1", "1.1.1", "1.00.00.00.00000000".

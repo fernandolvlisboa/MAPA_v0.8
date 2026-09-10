@@ -109,14 +109,27 @@ class XlsParser:
             self.df = df
             return self.df
 
-        # Strategy 2: Excel COM automation (FALLBACK)
+        # Strategy 2: xlrd direct read (Linux/CI FALLBACK)
+        # `xlrd` lê o BIFF do .xls legado nativamente, sem depender de
+        # LibreOffice nem de Excel. É o que salva o fluxo em Linux/CI, onde a
+        # conversão headless do LibreOffice pode falhar ("source file could not
+        # be loaded" quando roda sem profile/como root) e o Excel COM não
+        # existe. Sem esta estratégia, TODO .xls genuíno rendia zero conta fora
+        # do Windows. Ver REVISAO_QUALIDADE.md §30.
+        df = self._try_xlrd_direct()
+        if df is not None:
+            self.conversion_method = "xlrd"
+            self.df = df
+            return self.df
+
+        # Strategy 3: Excel COM automation (Windows FALLBACK)
         df = self._try_excel_com()
         if df is not None:
             self.conversion_method = "excel_com"
             self.df = df
             return self.df
 
-        # Strategy 3: Direct openpyxl (LAST RESORT - for misnamed xlsx)
+        # Strategy 4: Direct openpyxl (LAST RESORT - for misnamed xlsx)
         df = self._try_openpyxl_direct()
         if df is not None:
             self.conversion_method = "openpyxl"
@@ -317,19 +330,63 @@ class XlsParser:
 
             gc.collect()
 
-    def _read_and_process_xlsx(self, xlsx_path: str) -> pd.DataFrame | None:
+    def _try_xlrd_direct(self) -> pd.DataFrame | None:
+        """
+        Read a genuine legacy ``.xls`` (BIFF) directly with ``xlrd``.
+
+        Diferente de ``_try_openpyxl_direct`` (que só abre ``.xlsx`` mal-nomeado
+        de ``.xls``), esta estratégia lê o BIFF de verdade. Reusa todo o
+        pós-processamento de ``_read_and_process_xlsx`` — só troca o engine.
+
+        Percorre TODAS as abas e devolve a primeira que se pareça um balancete;
+        a escolha fina entre abas ainda cabe ao dispatcher (``_aba_escolhida``),
+        que relê o arquivo por aba. Aqui basta não devolver ``None`` para uma
+        aba de resumo quando há um balancete adiante.
+        """
+        try:
+            with pd.ExcelFile(self.file_path, engine="xlrd") as livro:
+                abas = list(livro.sheet_names)
+        except Exception:
+            return None
+
+        primeira_valida = None
+        for aba in abas:
+            df = self._read_and_process_xlsx(
+                str(self.file_path), engine="xlrd", sheet_name=aba
+            )
+            if df is None or df.empty:
+                continue
+            if has_balance_keywords(list(df.columns)) or parece_balancete(df):
+                return df
+            if primeira_valida is None:
+                primeira_valida = df
+        return primeira_valida
+
+    def _read_and_process_xlsx(
+        self,
+        xlsx_path: str,
+        engine: str = "openpyxl",
+        sheet_name: str | int = 0,
+    ) -> pd.DataFrame | None:
         """
         Read and process the temporary XLSX file with same logic as ExcelParser.
 
         Args:
-            xlsx_path: Path to temporary XLSX file
+            xlsx_path: Path to the workbook (``.xlsx`` for openpyxl, ``.xls`` for
+                xlrd).
+            engine: pandas Excel engine (``openpyxl`` para xlsx, ``xlrd`` para o
+                BIFF legado).
+            sheet_name: Aba a ler. Default 0 (primeira). ``_try_xlrd_direct``
+                percorre as abas pelo nome.
 
         Returns:
             Processed DataFrame or None
         """
         try:
             # Detect best header row using a raw sample read
-            df_raw = pd.read_excel(xlsx_path, engine="openpyxl", header=None, nrows=80)
+            df_raw = pd.read_excel(
+                xlsx_path, engine=engine, sheet_name=sheet_name, header=None, nrows=80
+            )
             df_raw_str = df_raw.astype(str)
             best_header = detect_header_row_df(df_raw_str)
 
@@ -351,7 +408,9 @@ class XlsParser:
 
             for hdr in header_candidates:
                 try:
-                    df = pd.read_excel(xlsx_path, engine="openpyxl", header=hdr)
+                    df = pd.read_excel(
+                        xlsx_path, engine=engine, sheet_name=sheet_name, header=hdr
+                    )
                 except Exception:
                     continue
 
@@ -364,7 +423,7 @@ class XlsParser:
                 ):
                     try:
                         df_headerless = pd.read_excel(
-                            xlsx_path, engine="openpyxl", header=None
+                            xlsx_path, engine=engine, sheet_name=sheet_name, header=None
                         )
                         if (
                             not df_headerless.empty

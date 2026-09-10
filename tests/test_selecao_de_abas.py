@@ -320,6 +320,35 @@ def test_classificacao_da_aba():
     assert AbaCandidata("x", 3, None).tipo == OUTRA
 
 
+def test_deve_perguntar_so_com_ambiguidade_real():
+    """
+    A interface abre o diálogo de seleção de abas apenas quando há ambiguidade:
+    arquivo que não é balancete puro, ou dois-ou-mais balancetes. Um único
+    balancete cercado de abas de apoio (Parâmetros, capa) é resolvido sozinho
+    pelo dispatcher — perguntar ali é atrito à toa.
+    """
+    from pathlib import Path
+
+    from src.bp.parsers.abas import AbaCandidata, DiagnosticoArquivo
+
+    def _diag(*abas, motivo=""):
+        return DiagnosticoArquivo(Path("x.xlsx"), list(abas), motivo=motivo)
+
+    balancete = AbaCandidata("Balancete", 400, 2025, tem_hierarquia=True)
+    outra = AbaCandidata("Parametros", 20, None)
+    balancete_2024 = AbaCandidata("Balancete 2024", 380, 2024, tem_hierarquia=True)
+
+    # Um balancete claro entre abas de apoio: NÃO pergunta.
+    assert _diag(balancete, outra).e_balancete_puro
+    assert not _diag(balancete, outra).deve_perguntar
+
+    # Dois ou mais balancetes (série histórica): pergunta quais exercícios.
+    assert _diag(balancete, balancete_2024).deve_perguntar
+
+    # Nenhum balancete (já padronizado): pergunta onde está o balanço.
+    assert _diag(outra, motivo="sem hierarquia").deve_perguntar
+
+
 def test_aba_unica_ilegivel_diz_o_motivo(tmp_path):
     """Sem abas para listar, o veredito vem do próprio arquivo — medido, não
     presumido. Dizer "não é balancete" por falta de abas seria um 'não' que

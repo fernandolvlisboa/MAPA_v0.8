@@ -2673,3 +2673,46 @@ Correções:
   ainda funcionam em Node.js 24
 
 ---
+
+## §30 — O `.xls` legítimo não abria fora do Windows
+
+Rodando os balancetes de treino num ambiente Linux/CI, **três `.xls` renderam
+zero conta** — "All conversion strategies failed... Install LibreOffice". Eram
+`.xls` BIFF legítimos, não HTML disfarçado. O `XlsParser` só tinha LibreOffice
+headless (falha como root sem profile), Excel COM (só Windows) e openpyxl (só
+serve para `.xlsx` mal-nomeado). Nova estratégia **`xlrd`** (`_try_xlrd_direct`)
+lê o BIFF nativamente, sem programa externo — os três passaram a ler.
+
+## §31 — Cabeçalho desalinhado e cabeçalho em inglês
+
+**Saldo desalinhado.** Um balancete de financeira rotulava a coluna de código
+como "saldo final"; `_find_saldo_column` casava pelo nome e toda conta chegava
+com `saldo=None`. `_coluna_parece_saldo` passou a validar por conteúdo (via
+`parse_saldo`) que a coluna é numérica e não é código. **Cabeçalho em inglês**
+(`DESCR/ACCNT_CODE/AMOUNT_*`) entrou no vocabulário de detecção de cabeçalho —
+sem isso, uma linha de dados com a palavra "conta" era promovida a cabeçalho.
+
+## §32 — A entrega vazia que se declarava "OK", e o chute de aba
+
+Um arquivo já consolidado saía com **0 contas mapeadas e "Balanço confere: OK"**
+(template em branco). Três defeitos: (1) `balanco_confere` caía no proxy
+`0 == 0` — guarda nova: zero conta mapeada não fecha; (2) `_find_description_
+column` rejeitava código hierárquico mas não código **plano** (só dígitos),
+pegando a coluna de números como descrição — passou a rejeitar plano e, como
+último recurso aditivo, rankeia colunas por descritividade; (3) a aba-modelo
+escondia o balancete porque a varredura de abas encurtava por contagem de linhas
+sem árvore — passou a só encurtar quando a aba atual já tem árvore. Efeito: de 0
+para 230 contas — de "vazio" para "feito".
+
+**Regra de ouro da seleção de aba.** Perguntar para gerar certo vale mais que
+chutar errado: `DiagnosticoArquivo.deve_perguntar` sobe a dúvida ao usuário só
+quando há ambiguidade real (arquivo não é balancete puro, ou traz dois-ou-mais
+balancetes); um balancete claro entre abas de apoio segue sozinho.
+
+**Veredito ao usuário.** O Sumário abre com uma linha SITUAÇÃO em português e
+colorida (PRONTA / COM RESSALVAS / NÃO FOI POSSÍVEL), que orienta pelo resultado
+qualquer nível de senioridade. Entrega vazia nunca sai marcada como pronta.
+
+**Match rate honesto.** O denominador passou a ser as contas de fato *tentadas*
+(sintéticas menos lixo/totais), não o total sintético — 85% de auto-aceite sobre
+os balancetes de exemplo.

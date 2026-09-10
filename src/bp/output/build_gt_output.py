@@ -330,6 +330,14 @@ class BuildResult:
         ``total_ativo`` com ``total_passivo`` — dois números já passados por
         ``abs()``, incapazes de detectar um sinal perdido ou uma conta a menos.
         """
+        # Entrega VAZIA não fecha. Zero conta mapeada deixa BP_GT/DRE_GT em
+        # branco; um "balanço" de 0 = 0 é trivialmente verdadeiro e enganaria o
+        # usuário, que abriria a entrega achando que está pronta. Sem esta
+        # guarda, um arquivo já consolidado (sem árvore, nada projetado) saía
+        # marcado "OK" com o template em branco.
+        if self.contas_tratadas == 0:
+            return False
+
         # A conferência ponta a ponta manda: ela lê o número que o cliente lê.
         # As outras são proxy, e proxy já ficou verde com o total errado.
         if self.entrega.conferivel and not self.entrega.confere:
@@ -344,6 +352,41 @@ class BuildResult:
             return self.hierarquia.rollup_integro and self.hierarquia.equacao_fecha
         base = max(abs(self.total_ativo), abs(self.total_passivo), 1.0)
         return abs(self.total_ativo - self.total_passivo) / base < 0.01
+
+    @property
+    def veredito(self) -> tuple[str, str]:
+        """
+        Veredito em UMA frase, para qualquer nível de senioridade.
+
+        Devolve ``(nivel, mensagem)`` onde ``nivel`` é ``"ok"``, ``"ressalva"``
+        ou ``"vazio"``. É o que orienta o usuário pelo RESULTADO: dizer só
+        "Balanço confere: NÃO" no meio de uma tabela de números não diz ao
+        analista júnior o que fazer com o arquivo. Aqui a conclusão vem em
+        português, no topo do Sumário.
+        """
+        base = self.contas_tratadas + self.contas_nao_identificadas
+        if self.contas_tratadas == 0:
+            return (
+                "vazio",
+                "NÃO FOI POSSÍVEL MONTAR A ENTREGA — nenhuma conta do arquivo "
+                "foi reconhecida. Confira se este é mesmo um balancete e, se for "
+                "planilha com várias abas, em qual aba está o balanço.",
+            )
+        if self.balanco_confere:
+            return (
+                "ok",
+                "ENTREGA PRONTA — os totais batem com o balancete de origem. "
+                "As abas BP_GT e DRE_GT podem ser enviadas ao cliente.",
+            )
+        cobertura = self.cobertura_de_valor
+        return (
+            "ressalva",
+            "ENTREGA COM RESSALVAS — o template foi preenchido "
+            f"({self.contas_tratadas} de {base} contas, "
+            f"{cobertura:.0%} do valor coberto), mas os totais ainda não batem. "
+            "Antes de enviar, revise 'POR QUE NÃO FECHA' e a fila "
+            "'Contas Não Identificadas' abaixo.",
+        )
 
 
 def build_gt_output(
@@ -1392,9 +1435,16 @@ def _criar_aba_sumario(wb, nome_cliente, data_base, anos: tuple[int, ...], resul
     ws = wb.create_sheet("Sumário", 0)
 
     ultimo = anos[-1] if anos else "—"
+    nivel, mensagem = result.veredito
+    selo = {"ok": "✅ ", "ressalva": "⚠️ ", "vazio": "⛔ "}.get(nivel, "")
     linhas = [
         ("RESUMO DO PROCESSAMENTO", ""),
         ("Uso interno — a entrega ao cliente são as abas BP_GT e DRE_GT.", ""),
+        ("", ""),
+        # Veredito em português, no topo: orienta o usuário pelo RESULTADO antes
+        # de qualquer número. É o que um analista de qualquer senioridade lê
+        # primeiro para saber se a entrega está pronta, tem ressalva, ou falhou.
+        ("SITUAÇÃO:", selo + mensagem),
         ("", ""),
         ("Cliente:", nome_cliente),
         ("Data-base:", data_base),
@@ -1424,6 +1474,11 @@ def _criar_aba_sumario(wb, nome_cliente, data_base, anos: tuple[int, ...], resul
         ws.cell(row=i, column=2, value=value)
     ws.cell(row=1, column=1).font = Font(bold=True, size=12)
     ws.cell(row=2, column=1).font = Font(italic=True, size=9)
+    # SITUAÇÃO é a linha 4 (ver `linhas`): rótulo e mensagem em negrito, com cor
+    # por nível — verde pronta, âmbar ressalva, vermelho vazio.
+    cor_veredito = {"ok": "2E7D32", "ressalva": "B26A00", "vazio": "C00000"}.get(nivel, "000000")
+    ws.cell(row=4, column=1).font = Font(bold=True, color=cor_veredito)
+    ws.cell(row=4, column=2).font = Font(bold=True, color=cor_veredito)
 
     linha = len(linhas) + 2
 

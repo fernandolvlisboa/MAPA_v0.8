@@ -227,6 +227,32 @@ class DiagnosticoArquivo:
     def precisa_perguntar(self) -> bool:
         return bool(self.abas) and not self.e_balancete_puro
 
+    @property
+    def abas_de_balancete(self) -> list[AbaCandidata]:
+        """As abas que são balancete de verdade (árvore conferível)."""
+        return [a for a in self.abas if a.tipo == BALANCETE]
+
+    @property
+    def deve_perguntar(self) -> bool:
+        """
+        A interface deve abrir o diálogo de seleção de abas?
+
+        Só quando há **ambiguidade real**:
+
+        - o arquivo **não é balancete puro** → "em qual aba está o balanço?"
+          (``precisa_perguntar``); ou
+        - traz **dois ou mais balancetes** → "quais exercícios usar?".
+
+        Um único balancete claro cercado de abas de apoio (``Parâmetros``, capa,
+        ``Output Modelo``, resumo) **não** gera pergunta: o dispatcher já escolhe
+        essa aba sozinho, e forçar um clique numa lista de um item só é atrito à
+        toa. Foi o que acontecia com pastas de trabalho reais de aba-balancete
+        única — o analista tinha de confirmar o óbvio a cada arquivo.
+        """
+        if self.precisa_perguntar:
+            return True
+        return len(self.abas_de_balancete) >= 2
+
 
 def diagnosticar(caminho: str | Path) -> DiagnosticoArquivo:
     """

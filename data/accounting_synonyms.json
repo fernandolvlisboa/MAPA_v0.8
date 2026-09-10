@@ -200,7 +200,18 @@
     "merc": "mercadorias",
     "estoq": "estoques",
     "acum": "acumulado",
-    "acumul": "acumulada"
+    "acumul": "acumulada",
+    "adto": "adiantamento",
+    "adtos": "adiantamentos",
+    "mat": "material",
+    "mats": "materiais",
+    "movto": "movimento",
+    "mov": "movimento",
+    "func": "funcionarios",
+    "funcs": "funcionarios",
+    "funcionarios": "funcionarios",
+    "aplicacao": "aplicacoes",
+    "encargo": "encargos"
   },
   "abbrev": {
     "c/": "com",
