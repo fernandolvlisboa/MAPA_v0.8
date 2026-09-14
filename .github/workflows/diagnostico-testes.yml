@@ -1,0 +1,65 @@
+# Workflow TEMPORARIO de diagnostico — roda SO nesta branch e NAO toca no
+# release.yml nem publica nada.
+#
+# Por que existe
+# -------------
+# O passo "Suite de testes" do release morre no timeout de 10 min sem dizer
+# QUAL teste travou — o job inteiro e morto de uma vez. Aqui rodamos a mesma
+# suite, no mesmo runner Windows, mas com timeout POR TESTE (pytest-timeout):
+# o teste que congela e interrompido sozinho e despeja o traceback apontando a
+# linha. De quebra, isto separa as duas hipoteses:
+#   - TRAVAMENTO: um teste especifico congela  -> o traceback diz qual;
+#   - LENTIDAO:   a suite so passa dos 10 min   -> --durations mostra os lentos
+#                                                   e o job termina verde em 25.
+#
+# pytest-timeout entra de forma efemera (uv run --with ...), sem sujar o
+# pyproject.toml. Apagar este arquivo depois do diagnostico.
+
+name: Diagnostico da suite (Windows)
+
+on:
+  push:
+    branches: ["claude/trusting-heisenberg-qfo0hj"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostico:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      PYTHONUNBUFFERED: "1"     # o stack dump do timeout precisa sair na hora
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Instalar dependencias (identico ao release)
+        run: uv sync --extra packaging
+
+      - name: Suite instrumentada (timeout por teste)
+        # -v            : imprime o nome de cada teste ao iniciar (o ultimo
+        #                 impresso e o que travou, mesmo sem o dump)
+        # --timeout=120 : nenhum teste unitario legitimo passa disso; so um
+        #                 congelamento chega la
+        # --method=thread: no Windows, despeja o stack de todas as threads
+        # --durations=25: ranking dos mais lentos (revela a hipotese "lentidao")
+        run: >
+          uv run --with pytest-timeout pytest -v -rA --durations=25
+          --timeout=120 --timeout-method=thread
+          -m "not integration"
+          2>&1 | Tee-Object -FilePath pytest-diagnostico.txt
+
+      - name: Guardar o log completo do pytest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-diagnostico
+          path: pytest-diagnostico.txt
+          if-no-files-found: warn
