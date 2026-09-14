@@ -649,6 +649,17 @@ def test_erro_em_callback_vira_mensagem_e_log(tmp_path, monkeypatch):
     """
     AplicacaoBP = carregar_ui().AplicacaoBP
 
+    # O diálogo de erro é modal: num runner sem ninguém para clicar "OK",
+    # `messagebox.showerror` BLOQUEIA para sempre — e travar não é exceção, então
+    # o `contextlib.suppress` do app não pega. Foi isto que congelou a suíte no
+    # CI (v0.8.1/v0.8.2 morriam no timeout de 10 min). Este teste valida o recado
+    # e o log, não a janela; então neutralizamos só o diálogo. (Sem Tk instalado,
+    # `carregar_ui` já planta um tkinter falso e não há o que neutralizar.)
+    if importlib.util.find_spec("tkinter") is not None:
+        import tkinter.messagebox as _messagebox
+
+        monkeypatch.setattr(_messagebox, "showerror", lambda *a, **k: None)
+
     recados: list[str] = []
     log = tmp_path / "MAPA_erros.log"
 
