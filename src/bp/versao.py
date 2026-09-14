@@ -39,7 +39,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-#: A versão publicada. Bata com a tag do git: `VERSAO = "0.8.3"` <-> `v0.8.3`.
+#: A versão publicada. Bata com a tag do git: `VERSAO = "0.8.4"` <-> `v0.8.4`.
 #:
 #: SUBA ESTE NÚMERO A CADA MUDANÇA QUE O USUÁRIO VÊ. Não é burocracia: com
 #: 0.8.2 congelado em três commits seguidos, o cabeçalho da janela dizia
@@ -47,7 +47,7 @@ from typing import Any
 #: houve como distinguir "o conserto não funcionou" de "o conserto não chegou".
 #: Perdemos duas rodadas nisso. O número no cabeçalho só serve como prova de
 #: atualização se ele mudar junto com o código.
-VERSAO = "0.8.3"
+VERSAO = "0.8.4"
 
 #: Nome do produto como aparece para o usuário final.
 PRODUTO = "MAPA"
