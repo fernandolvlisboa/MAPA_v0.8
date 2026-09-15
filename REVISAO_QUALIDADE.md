@@ -24,7 +24,7 @@ correção virou XPASS e obrigou a remoção consciente da marca.
 | Implementações de "texto → float" | **5 divergentes** | **1** |
 | Contas do plano alcançáveis pelo matcher | 5.738 de 7.741 (**74,1%**) | 7.741 (**100%**) |
 | `.txt` pelo dispatcher | **0 contas** | 468 contas |
-| Rollup do balancete MONTELA | 7 discrepâncias | **0** (soma dos diffs = 0,00) |
+| Rollup do balancete SPEZZIA | 7 discrepâncias | **0** (soma dos diffs = 0,00) |
 | Testes do exporter | 5 verdes sobre **0 contas** | 9 verdes sobre **566 contas** |
 | Suíte suja o working tree | sim (`data/match_cache.json`) | não |
 | Cobertura `src/bp` | 61% | **68%** |
@@ -41,7 +41,7 @@ arquivo para ser resolvido.
 ### O achado que muda a leitura de tudo
 
 A suíte reportava verde. Mas os 5 testes do exporter apontavam para
-`auxil/BP_teste/SOLARIS ... .xls`, **que não existe no repositório**. O pipeline
+`auxil/BP_teste/VIVAE ... .xls`, **que não existe no repositório**. O pipeline
 engole o erro de leitura (`ParseyCaller.read()` → `except Exception: return
 None`), o exporter gera uma planilha bem-formada com **zero contas**, e todas as
 asserções passaram: `0 == 0`, laços vazios, comparações vacuosas.
@@ -287,7 +287,7 @@ tem funções que fazem `return {...}` — o pytest avisa, mas o teste não vali
 nada. Agora `PytestReturnNotNoneWarning` é erro via `filterwarnings`.
 
 **5d — Fixture no diretório errado.** 6 testes de `test_financial_statement_parser.py`
-procuravam `auxil/BP_PDF_ex/DF_completa/Vertis S.A_60_DF 2023.pdf`. O arquivo
+procuravam `auxil/BP_PDF_ex/DF_completa/Voll S.A_60_DF 2023.pdf`. O arquivo
 existe um nível acima. Corrigido o caminho — os 6 testes passam.
 
 **5e — Lint não cobre os testes.** `ARQUITETURA.md` §6 reporta "13 achados do
@@ -479,7 +479,7 @@ convertido, e `_validar` reporta isso **antes** do desequilíbrio do balanço �
 que agora diz "há contas com saldo ilegível (acima)" em vez de mandar revisar a
 convenção de sinais.
 
-### 8.8 Efeito medido no balancete real (MONTELA, 566 contas)
+### 8.8 Efeito medido no balancete real (SPEZZIA, 566 contas)
 
 | Métrica | Antes | Depois |
 |---|---|---|
@@ -522,8 +522,8 @@ ela é aceitável é você.
 
 Reportado a partir da interface: 663 contas lidas, 321 identificadas, **324
 para revisar**, 50% de aproveitamento, e o balanço não fechando em 2022 e 2024.
-Entre as "não identificadas": `SICOOB - COOPCENTRO - GMA 62540-0`,
-`SICREDI GMA - 92688-4`, `APLICAÇÃO FINANCEIRA - BB RF MAIS AUTOMATICO`.
+Entre as "não identificadas": `SICOOB - UNISUDESTE - RBM 62540-0`,
+`SICREDI RBM - 92688-4`, `APLICAÇÃO FINANCEIRA - BB RF MAIS AUTOMATICO`.
 
 ### 9.1 O diagnóstico
 
@@ -533,12 +533,12 @@ total.
 
 ```
 1.1.1.02        BANCOS CONTA MOVIMENTO              -46.529,09
-├ ...0005       SICOOB - COOPCENTRO - GMA 62540-0     9.805,30
-├ ...0006       BANCO DO BRASIL S.A - GMA              -814,38
-├ ...0007       SANTANDER - GMA                           0,00
-├ ...0008       SICOOB GMA - CREDIMATA 20203118-7   -24.850,17
-├ ...0009       SICREDI GMA - 92688-4               -24.162,06
-└ ...0010       SICREDI GMA FILIAL - 97385-8         -6.507,78
+├ ...0005       SICOOB - UNISUDESTE - RBM 62540-0     9.805,30
+├ ...0006       BANCO DO BRASIL S.A - RBM              -814,38
+├ ...0007       SANTANDER - RBM                           0,00
+├ ...0008       SICOOB RBM - CREDIMATA 20203118-7   -24.850,17
+├ ...0009       SICREDI RBM - 92688-4               -24.162,06
+└ ...0010       SICREDI RBM FILIAL - 97385-8         -6.507,78
                                                    ─────────────
                                                     -46.529,09  ✓
 ```
@@ -560,15 +560,15 @@ Medido com o novo `validators/hierarquia.py`:
 
 | Balancete | Agrupadores que conferem | Equação contábil |
 |---|---|---|
-| GMA (537 contas) | **80 de 80** | Ativo + Passivo + Resultado = **0,00** |
-| MONTELA (566 contas) | **81 de 81** | fecha |
+| RBM (537 contas) | **80 de 80** | Ativo + Passivo + Resultado = **0,00** |
+| SPEZZIA (566 contas) | **81 de 81** | fecha |
 
 O balancete do cliente é aritmeticamente perfeito ao centavo. O defeito era
 todo nosso.
 
 ### 9.3 Três armadilhas descobertas ao construir o verificador
 
-**a) Código repetido é normal.** No GMA, `2.1.1.01.0010` cobre duas contas
+**a) Código repetido é normal.** No RBM, `2.1.1.01.0010` cobre duas contas
 distintas (EMPRESTIMO SANTANDER e JUROS A APROPRIAR). Nove códigos se repetem
 = onze contas. Qualquer `dict[codigo] = conta` as descarta em silêncio — e foi
 exatamente isso que fez 4 dos 80 rollups "falharem" na primeira medição: **o
@@ -599,7 +599,7 @@ selecionado é ancestral de outro, então não há dupla contagem:
 Sem a regra 1 o corte pararia em "ATIVO" e o template receberia o balanço
 inteiro em quatro linhas. Sem a regra 2, as contas com nome próprio se perdem.
 
-### 9.5 Resultado no GMA
+### 9.5 Resultado no RBM
 
 | | Antes | Depois |
 |---|---|---|
@@ -607,7 +607,7 @@ inteiro em quatro linhas. Sem a regra 2, as contas com nome próprio se perdem.
 | Contas absorvidas pelo agrupador | 0 | **366** |
 | Match rate | **50%** | **96,8%** |
 
-Números do GMA. Ele é o **pior caso** do corpus em cobertura de valor (88,6%,
+Números do RBM. Ele é o **pior caso** do corpus em cobertura de valor (88,6%,
 contra 100% em quatro dos sete balancetes medidos) — ver §10 sobre por que isso
 importa.
 | Ativo reconstruído vs origem | — | **exato (0,00 de diferença)** |
@@ -688,26 +688,26 @@ esta descreve o erro de método que produz defeitos novos.
 ### 10.1 O erro
 
 Toda a rodada de correções de hierarquia (§9) foi verificada contra **um**
-balancete: o GMA. Isso é sobreajuste. Se o GMA passa e os outros trinta
+balancete: o RBM. Isso é sobreajuste. Se o RBM passa e os outros trinta
 quebram, não consertamos nada — quebramos o modelo, e o teste verde esconde
-isso. Pior: o defeito que o GMA não tem deixa de existir para nós.
+isso. Pior: o defeito que o RBM não tem deixa de existir para nós.
 
 Quando finalmente medi o corpus inteiro, o resultado foi este:
 
 | Balancete | Cobertura de valor |
 |---|---|
-| MONTELA, 2025-06, 042025, SOLARIS | **100%** |
+| SPEZZIA, 2025-06, 042025, VIVAE | **100%** |
 | 202404 | 99,97% |
-| GMB 2023 | 99,30% |
-| **GMA** | **88,60%** |
+| ASP 2023 | 99,30% |
+| **RBM** | **88,60%** |
 
-**O GMA é o pior caso do corpus, não o representativo.** Eu passei uma rodada
+**O RBM é o pior caso do corpus, não o representativo.** Eu passei uma rodada
 inteira calibrando contra o outlier — e o `PARCELAMENTOS` que virou exemplo em
 todo lugar é uma particularidade que deve acontecer num percentual alto dos
 clientes, não um caso a modelar.
 
 O erro também produziu um teste ruim antes de ser pego: eu havia escrito
-`resolvidas / contas_lidas > 0.8`, um limiar tirado do GMA. Ele quebrou no
+`resolvidas / contas_lidas > 0.8`, um limiar tirado do RBM. Ele quebrou no
 primeiro arquivo diferente — e ao investigar, a métrica em si estava errada
 (contar *contas* não mede nada: um código emitido cobre várias homônimas, e
 uma folha absorvida pelo agrupador não é conta perdida). A métrica certa é
@@ -733,7 +733,7 @@ duas coisas, e imprime a semente:
 Um teste aleatório sem semente reproduzível é um teste que não se depura.
 
 **b) O controle é escolhido por forma, não por conveniência.** Hoje: hierarquia
-profunda com códigos repetidos (GMA), hierarquia limpa (MONTELA), outro emissor
+profunda com códigos repetidos (RBM), hierarquia limpa (SPEZZIA), outro emissor
 (202404), **sem** hierarquia (Real Life — o caso que não pode ser confundido
 com sucesso), e largura fixa (`.TXT`).
 
@@ -785,7 +785,7 @@ Os itens 1–7 da lista original foram feitos (§8). O que sobra:
 | 6 | `ConversionPipeline` — `xlsx_exporter` volta a ser sink | 1 sprint | `ARQUITETURA.md` §3D |
 | 7 | Decidir se `FinancialStatementParser` é núcleo ou curadoria (§5f) | conversa | hoje ele arrasta `fitz` (extra `ocr`) |
 | 8 | **`XlsParser` lê o `.xlsx` irmão calado** (§14.3) | 1 dia | `ParseyCaller("X.xls")` pode estar parseando `X.xlsx` de outro período, sem verificação nem aviso |
-| ~~9~~ | ~~Equação contábil do Aurora não fecha por 11.666.761,48~~ | **era bug meu (§16.5)** | eu somava as quatro classes como se tivessem sinal; sob natureza implícita a equação é `Ativo − Passivo − (Receitas − Despesas)` e fecha exata |
+| ~~9~~ | ~~Equação contábil do Trindade não fecha por 11.666.761,48~~ | **era bug meu (§16.5)** | eu somava as quatro classes como se tivessem sinal; sob natureza implícita a equação é `Ativo − Passivo − (Receitas − Despesas)` e fecha exata |
 | ~~10~~ | ~~DRE não bate em 3 balancetes~~ | **feito (§18)** | duas eram da régua, uma era o `abs()` na DRE. 16 de 16 batem; xfail removido |
 
 **O item 1 vem primeiro.** As correções de §8 mudam números. Antes de gerar
@@ -1103,7 +1103,7 @@ leu o `.xlsx` seria mostrar um arquivo que não gerou número nenhum — **o pio
 tipo de rastreio, o que dá confiança errada**. Por isso `_conteudo_de()` segue
 a mesma rota do parser e declara a troca na aba:
 
-> ATENÇÃO: o conteúdo veio de Balancete MONTELA…xlsx, não do .xls — o parser
+> ATENÇÃO: o conteúdo veio de Balancete SPEZZIA…xlsx, não do .xls — o parser
 > prefere o .xlsx de mesmo nome quando ele existe
 
 O SHA-256 continua sendo o do arquivo **pedido**; a procedência explica a troca.
@@ -1202,7 +1202,7 @@ totalizador da classe, não conta a conta — é isso que preserva o sinal
 *relativo* de dentro dela.
 
 As duas convenções existem mesmo no corpus: **7 balancetes** trazem o Passivo
-negativo (GMA −2.370.036,20; MONTELA −14.014.160,10; SOLARIS −25.860.155,42;
+negativo (RBM −2.370.036,20; SPEZZIA −14.014.160,10; VIVAE −25.860.155,42;
 202404 −202.331.833,64; e outros três). A orientação não é código defensivo
 para um caso hipotético.
 
@@ -1257,7 +1257,7 @@ juiz:
 |---|---|---|
 | 202404_2024 | 0 | **5** |
 | Balancete-2025-06 | 0 | **2** |
-| GMA / GMB / MONTELA / SOLARIS | 0 | **1 cada** |
+| RBM / ASP / SPEZZIA / VIVAE | 0 | **1 cada** |
 | 2019-01.TXT | 17 | 16 |
 
 A regra **quebra 8 arquivos que hoje estão certos** e quase não ajuda os
@@ -1268,11 +1268,11 @@ testada e reprovada — o xfail do `.TXT` continua sendo o caminho certo.
 ### 15.8 A prova de que o teste não é decorativo
 
 Revertendo o `abs()` para o comportamento antigo, `tests/test_totais_da_entrega.py`
-falha — e falha inclusive no **GMA**, que os 446 testes anteriores davam como
+falha — e falha inclusive no **RBM**, que os 446 testes anteriores davam como
 perfeito:
 
 ```
-Balancete 072022 122022 - GMA.xls: o total da entrega não é o total do balancete.
+Balancete 072022 122022 - RBM.xls: o total da entrega não é o total do balancete.
   resíduo por classe: {'ATIVO': 288.99653999999964}
 Balancete 042025 em excel.xlsx: …
   resíduo por classe: {'ATIVO': 36.2021, 'PASSIVO': 869.9999}
@@ -1433,19 +1433,19 @@ origem. Ele **acha defeito em 3 dos 8 balancetes conferíveis**:
 | balancete | diferença |
 |---|---|
 | 202404_2024 | −216,64 |
-| GMB 2023 | −92,44 |
-| SOLARIS 12.2023 | −383,13 |
-| **Aurora / GMA** | **batem ao centavo** |
+| ASP 2023 | −92,44 |
+| VIVAE 12.2023 | −383,13 |
+| **Trindade / RBM** | **batem ao centavo** |
 
 Duas causas, uma identificada e uma não:
 
-**(a) Ramos sem natureza declarada.** GMB tem `3 RESULTADO LÍQUIDO DO PERÍODO
+**(a) Ramos sem natureza declarada.** ASP tem `3 RESULTADO LÍQUIDO DO PERÍODO
 ANTES DO IRPJ...` e `4 IMPOSTOS E PARTICIPAÇÕES SOBRE O LUCRO` — nenhum dos
 dois declara natureza, então o ramo de IRPJ/CSLL (87,40 mil) fica **fora da
 referência de origem**. A entrega o subtrai corretamente; a comparação é que é
 injusta. Mesma coisa em 202404 (`4 RESULTADO DO EXERCICIO`).
 
-**(b) SOLARIS.** 92 de 92 contas classificadas e ainda assim diverge em 383,13.
+**(b) VIVAE.** 92 de 92 contas classificadas e ainda assim diverge em 383,13.
 **Causa não encontrada.**
 
 Está travado como `xfail(strict=True)` em
@@ -1460,9 +1460,9 @@ existe, roda, e denuncia o que ainda não bate.
 ### 16.7 Um teste meu que se auto-sabotou
 
 Escrevendo o teste do balancete aberto, pus no controle
-`SOLARIS ... Emitido em 06.06.2024.xls`. O arquivo real é
+`VIVAE ... Emitido em 06.06.2024.xls`. O arquivo real é
 `Emitido em 03.05.2024.xls`. O `if not caminho.exists(): continue` fazia o
-SOLARIS **sumir do controle em silêncio** — e cair na amostra aleatória, onde a
+VIVAE **sumir do controle em silêncio** — e cair na amostra aleatória, onde a
 cobertura vira sorteio.
 
 É exatamente a armadilha do §5 (fixture ausente → teste verde sobre nada), que
@@ -1559,9 +1559,9 @@ de saída:
 
 | arquivo | abas | aba 0 |
 |---|---:|---|
-| Caravela Balancete Core | 11 | `Output Modelo (BP)` |
-| Ravena | 8 | `Balancetes 2020` |
-| Caravela PCH | 20 | `Balancete (2)` |
+| Mascara Balancete Core | 11 | `Output Modelo (BP)` |
+| SmartRio | 8 | `Balancetes 2020` |
+| Mascara PCH | 20 | `Balancete (2)` |
 
 `read()` devolvia a **primeira** aba que passasse no portão — zero contas, com
 nove abas de balancete ao lado. A escolha passou a ser por **resultado**:
@@ -1589,18 +1589,18 @@ negativo). O corpus passou de 15 para **18 de 18**, sem regressão.
 
 Os outros três **não são balancetes**, são pastas de trabalho:
 
-- **Ravena** — 8 abas, `Balancetes 2020` a `Balancetes 2026`. É série
+- **SmartRio** — 8 abas, `Balancetes 2020` a `Balancetes 2026`. É série
   histórica; o template comporta cinco exercícios.
-- **Caravela Core** — 11 abas, `Dez-2024` a `Jun-2026`. Export SAP com código
+- **Mascara Core** — 11 abas, `Dez-2024` a `Jun-2026`. Export SAP com código
   plano (`110111002`), sem hierarquia — caso *description-first*, legítimo.
-- **Caravela PCH** — 20 abas, incluindo `Plano de contas` e `Consolidado`.
+- **Mascara PCH** — 20 abas, incluindo `Plano de contas` e `Consolidado`.
 
 **A decisão foi devolvida a quem a tem.** Três degraus, em ordem:
 
 1. **Escolha explícita** (`aba=`) manda, e nada a sobrepõe.
 2. **Nome inequívoco** — uma aba chamada exatamente `Balancete` é uma
    declaração do próprio arquivo, e vale mais que qualquer contagem. No
-   Caravela PCH, `Balancete` e `Balancete (2)` rendem **2.275** e **1.869**
+   Mascara PCH, `Balancete` e `Balancete (2)` rendem **2.275** e **1.869**
    contas: o critério "a maior" escolheria a errada, por 400 contas de
    diferença que não significam nada.
 3. **Varredura por resultado**, só quando a leitura normal foi pobre
@@ -1624,7 +1624,7 @@ template, e marcar o sexto acende o aviso em vez de aceitar em silêncio.
 
 **Um arquivo passa a poder ocupar vários exercícios.** `FonteBalancete` e
 `service.Entrada` ganharam `aba`; a validação de duplicidade passou a olhar
-`(arquivo, aba)`, não só o arquivo. A série histórica do Ravena — cinco
+`(arquivo, aba)`, não só o arquivo. A série histórica do SmartRio — cinco
 exercícios de 2022 a 2026 — sai numa entrega só, com uma cópia do original por
 exercício.
 
@@ -1635,13 +1635,13 @@ ser reconhecidos junto.
 
 ### 17.8 Quando o arquivo não é balancete: dizer, e perguntar
 
-**Caravela Core** e **Caravela PCH** não são balancetes. A empresa **já fez a
+**Mascara Core** e **Mascara PCH** não são balancetes. A empresa **já fez a
 consolidação** antes de mandar:
 
 | arquivo | onde está o trabalho pronto | forma |
 |---|---|---|
-| Caravela PCH | aba `Consolidado (jun26)` | uma linha por conta do BP, **uma coluna por empresa** (IB16, IB17, PHOL, …) mais "Combinado" |
-| Caravela Core | aba `Output Modelo (BP)` | De-Para em inglês (`Assets`, `Current Assets`, `Cash and Equivalents`), **períodos em colunas** |
+| Mascara PCH | aba `Consolidado (jun26)` | uma linha por conta do BP, **uma coluna por empresa** (IB16, IB17, PHOL, …) mais "Combinado" |
+| Mascara Core | aba `Output Modelo (BP)` | De-Para em inglês (`Assets`, `Current Assets`, `Cash and Equivalents`), **períodos em colunas** |
 
 O programa lia alguma aba desses arquivos, tirava centenas de contas e
 entregava — **sem conseguir conferir nada contra a origem**, porque origem
@@ -1653,7 +1653,7 @@ prova nenhuma por trás.
 árvore de códigos conferível?** — e, quando não, a interface diz o motivo e
 pergunta:
 
-> *06.2026 - Caravela PCH - Balanco.vCore5.xlsx não parece um balancete puro.*
+> *06.2026 - Mascara PCH - Balanco.vCore5.xlsx não parece um balancete puro.*
 > nenhuma aba traz código de conta hierárquico — o arquivo parece um
 > demonstrativo já padronizado, não um balancete.
 > **Em qual aba está o balanço?** Marque até 5 — o template é preenchido do
@@ -1687,7 +1687,7 @@ lista. Sem abas, o veredito passa a vir do próprio arquivo.
 Hoje o leitor pega a última coluna numérica. É previsível e documentado, mas é
 convenção — não escolha do analista.
 
-**Ravena de 2023 em diante** — *este parágrafo estava errado, ver §18.8.*
+**SmartRio de 2023 em diante** — *este parágrafo estava errado, ver §18.8.*
 Eu havia registrado que "não há código na origem". Há: o código é **plano**,
 guardado como inteiro, e o Excel o exibe com separador de milhar. Corrigido.
 
@@ -1703,19 +1703,19 @@ aparece como *ausência*, e ausência não dispara nada. A trava é
 por arquivo, de que balancete de cliente seja lido e feche.
 
 
-## 18. SOLARIS: o crédito dentro do ramo de despesa
+## 18. VIVAE: o crédito dentro do ramo de despesa
 
 ### 18.1 O que estava travado
 
 O §16.6 deixou um `xfail(strict=True)`: o lucro líquido entregue não batia com
 o resultado da origem em três dos oito balancetes conferíveis — 202404
-(−216,64), GMB (−92,44) e **SOLARIS (−383,13)**. Aurora e GMA batiam ao
-centavo. Eu havia identificado uma das causas e registrado que a do SOLARIS
+(−216,64), ASP (−92,44) e **VIVAE (−383,13)**. Trindade e RBM batiam ao
+centavo. Eu havia identificado uma das causas e registrado que a do VIVAE
 **não tinha sido encontrada**.
 
 Eram três causas distintas, e a última é a mais instrutiva.
 
-### 18.2 A causa do SOLARIS
+### 18.2 A causa do VIVAE
 
 Comparando linha a linha o que foi emitido contra a origem, o erro está numa
 conta só:
@@ -1736,7 +1736,7 @@ despesa. Classificado DESPESA pelo ramo — corretamente — e passado por
 **É o mesmo `abs()` do §15**, do outro lado. Lá eu o removi do Balanço e
 argumentei que na DRE ele continuava certo, "porque sob natureza implícita
 receita e despesa vêm ambas positivas". O argumento vale — para balancete de
-natureza implícita. O SOLARIS usa a **outra** convenção, e nela o sinal da
+natureza implícita. O VIVAE usa a **outra** convenção, e nela o sinal da
 origem é informação.
 
 ### 18.3 A regra, agora completa
@@ -1770,10 +1770,10 @@ def _origem_com_sinal(hierarquia) -> bool:
 
 ### 18.5 As outras duas causas: era a régua
 
-GMB (−92,44) e 202404 (−216,64) **não eram defeito da entrega**.
+ASP (−92,44) e 202404 (−216,64) **não eram defeito da entrega**.
 
 A referência da origem vinha de `|receitas| − |despesas|`, calculada sobre o
-mapa de naturezas. No GMB, os ramos `3 RESULTADO LÍQUIDO DO PERÍODO ANTES DO
+mapa de naturezas. No ASP, os ramos `3 RESULTADO LÍQUIDO DO PERÍODO ANTES DO
 IRPJ` e `4 IMPOSTOS E PARTICIPAÇÕES SOBRE O LUCRO` **não declaram natureza
 nenhuma** — ficam fora do mapa. A entrega subtraía o IRPJ/CSLL corretamente; a
 referência é que deixava 86,73 mil de fora.
@@ -1811,7 +1811,7 @@ errada, teria quebrado dois arquivos corretos para fazer um teste ficar verde.
 
 ### 18.8 O código plano: eu disse que não havia, e havia
 
-O revisor estranhou o §17.9 e mandou a tela do Ravena. Ele estava certo.
+O revisor estranhou o §17.9 e mandou a tela do SmartRio. Ele estava certo.
 
 O que eu li como "a coluna Conta traz texto" era a **primeira linha** da aba.
 Abaixo dela:
@@ -1985,7 +1985,7 @@ todos mediam etapas anteriores ao número que o cliente lê.
 
 > "Olha o 2021 na sequência."
 
-A aba `Balancetes 2021` do arquivo Ravena conferia **62 pais e divergia em
+A aba `Balancetes 2021` do arquivo SmartRio conferia **62 pais e divergia em
 74** — o pior número de toda a série de sete exercícios. Fui olhar, e o
 problema não estava na hierarquia.
 
@@ -2538,8 +2538,8 @@ um balancete indentado — a função devolve `None` e o caminho normal segue. P
 isso é um **fallback puro**: só roda quando o caminho normal não achou árvore,
 e só vale quando fecha. Medido no corpus: transformou o Real Life (`.xls` e
 `.xlsx`) em 52 pais conferindo, 0 divergindo, ATIVO batendo ao centavo — e
-**não tocou em nenhum** dos balancetes que já conferiam (GMA, MONTELA, SOLARIS,
-Ravena, os Infraestrutura), nem resgatou os que genuinamente não têm árvore.
+**não tocou em nenhum** dos balancetes que já conferiam (RBM, SPEZZIA, VIVAE,
+SmartRio, os Infraestrutura), nem resgatou os que genuinamente não têm árvore.
 
 ### O defeito que quase passou: nome com dígito não é valor
 
@@ -2648,8 +2648,8 @@ Medidos no corpus, 4 balancetes entregam total diferente da origem:
 | Arquivo       | Classe afetada  | Diferença    | Contas sem destino | Resíduo |
 |---------------|-----------------|-------------:|--------------------|---------|
 | 202404        | ATIVO           | −3.157,94    | 8                  | 0,00    |
-| GMA           | PASSIVO+PL      | −560,84      | 4                  | 0,00    |
-| GMB 2023      | PASSIVO+PL      | −18,22       | 2                  | 0,00    |
+| RBM           | PASSIVO+PL      | −560,84      | 4                  | 0,00    |
+| ASP 2023      | PASSIVO+PL      | −18,22       | 2                  | 0,00    |
 | JRMA 1208.csv | ATIVO           | −9.703,79    | 52                 | 0,00    |
 
 Causa: **contas sem destino no template GT**. O resíduo da reconciliação é zero
@@ -2677,65 +2677,139 @@ Correções:
 ## §30 — O `.xls` legítimo não abria fora do Windows
 
 Rodando os balancetes de treino num ambiente Linux/CI, **três `.xls` renderam
-zero conta** — "All conversion strategies failed... Install LibreOffice". Eram
-`.xls` BIFF legítimos, não HTML disfarçado. O `XlsParser` só tinha LibreOffice
-headless (falha como root sem profile), Excel COM (só Windows) e openpyxl (só
-serve para `.xlsx` mal-nomeado). Nova estratégia **`xlrd`** (`_try_xlrd_direct`)
-lê o BIFF nativamente, sem programa externo — os três passaram a ler.
+zero conta** — "All conversion strategies failed... Install LibreOffice".
+Eram `.xls` BIFF legítimos (OLE2 Composite Document), não HTML disfarçado.
+
+A causa era estrutural: o `XlsParser` só tinha três estratégias — LibreOffice
+headless (preferida), Excel COM (só Windows) e openpyxl direto (só serve para
+`.xlsx` mal-nomeado de `.xls`). **Nenhuma lê o BIFF de um `.xls` genuíno em
+Linux.** E o LibreOffice headless, rodando como root sem profile, falha com
+"source file could not be loaded" — então a estratégia preferida caía, e não
+havia rede embaixo.
+
+Correção: nova estratégia **`xlrd`** (`_try_xlrd_direct`), entre LibreOffice e
+Excel COM. O `xlrd` lê o BIFF nativamente, sem depender de nenhum programa
+externo. Reusa todo o pós-processamento de `_read_and_process_xlsx` (detecção de
+cabeçalho, compactação de células mescladas) — só troca o engine e percorre as
+abas. A varredura de abas do dispatcher já usava o engine automático do pandas
+(que resolve para `xlrd` no `.xls`), então bastou destravar `read()`.
+
+Efeito: os três `.xls` passaram a render 415, 9.694 e 70 contas.
 
 ## §31 — Cabeçalho desalinhado e cabeçalho em inglês
 
-**Saldo desalinhado.** Um balancete de financeira rotulava a coluna de código
-como "saldo final"; `_find_saldo_column` casava pelo nome e toda conta chegava
-com `saldo=None`. `_coluna_parece_saldo` passou a validar por conteúdo (via
-`parse_saldo`) que a coluna é numérica e não é código. **Cabeçalho em inglês**
-(`DESCR/ACCNT_CODE/AMOUNT_*`) entrou no vocabulário de detecção de cabeçalho —
-sem isso, uma linha de dados com a palavra "conta" era promovida a cabeçalho.
+Dois balancetes reais expuseram dois furos na detecção de colunas.
+
+**Saldo desalinhado.** Um balancete de instituição financeira trazia o
+cabeçalho deslocado: a linha de título rotulava a coluna de **código** como
+"saldo final". `_find_saldo_column` casava pelo NOME e pegava a coluna de
+código; `parse_saldo("1.1.2.30.00.00003")` devolvia `None`, e **todas** as
+contas chegavam com `saldo=None`. A detecção de código, essa, é por conteúdo e
+acertava — mas a de saldo confiava no rótulo. Correção: `_coluna_parece_saldo`
+valida que a coluna casada por nome é de fato numérica (via `parse_saldo`, que
+entende "1.234,56 C", parênteses e sufixo D/C) e **não** é uma coluna de código.
+Se o rótulo mente, cai no fallback por conteúdo. Efeito: 367 das 415 contas
+daquele balancete passaram a chegar com saldo.
+
+**Cabeçalho em inglês.** Um export de ERP tinha colunas `DESCR | ACCNT_CODE |
+AMOUNT_Ant | AMOUNT_Deb | AMOUNT_Fim | AMOUNT_Cre | Nivel`. Nenhum desses termos
+estava no vocabulário de `BALANCE_KEYWORDS` (todo em PT), então a linha de
+cabeçalho verdadeira casava ZERO keywords — e a detecção promovia a cabeçalho
+uma **linha de dados** que continha a palavra "conta" no texto de uma conta,
+arruinando todas as colunas. Correção: acrescentar `descr`, `amount`, `accnt`,
+`account`, `nivel` ao vocabulário. Nome de coluna é dica, não prova — mas dica
+em português só não basta para arquivo que veio em inglês.
 
 ## §32 — A entrega vazia que se declarava "OK", e o chute de aba
 
-Um arquivo já consolidado saía com **0 contas mapeadas e "Balanço confere: OK"**
-(template em branco). Três defeitos: (1) `balanco_confere` caía no proxy
-`0 == 0` — guarda nova: zero conta mapeada não fecha; (2) `_find_description_
-column` rejeitava código hierárquico mas não código **plano** (só dígitos),
-pegando a coluna de números como descrição — passou a rejeitar plano e, como
-último recurso aditivo, rankeia colunas por descritividade; (3) a aba-modelo
-escondia o balancete porque a varredura de abas encurtava por contagem de linhas
-sem árvore — passou a só encurtar quando a aba atual já tem árvore. Efeito: de 0
-para 230 contas — de "vazio" para "feito".
+Rodando os 12 samples de ponta a ponta pela geração do Template GT, um arquivo
+("Mascara Balancete Core") saiu com **0 contas mapeadas, 383 não-identificadas —
+e mesmo assim "Balanço confere: OK"**. Um "OK" de template em branco é o pior
+tipo de erro para quem entrega: o analista abriria BP_GT vazio achando que está
+pronto. Três defeitos encadeados, e a lição de cada um:
+
+**1. Entrega vazia nunca "fecha".** `balanco_confere` caía no proxy
+`total_ativo == total_passivo` — e `0 == 0` é trivialmente verdadeiro. Guarda
+nova: `contas_tratadas == 0` → não fecha, ponto. Um balanço de zero não é
+balanço.
+
+**2. Coluna de descrição que era código plano.** O arquivo tinha DUAS colunas
+"Conta do Razão" — uma com o código plano (`110111002`) e outra com a
+descrição. `_find_description_column` rejeitava colunas de código
+**hierárquico** ("1.1.1"), mas não de código **plano** (só dígitos): casava
+"conta", pegava a coluna de números, toda descrição virava dígito, o filtro
+anti-lixo derrubava tudo e a entrega saía vazia. Correção: rejeitar também o
+código plano, e, como último recurso **aditivo** (só onde o caminho normal
+devolveria `None`), rankear TODAS as colunas por "descritividade" (fração de
+valores com letras, penalizando coluna constante). Uma descrição de conta nunca
+é só dígitos.
+
+**3. A aba-modelo escondia o balancete.** O mesmo arquivo tinha 11 abas: a
+primeira, "Output Modelo (BP)", rendia centenas de linhas SEM hierarquia, e o
+dispatcher encurtava a varredura de abas ao ver "contas suficientes" — deixando
+de olhar a aba "Balancete Dez-2025" ao lado. Correção: só encurtar a varredura
+quando a aba atual **já tem árvore conferível**; contagem de linhas sem árvore
+não prova nada.
+
+Efeito: o arquivo passou de 0 para 230 contas mapeadas — de "vazio" para "feito".
 
 **Regra de ouro da seleção de aba.** Perguntar para gerar certo vale mais que
-chutar errado: `DiagnosticoArquivo.deve_perguntar` sobe a dúvida ao usuário só
-quando há ambiguidade real (arquivo não é balancete puro, ou traz dois-ou-mais
-balancetes); um balancete claro entre abas de apoio segue sozinho.
+chutar errado. Quando o arquivo não é um balancete puro, ou traz dois-ou-mais
+balancetes (empate real de "qual aba usar?"), a decisão **sobe para o usuário**
+pela tela de seleção de abas (`DiagnosticoArquivo.deve_perguntar`). O
+auto-desempate de `_melhor_aba` só age onde não há ambiguidade — uma aba de
+balancete única cercada de abas de apoio, onde perguntar seria atrito à toa.
 
-**Veredito ao usuário.** O Sumário abre com uma linha SITUAÇÃO em português e
-colorida (PRONTA / COM RESSALVAS / NÃO FOI POSSÍVEL), que orienta pelo resultado
-qualquer nível de senioridade. Entrega vazia nunca sai marcada como pronta.
+**O veredito ao usuário.** O Sumário ganhou uma linha de SITUAÇÃO no topo, em
+português e colorida, que orienta pelo RESULTADO qualquer nível de senioridade
+(sócio ou trainee): *ENTREGA PRONTA* (verde), *ENTREGA COM RESSALVAS* (âmbar, com
+quantas contas e quanto do valor foi coberto) ou *NÃO FOI POSSÍVEL MONTAR A
+ENTREGA* (vermelho, dizendo para conferir se é balancete e em qual aba está).
+Dizer só "Balanço confere: NÃO" no meio de uma tabela de números não diz ao
+analista o que fazer com o arquivo.
 
-**Match rate honesto.** O denominador passou a ser as contas de fato *tentadas*
-(sintéticas menos lixo/totais), não o total sintético — 85% de auto-aceite sobre
-os balancetes de exemplo.
+### Match rate: um denominador honesto
 
-## §33 — A segunda entidade invisível (cabeçalho fundo) e o veredito "não conferível"
+Ao medir o treino, a taxa reportada era ~30% — mas o número enganava: dividia os
+casados pelo total de contas **sintéticas**, que inclui linhas de total e
+separadores que o matcher corretamente PULA (lixo). Passou a dividir pelas
+contas de fato **tentadas** (sintéticas menos lixo/ignoradas), que é o
+denominador honesto. Sobre os 12 samples: **85% de auto-aceite** sobre 9.628
+contas tentadas. Contas de seguradora (L100C) e de DF bancária fora do escopo do
+Plano Referencial (L100A, PJ em geral) permanecem, corretamente, em revisão — o
+juízo contábil não força uma conta de resseguro num plano onde ela não existe.
 
-**Cabeçalho fundo.** Uma pasta de trabalho com dois balanços (holding +
-controlada) em abas distintas processava só uma: a aba da holding punha "Grupo de
-Empresa", data, período e página antes do cabeçalho, que só aparecia na linha 12.
-A busca de cabeçalho ia só até a linha 7, a aba rendia zero conta e a leitura
-caía de volta na controlada — as duas entidades saíam com o mesmo ATIVO, e a
-holding (329 contas) sumia. Correção: estender `_CABECALHOS_TESTADOS` para as 16
-primeiras linhas (seguro: `_pontuar` escolhe sempre o melhor recorte). Agora o
-diagnóstico reconhece os dois balancetes e a interface pergunta qual usar.
+## §33 — A segunda entidade invisível (cabeçalho fundo)
 
-**Veredito "não conferível".** Um PDF de demonstração financeira pronta (notas e
-texto, em espanhol) casava fragmentos de narrativa como se fossem conta e o
-veredito dizia "COM RESSALVAS — 100% do valor coberto" — soando quase-pronto
-quando os totais não eram conferíveis contra nada. Novo nível **rascunho**:
-quando o arquivo não traz totalizador de classe nem código hierárquico
-(`entrega.conferivel` e `dre.conferivel` falsos), o Sumário diz **📝 ENTREGA NÃO
-CONFERÍVEL — trate como rascunho e confira à mão**. Não é entrega quase-pronta; é
-rascunho, e o veredito não pode fingir o contrário.
+Uma pasta de trabalho real de *mais-valia* trazia **dois balanços** — a
+controlada (`LA BSB`) e a holding (`2008 Emp`) — em abas distintas. A ferramenta
+processava **só uma**: a controlada. A holding sumia.
+
+Causa: a aba da holding punha muito preâmbulo antes da tabela —
+`Grupo de Empresa`, data de emissão, período, número de página — e o cabeçalho
+`Conta | Descrição | Saldo Inicial | Débitos | Créditos | Saldo Final` só
+aparecia na **linha 12**. A busca de cabeçalho testava apenas as linhas 0–7
+(`_CABECALHOS_TESTADOS`), não alcançava a linha 12, e a aba rendia zero conta.
+Pior: como a leitura da aba falhava, o parser **caía de volta** na outra aba, e
+as duas entidades saíam com o **mesmo** ATIVO (o da controlada, 19,1 mi) — quando
+a holding tinha ATIVO de −87,5 mi e 329 contas próprias.
+
+Correção: estender a busca de cabeçalho para as 16 primeiras linhas
+(`tuple(range(16))`). É seguro por construção: `_pontuar` escolhe sempre o
+recorte com **árvore + mais contas**, então um cabeçalho fundo pior nunca vence
+um bom raso — a extensão só amplia o alcance, não muda a escolha de quem já
+funcionava (verificado: zero regressão na suíte).
+
+Efeito: a holding passou a render 329 contas com o seu próprio ATIVO, e o
+diagnóstico passou a reconhecer **dois balancetes** na pasta — então a interface
+agora **pergunta** qual usar (regra de ouro da §32), em vez de escolher uma
+sozinha e esconder a outra.
+
+> **Ainda em aberto (design):** duas ENTIDADES distintas (holding + controlada)
+> pedem **uma entrega por entidade**, não dois exercícios numa só. Hoje, com as
+> duas abas visíveis, processa-se cada uma separadamente (marcar uma aba de cada
+> vez, com nome de cliente distinto). A geração de um arquivo por entidade num
+> clique é o próximo passo.
 
 ## §34 — Uma entrega por ENTIDADE (holding + controlada)
 
@@ -2746,7 +2820,14 @@ distintas, do mesmo período, não são dois anos do mesmo cliente.
 
 Correção: `service.gerar_por_entidade` gera **um arquivo por aba marcada**, cada
 um com o nome da sua empresa (`"{cliente} - {aba}"`), reusando o caminho de
-geração já testado. A decisão exercícios × entidades fica com o usuário, via uma
-caixa no diálogo de abas, com default inteligente (`e_serie_de_exercicios`):
-"entidades" quando as abas não formam série de anos (mesmo período), "exercícios"
-quando formam. É a regra de ouro da §32 de novo — perguntar em vez de chutar.
+geração já testado — os arquivos não colidem e a capa de cada BP_GT nomeia a
+empresa certa. A decisão exercícios × entidades fica com o usuário, via uma caixa
+no diálogo de abas, com um **default inteligente**: `e_serie_de_exercicios`
+sugere "entidades" quando as abas não formam uma série de anos distintos (mesmo
+período), e "exercícios" quando formam. É a regra de ouro da §32 de novo —
+perguntar em vez de chutar —, agora entre "somar" e "separar".
+
+Medido no arquivo que expôs o caso: marcando LA BSB (controlada) e 2008 Emp
+(holding), saem **duas entregas** — a controlada fecha; a holding sai como a sua
+própria planilha, com as suas ressalvas — em vez de uma só planilha com os
+números das duas misturados.

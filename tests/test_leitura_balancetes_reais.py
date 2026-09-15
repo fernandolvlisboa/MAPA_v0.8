@@ -390,7 +390,7 @@ def test_exercicio_com_codigo_plano_e_lido_com_arvore():
     contas e caía em "SEM HIERARQUIA"; eu relatei isso como "não há código na
     origem", e estava errado.
     """
-    caminho = CORPUS_DIR / "Ravena Balancetes (2020 2026).xlsx"
+    caminho = CORPUS_DIR / "SmartRio Balancetes (2020 2026).xlsx"
     if not corpus_disponivel():
         pytest.skip(f"corpus ausente: {CORPUS_DIR}")
     if not caminho.exists():

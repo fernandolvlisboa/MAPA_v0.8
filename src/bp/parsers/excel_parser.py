@@ -85,7 +85,7 @@ class ExcelParser:
                             )
                         except Exception as e:
                             msg = str(e).lower()
-                            # Handle corrupted/legacy OLE2/BOF issues (e.g., SOLARIS).
+                            # Handle corrupted/legacy OLE2/BOF issues (e.g., VIVAE).
                             if "bof" in msg or "ole2" in msg or "expected bof" in msg:
                                 return None
                             continue

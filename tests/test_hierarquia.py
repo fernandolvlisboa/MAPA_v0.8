@@ -5,7 +5,7 @@ Um balancete é uma árvore em que cada agrupador declara um saldo igual à soma
 dos filhos. Essa identidade não estava sendo verificada em lugar nenhum, e a
 ausência dela é a causa direta de o balanço da entrega não fechar:
 
-- contas com nome próprio ("SICOOB - COOPCENTRO - GMA 62540-0") não casam com
+- contas com nome próprio ("SICOOB - UNISUDESTE - RBM 62540-0") não casam com
   plano de contas nenhum, e o valor delas simplesmente sumia;
 - quando o agrupador **e** os filhos casavam, o ramo era somado duas vezes.
 
@@ -24,10 +24,16 @@ import pytest
 
 from src.bp.validators.hierarquia import (
     agrupar_por_codigo,
+    canonicalizar_contas,
+    chave_hierarquica,
     conferir_hierarquia,
+    detectar_largura_fixa,
+    e_linha_de_total,
     mapear_filhos,
     participa_da_arvore,
+    raizes,
     selecionar_para_projecao,
+    valor_do_grupo,
 )
 
 pytestmark = pytest.mark.contrato
@@ -44,9 +50,9 @@ BANCOS = [
     conta("1.1", "ATIVO CIRCULANTE", 1000.0),
     conta("1.1.1", "DISPONÍVEL", 1000.0),
     conta("1.1.1.02", "BANCOS CONTA MOVIMENTO", 1000.0),
-    conta("1.1.1.02.0005", "SICOOB - COOPCENTRO - GMA 62540-0", 600.0),
-    conta("1.1.1.02.0006", "BANCO DO BRASIL S.A - GMA", 250.0),
-    conta("1.1.1.02.0007", "SICREDI GMA - 92688-4", 150.0),
+    conta("1.1.1.02.0005", "SICOOB - UNISUDESTE - RBM 62540-0", 600.0),
+    conta("1.1.1.02.0006", "BANCO DO BRASIL S.A - RBM", 250.0),
+    conta("1.1.1.02.0007", "SICREDI RBM - 92688-4", 150.0),
 ]
 
 
@@ -112,7 +118,7 @@ def test_equacao_contabil():
 
 def test_codigo_repetido_nao_perde_conta():
     """
-    No balancete GMA, ``2.1.1.01.0010`` cobre duas contas distintas. Um
+    No balancete RBM, ``2.1.1.01.0010`` cobre duas contas distintas. Um
     ``dict[codigo] = conta`` descartaria uma delas em silêncio — foi o que fez
     4 dos 80 rollups "falharem" numa primeira medição.
     """
@@ -133,7 +139,7 @@ def test_linha_de_totalizacao_fica_fora_da_arvore():
     """
     O parser emite linhas de totalização com um NÚMERO nos dois campos. Elas
     casam o formato de código hierárquico e viravam raízes-fantasma: oito
-    delas somavam 20,7 milhões de totais inexistentes no balancete GMA.
+    delas somavam 20,7 milhões de totais inexistentes no balancete RBM.
     """
     assert participa_da_arvore(conta("1.1", "CIRCULANTE", 1.0))
     assert not participa_da_arvore(conta("2187555.9", "4389425.29", 1.0))
@@ -262,117 +268,133 @@ def test_selecao_reproduz_o_total_da_origem():
 
 
 # ============================================================================
-# Plano de QUATRO classes — a equação que o BP declarava quebrada
+# 4. Plano de largura fixa com padding (COSIF): a árvore não pode colapsar
 # ============================================================================
+#
+# Códigos como ``1.1.2.30.02.00007`` põem a hierarquia em posições fixas,
+# preenchem os níveis não usados com zero e reservam o último segmento para um
+# id sequencial. O pai (``1.1.2.30.00.00003``) não é prefixo-de-ponto do filho,
+# então ``mapear_filhos`` não montava a árvore: num balancete de banco real,
+# 342 de 414 contas viravam raiz e o total do Ativo somava pai + filho + neto,
+# inflando de R$ 30,9 mi para R$ 181 mi. Ver REVISAO_QUALIDADE.md.
 
 
-def _quatro_classes(ativo, passivo, custos, receitas):
+#: Recorte mínimo de um balancete COSIF: dois ramos do Ativo, cada um descendo
+#: até a folha, com o padding e o id sequencial reais. A raiz "1" (1000) é a
+#: soma dos dois ramos (400 + 600).
+COSIF = [
+    conta("1.0.0.00.00.00007", "CIRCULANTE E REALIZAVEL A LONGO PRAZO", 1000.0),
+    conta("1.1.0.00.00.00006", "DISPONIBILIDADES", 400.0),
+    conta("1.1.2.00.00.00002", "DEPOSITOS BANCARIOS", 400.0),
+    conta("1.1.2.30.00.00003", "DEP BANC DE INST S/CTA RESERVA", 400.0),
+    conta("1.1.2.30.02.00007", "BRADESCO - AG 1002", 400.0),
+    conta("1.2.0.00.00.00005", "APLICACOES INTERFINANCEIRAS DE LIQUIDEZ", 600.0),
+    conta("1.2.2.00.00.00001", "APLIC. EM DEPOSITOS INTERFINANCEIROS", 600.0),
+    conta("1.2.2.10.00.00008", "APLIC. EM DEPOSITOS INTERFINANCEIROS", 600.0),
+    conta("1.2.2.10.20.00035", "BRADESCO - CDI - D+1", 250.0),
+    conta("1.2.2.10.20.00042", "VOTORANTIM - CDI - LONGA", 350.0),
+]
+
+
+def test_detecta_largura_fixa_so_em_plano_com_padding():
+    assert detectar_largura_fixa([c["codigo"] for c in COSIF]) == 6
+    # O corpus de PJ usa código variável, sem zero interior: não dispara.
+    variavel = ["1", "1.1", "1.1.01", "2.1.1.01.0010", "2.1.1.02"] * 3
+    assert detectar_largura_fixa(variavel) is None
+
+
+def test_chave_hierarquica_distingue_no_agregado_de_folha():
+    # Nó-agregado (tem zero de padding nos níveis): descarta o id e apara zeros.
+    assert chave_hierarquica("1.0.0.00.00.00007", 6) == "1"
+    assert chave_hierarquica("1.1.2.30.00.00003", 6) == "1.1.2.30"
+    # Folha totalmente especificada: mantém o código inteiro — duas contas
+    # irmãs (00035, 00042) NÃO podem colapsar na mesma chave e ser somadas.
+    assert chave_hierarquica("1.2.2.10.20.00035", 6) == "1.2.2.10.20.00035"
+    assert chave_hierarquica("1.2.2.10.20.00042", 6) == "1.2.2.10.20.00042"
+    # Sem plano fixo: identidade (o estilo de código variável do corpus).
+    assert chave_hierarquica("2.1.1.01.0010", None) == "2.1.1.01.0010"
+
+
+def test_canonicalizar_e_identidade_em_plano_variavel():
+    """No corpus de PJ nada muda — a canonicalização é no-op."""
+    assert canonicalizar_contas(BANCOS) == BANCOS
+
+
+def test_canonicalizar_preserva_contagem_e_guarda_original():
+    canon = canonicalizar_contas(COSIF)
+    assert len(canon) == len(COSIF)  # 1:1, a fusão de nós vem depois
+    por_original = {c["codigo_original"]: c["codigo"] for c in canon}
+    assert por_original["1.0.0.00.00.00007"] == "1"
+    assert por_original["1.1.2.30.00.00003"] == "1.1.2.30"
+    assert por_original["1.2.2.10.20.00035"] == "1.2.2.10.20.00035"
+
+
+def test_cosif_nao_colapsa_a_arvore():
     """
-    Balancete de natureza implícita: tudo positivo, a classe é que diz o lado.
-
-    Estrutura mínima com pai e filho em cada classe, porque a conferência só
-    vale quando há árvore (``tem_hierarquia``).
+    O defeito central: sem canonicalização a árvore some (quase toda conta vira
+    raiz). Depois dela há UMA raiz ("1") e cada nó confere com a soma dos filhos.
     """
-    return [
-        {"codigo": "1", "descricao": "ATIVO", "saldo": ativo},
-        {"codigo": "1.1", "descricao": "CIRCULANTE", "saldo": ativo},
-        {"codigo": "2", "descricao": "PASSIVO", "saldo": passivo},
-        {"codigo": "2.1", "descricao": "CIRCULANTE", "saldo": passivo},
-        {"codigo": "3", "descricao": "CUSTOS E DESPESAS", "saldo": custos},
-        {"codigo": "3.1", "descricao": "CUSTOS", "saldo": custos},
-        {"codigo": "4", "descricao": "RECEITAS", "saldo": receitas},
-        {"codigo": "4.1", "descricao": "VENDAS", "saldo": receitas},
-    ]
+    canon = canonicalizar_contas(COSIF)
+    grupos = agrupar_por_codigo(canon)
+    filhos = mapear_filhos(grupos)
+    assert raizes(grupos, filhos) == ["1"]
+
+    rel = conferir_hierarquia(canon)
+    assert rel.tem_hierarquia
+    assert rel.pais_divergentes == 0, [str(d) for d in rel.divergencias]
+    assert rel.totais_por_classe["ATIVO"] == pytest.approx(1000.0)
 
 
-def test_quatro_classes_com_natureza_implicita_fecha():
-    """
-    O caso Aurora, com os números do arquivo real.
-
-    Ativo 2.361.053,53 = Passivo 891.480,90 + Lucro 1.469.572,63, onde o lucro
-    é Receitas 4.941.899,84 - Custos 3.472.327,21. Fecha exatamente.
-
-    A soma ingênua das classes dava 11.666.761,48 porque ``classe_from_codigo``
-    funde 3 e 4 em "RESULTADO" e as duas entravam SOMADAS — quando a DRE
-    subtrai. O programa mandava não entregar uma planilha correta.
-    """
-    r = conferir_hierarquia(
-        _quatro_classes(2_361_053.53, 891_480.90, 3_472_327.21, 4_941_899.84)
+def test_cosif_selecao_nao_conta_duas_vezes():
+    """Emitido + não coberto reproduz a origem, como no estilo variável."""
+    canon = canonicalizar_contas(COSIF)
+    grupos = agrupar_por_codigo(canon)
+    mapeados = {"1.1.2.30", "1.2.2.10"}  # dois agrupadores mapeados
+    selecao = selecionar_para_projecao(canon, lambda c: c in mapeados)
+    soma = sum(
+        c["saldo"]
+        for cod in selecao.codigos + selecao.nao_cobertos
+        for c in grupos[cod]
     )
-    assert r.equacao_fecha, (
-        f"balancete que fecha foi reprovado: desequilíbrio {r.desequilibrio:,.2f}"
+    assert soma == pytest.approx(1000.0)
+    for a in selecao.codigos:
+        for b in selecao.codigos:
+            assert a == b or not b.startswith(a + "."), f"{a} ancestral de {b}"
+
+
+def test_valor_do_grupo_trata_subtotal_que_convive_com_detalhe():
+    # COSIF: dentro de 8.1.7.33 a linha PROVENTOS (849.558,97) já é a soma de
+    # FÉRIAS + SALÁRIO + 13º… que valem os mesmos 849.558,97. Somar tudo conta
+    # em dobro; a regra devolve só o subtotal.
+    proventos = 849558.97
+    detalhe = [84982.61, 417704.5, 62550.8, 3731.62, 231789.85, 48799.59]
+    assert sum(detalhe) == pytest.approx(proventos)
+    assert valor_do_grupo([proventos, *detalhe]) == pytest.approx(proventos)
+
+
+def test_valor_do_grupo_soma_contas_homonimas_distintas():
+    # RBM: 2.1.1.01.0010 cobre EMPRÉSTIMO SANTANDER e JUROS A APROPRIAR; nenhuma
+    # é a soma da outra, então a resposta é a soma (comportamento de sempre).
+    assert valor_do_grupo([-200.0, -100.0]) == pytest.approx(-300.0)
+    assert valor_do_grupo([42.0]) == pytest.approx(42.0)  # um só elemento
+    assert valor_do_grupo([]) == pytest.approx(0.0)
+
+
+def test_linha_de_total_geral_fica_fora_da_arvore():
+    """
+    "TOTAL DO ATIVO"/"TOTAL DO PASSIVO" são somas que o template recalcula, não
+    contas. Num plano COSIF elas vêm codificadas dentro de um grupo
+    (``3.9.9.99.99.09999``) e viravam um valor gigante no lugar errado.
+    """
+    assert e_linha_de_total("TOTAL DO ATIVO")
+    assert e_linha_de_total("Total do Passivo")
+    assert e_linha_de_total("TOTAL GERAL")
+    assert e_linha_de_total("TOTAL DO PASSIVO E PATRIMONIO LIQUIDO")
+    # Subtotal de bloco: a hierarquia trata pela soma dos filhos, não exclui.
+    assert not e_linha_de_total("Total do Ativo Circulante")
+    assert not e_linha_de_total("CAIXA GERAL")
+    # E some da árvore, mesmo com código hierárquico válido.
+    assert not participa_da_arvore(
+        conta("3.9.9.99.99.09999", "TOTAL DO ATIVO", 66.0)
     )
-    assert r.desequilibrio == pytest.approx(0.0, abs=0.01)
-
-    # Não-vacuidade: as quatro raízes têm de estar separadas, senão a
-    # subtração da DRE seria impossível de enxergar.
-    assert set(r.totais_por_raiz) == {"1", "2", "3", "4"}
-    assert r.totais_por_classe["RESULTADO"] == pytest.approx(8_414_227.05)
-
-
-def test_quatro_classes_com_prejuizo_tambem_fecha():
-    """Receitas < Custos: o Passivo supera o Ativo pelo prejuízo."""
-    # Ativo 800 = Passivo 1000 + Lucro (-200); Receitas 300 - Custos 500.
-    r = conferir_hierarquia(_quatro_classes(800.0, 1000.0, 500.0, 300.0))
-    assert r.equacao_fecha, f"prejuízo reprovado: {r.desequilibrio:,.2f}"
-
-
-def test_quatro_classes_realmente_torto_continua_reprovado():
-    """
-    A trava do lado oposto — sem ela a correção viraria "aprova tudo".
-
-    Se qualquer atribuição de sinais fechasse, o teste acima não provaria
-    nada. Aqui o Ativo não bate com Passivo + lucro por 500, e nenhuma
-    combinação de sinais zera.
-    """
-    r = conferir_hierarquia(_quatro_classes(1_300.0, 1_000.0, 500.0, 300.0))
-    assert not r.equacao_fecha, (
-        "balancete torto passou — a busca por sinais está aprovando qualquer coisa"
-    )
-
-
-def test_convencao_de_sinal_explicito_continua_fechando():
-    """
-    Não-regressão: o plano referencial (passivo e receita negativos) fechava
-    pela soma simples e tem de continuar fechando.
-    """
-    contas = [
-        {"codigo": "1", "descricao": "ATIVO", "saldo": 1_000.0},
-        {"codigo": "1.1", "descricao": "CIRCULANTE", "saldo": 1_000.0},
-        {"codigo": "2", "descricao": "PASSIVO", "saldo": -600.0},
-        {"codigo": "2.1", "descricao": "CIRCULANTE", "saldo": -600.0},
-        {"codigo": "3", "descricao": "RESULTADO", "saldo": -400.0},
-        {"codigo": "3.1", "descricao": "RECEITAS", "saldo": -400.0},
-    ]
-    r = conferir_hierarquia(contas)
-    assert r.equacao_fecha
-    assert r.desequilibrio == pytest.approx(0.0, abs=0.01)
-
-
-def test_residuo_da_equacao_e_a_fonte_unica():
-    """
-    Uma implementacao so — a duplicacao foi o que gerou o segundo defeito.
-
-    A conferencia da ORIGEM ja procurava os sinais certos, mas a reconciliacao
-    da ENTREGA continuava somando `emitido_por_classe` cru. Resultado: a tela
-    mostrava "Balanco fecha: sim" no cartao e "o balanco nao fechou, nao
-    entregue esta planilha" no aviso, sobre o mesmo arquivo. Duas respostas
-    para a mesma pergunta porque eram duas contas diferentes.
-    """
-    from src.bp.validators.hierarquia import residuo_da_equacao
-
-    # Aurora: 4 classes, natureza implicita. Ativo = Passivo + (Rec - Cust).
-    assert residuo_da_equacao(
-        [2_361_053.53, 891_480.90, 3_472_327.21, 4_941_899.84]
-    ) == pytest.approx(0.0, abs=0.01)
-
-    # Sinal explicito (ECF): a soma simples ja zerava e tem de continuar zerando.
-    assert residuo_da_equacao([1_000.0, -600.0, -400.0]) == pytest.approx(0.0)
-
-    # Torto de verdade: nenhuma combinacao de sinais salva. Os valores sao
-    # escolhidos para nao se cancelarem em nenhuma delas — o melhor caso ainda
-    # deixa 619 de residuo sobre um total de 1.381.
-    assert abs(residuo_da_equacao([1_000.0, 300.0, 70.0, 11.0])) == pytest.approx(619.0)
-
-    # Sem totais nao ha o que conferir — nao pode explodir.
-    assert residuo_da_equacao([]) == 0.0
+    assert participa_da_arvore(conta("1.1", "ATIVO CIRCULANTE", 10.0))

@@ -345,6 +345,29 @@ def test_matcher_below_threshold(matcher):
     assert len(result.candidates) > 0
 
 
+def test_confianca_honesta_nao_finge_1_em_match_por_subconjunto(matcher):
+    """
+    "Bancos" é subconjunto de "Bancos Conta Movimento": o casamento acontece
+    (o score bruto passa do threshold e a conta É entregue), mas a confiança
+    EXIBIDA não pode fingir 1.0 — o candidato tem palavras que a origem não
+    tem, e o fuzzy não distingue esse parcial legítimo de um falso como
+    "EMPRESTIMOS" -> "Empréstimos a Funcionários". O honesto é rebaixar a
+    confiança para a faixa de revisão, sem mudar QUAL conta é casada.
+    """
+    result = matcher.match("Bancos")
+    assert result.decision is not None
+    assert result.decision.codigo == "1.1.01.01.02"  # casamento inalterado
+    assert result.decision.score >= 0.85  # gate do auto-aceite, intacto
+    assert result.decision.confidence < 0.90  # confiança honesta, rebaixada
+
+
+def test_confianca_honesta_fica_alta_no_match_exato(matcher):
+    """Quando os dois textos batem de verdade, a confiança continua alta."""
+    result = matcher.match("Caixa")
+    assert result.decision is not None
+    assert result.decision.confidence >= 0.95
+
+
 # =============================================================================
 # Testes ContaMatcher - Heurísticas
 # =============================================================================

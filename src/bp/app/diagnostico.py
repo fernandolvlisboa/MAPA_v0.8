@@ -227,7 +227,7 @@ def _secao_motor() -> list[str]:
     plano referencial, os sinônimos ou o aprendizado do matcher não chegarem ao
     bundle (ou chegarem truncados), o programa continua rodando: só passa a
     casar menos contas, o corte da árvore muda, e o balanço entregue não bate
-    com o da origem. Foi exatamente o sintoma de um Aurora entregue com 34%
+    com o da origem. Foi exatamente o sintoma de um Trindade entregue com 34%
     de aproveitamento enquanto a mesma versão, rodada da fonte, dava 100%.
 
     Nenhum número aqui é opinião: cada linha é uma contagem do que foi

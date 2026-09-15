@@ -146,20 +146,20 @@ time.sleep(0.5)  # Let Excel cleanup
 ```
 [OK] 202404_2024 - Balancete.xlsx          486 rows x 18 cols - 0.50s
 [OK] Balancete 042025 em excel.xlsx        153 rows x 18 cols - 0.07s
-[OK] Balancete 072022 122022 - GMA.xlsx    542 rows x 16 cols - 0.15s
-[OK] Balancete GMB 2023.xlsx               222 rows x 18 cols - 0.13s
+[OK] Balancete 072022 122022 - RBM.xlsx    542 rows x 16 cols - 0.15s
+[OK] Balancete ASP 2023.xlsx               222 rows x 18 cols - 0.13s
 [OK] Balancete Real Life.xlsx              131 rows x 18 cols - 0.13s
-[OK] Balancete MONTELA TUBOS.xlsx          568 rows x 13 cols - 0.13s
+[OK] Balancete SPEZZIA TUBOS.xlsx          568 rows x 13 cols - 0.13s
 [OK] Balancete-2025-06.xlsx                267 rows x 13 cols - 0.10s
 ```
 
 ### Files in Test Corpus
 1. ✅ 202404_2024 - Balancete.xls → .xlsx (311KB → 105KB)
 2. ✅ Balancete 042025 em excel.xls → .xlsx (95KB → 44KB)
-3. ✅ Balancete 072022 122022 - GMA.xls → .xlsx (2MB → 615KB)
-4. ✅ Balancete GMB 2023.xls → .xlsx (565KB → 306KB)
+3. ✅ Balancete 072022 122022 - RBM.xls → .xlsx (2MB → 615KB)
+4. ✅ Balancete ASP 2023.xls → .xlsx (565KB → 306KB)
 5. ✅ Balancete Real Life.xls → .xlsx (86KB → 35KB)
-6. ✅ Balancete MONTELA TUBOS 01012024-31122024.xls → .xlsx (313KB → 100KB)
+6. ✅ Balancete SPEZZIA TUBOS 01012024-31122024.xls → .xlsx (313KB → 100KB)
 7. ✅ Balancete-2025-06.xls → .xlsx (157KB → 57KB)
 
 **Note:** File size reduction average: **~70%** (xlsx compression)
@@ -359,7 +359,7 @@ The 3-tier strategy (Preprocessing → Multi-Strategy → Standard Parsing) has 
 ### 🔄 Evolution: New Challenges Discovered
 
 **November 29 - December 1, 2025:**
-- ✅ Successfully parsed GMA file: **537 accounts** (was extracting only 4)
+- ✅ Successfully parsed RBM file: **537 accounts** (was extracting only 4)
 - ✅ Successfully parsed Real Life file: **127 accounts**
 - ⭐ **Discovery:** Merged cells create complex Unnamed column structures
 - ⭐ **Discovery:** Different files have different structures (hierarchical vs flat)

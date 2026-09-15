@@ -57,7 +57,7 @@ def deep_inspect_xls(file_path: Path):
 
 files = [
     Path("auxil/BP_teste/XLS/Balancete 042025 em excel.xls"),
-    Path("auxil/BP_teste/XLS/Balancete GMB 2023.xls"),
+    Path("auxil/BP_teste/XLS/Balancete ASP 2023.xls"),
     Path("auxil/BP_teste/XLS/Balancete Real Life.xls"),
 ]
 

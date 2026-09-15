@@ -68,7 +68,7 @@ class ParseyCaller:
         - Saldo is for validation
 
         This approach works for ALL file structures:
-        - Hierarchical codes (GMA: 1.1.1.01)
+        - Hierarchical codes (RBM: 1.1.1.01)
         - Flat codes (Real Life: just descriptions)
         - Combined columns (Conta: code + description)
         """
@@ -490,7 +490,7 @@ class ParseyCaller:
         return None
 
     #: Fração mínima das linhas que uma coluna precisa preencher para ser saldo.
-    #: A aba "Balancetes 2025" do Ravena termina em duas colunas de sobra: uma
+    #: A aba "Balancetes 2025" do SmartRio termina em duas colunas de sobra: uma
     #: vazia e outra com **3 valores em 825 linhas**. Como o critério era "a
     #: última coluna numérica", era essa que virava saldo — 821 das 824 contas
     #: chegavam com ``saldo=None``. Ver REVISAO_QUALIDADE.md §21.
@@ -528,7 +528,7 @@ class ParseyCaller:
         A coluna tem informação de saldo, ou é sobra de planilha?
 
         Duas formas de não ter: estar quase vazia (as colunas-fantasma à direita
-        do último mês) ou ser constante (a aba "Balancetes 2021" do Ravena
+        do último mês) ou ser constante (a aba "Balancetes 2021" do SmartRio
         traz uma coluna auxiliar com ``100`` em todas as linhas — que, sendo a
         última numérica, virava o saldo de **todas** as 513 contas).
 
@@ -555,7 +555,7 @@ class ParseyCaller:
 
     #: Proporção mínima de códigos de 3+ segmentos para uma coluna ser aceita
     #: como coluna de código. Baixa de propósito: em balancete com folhas de
-    #: código plano (o "11111" do Aurora), a coluna certa tinha só 29% —
+    #: código plano (o "11111" do Trindade), a coluna certa tinha só 29% —
     #: enquanto TODAS as outras tinham 0%. O que decide é a distância entre a
     #: melhor e o resto, não um piso alto.
     _LIMIAR_CODIGO = 0.10

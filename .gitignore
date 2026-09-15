@@ -2,23 +2,12 @@
 __pycache__/
 *.py[oc]
 build/
-# dist/ FICA VERSIONADO — decisao deliberada, tomada depois de o fluxo de
-# GitHub Release falhar varias vezes seguidas. O .exe commitado e o caminho
-# que funciona hoje: quem clona ja tem o binario, sem depender de o workflow
-# passar.
-#
-# O custo, para constar: sao ~55 MB por build e o git guarda TODOS para
-# sempre — apagar depois nao encolhe o historico. Se o repositorio ficar
-# pesado demais, o caminho de volta e Git LFS (nao um `git rm`, que nao
-# recupera espaco).
-#
-# So o binario VERSIONADO entra: `MAPA_v0.8.3.exe`, nao `MAPA.exe` puro. A
-# versao no nome faz dois binarios na mesma pasta deixarem de ser
-# indistinguiveis, e casa com o nome versionado da planilha de saida. O
-# `MAPA.exe` sem versao e so o intermediario do build — fica de fora. O resto
-# de dist/ e relatorio de auditoria/autoteste, deriva a cada compilacao.
-dist/*
-!dist/MAPA_v*.exe
+# O .exe NAO entra no repositorio. Sao 55 MB por build, o git guarda todos
+# para sempre e o historico nao encolhe depois. A distribuicao e por GitHub
+# Release (ate 2 GB por arquivo, fora do historico) — veja README, secao
+# "Publicar uma versao". O workflow .github/workflows/release.yml faz isso
+# sozinho quando voce empurra uma tag.
+dist/
 wheels/
 *.egg-info
 
@@ -63,12 +52,6 @@ templates/*.bak
 .coverage.*
 htmlcov/
 
-# Dados de treinamento: balancetes de clientes.
-# NÃO versionar — carregam dados individuais. O usuário mantém local,
-# adiciona e remove à vontade, e o git ignora tudo exceto o README-guia.
-# Ver docs/DADOS_PRIVADOS.md.
-data/samples/**
-!data/samples/README.md
 
 # --- Dados de cliente e artefatos derivados (nunca commitar) ---
 src/bp/training/DFS_Exemple/*

@@ -3,8 +3,8 @@ Regressão sobre o corpus inteiro — controle fixo **e** amostra aleatória.
 
 Por que este arquivo existe
 ---------------------------
-Toda a rodada anterior de correções foi verificada contra o balancete GMA. Isso
-é sobreajuste: se o GMA passa e os outros trinta quebram, não consertamos nada —
+Toda a rodada anterior de correções foi verificada contra o balancete RBM. Isso
+é sobreajuste: se o RBM passa e os outros trinta quebram, não consertamos nada —
 quebramos o modelo, e o teste verde esconde isso. Um defeito só é geral quando
 mais de um arquivo o exibe, e uma correção só é geral quando **nenhum outro
 arquivo piora**.
@@ -29,7 +29,7 @@ O que NÃO pertence aqui
 -----------------------
 Asserções sobre contas específicas de um balancete específico. "PARCELAMENTOS
 não tem destino no template" é uma **particularidade esperada** — vai acontecer
-num percentual alto dos clientes. Testar por ela é fixar o modelo no GMA. O que
+num percentual alto dos clientes. Testar por ela é fixar o modelo no RBM. O que
 se testa é a invariante: *seja lá o que ficar de fora, o valor tem de ser
 reconciliado e nada pode evaporar.*
 
@@ -55,15 +55,15 @@ CORPUS = samples_dir()
 EXTENSOES = {".xls", ".xlsx", ".csv", ".txt"}
 
 #: Controle: escolhidos por **forma**, não por conveniência.
-#: - GMA: hierarquia profunda, 8 códigos repetidos, folhas com nome próprio
-#: - MONTELA: hierarquia limpa, sem repetição
+#: - RBM: hierarquia profunda, 8 códigos repetidos, folhas com nome próprio
+#: - SPEZZIA: hierarquia limpa, sem repetição
 #: - 202404: outro emissor, outra profundidade
 #: - Real Life: SEM hierarquia (description-first) — o caso que não pode ser
 #:   confundido com sucesso
 #: - 2019-01.TXT: largura fixa, e o único do controle com rollup divergente
 CONTROLE = (
-    "Balancete 072022 122022 - GMA.xls",
-    "Balancete MONTELA TUBOS 01012024-31122024.xls",
+    "Balancete 072022 122022 - RBM.xls",
+    "Balancete SPEZZIA TUBOS 01012024-31122024.xls",
     "202404_2024 - Balancete.xls",
     "Balancete Real Life.xlsx",
     "2019-01.TXT",
@@ -360,7 +360,7 @@ def test_cobertura_de_valor_do_controle(nome):
     uma folha absorvida pelo agrupador não é conta perdida. Mede-se valor.
 
     Distribuição medida em 7 balancetes: quatro a 100%, dois acima de 99%, e o
-    GMA a 88,6%. **O GMA é o pior caso, não o representativo** — foi contra ele
+    RBM a 88,6%. **O RBM é o pior caso, não o representativo** — foi contra ele
     que a rodada anterior de correções foi calibrada, e é por isso que este
     arquivo existe.
     """

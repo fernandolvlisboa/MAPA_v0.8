@@ -3,13 +3,13 @@
 ## Executive Summary
 XLS/XLSX parsing is CRITICAL. Previous approach achieved 100% success with preprocessing strategy. Now we consolidate learnings about **merged cells** and **description-first matching** into a robust, self-contained parser.
 
-## Key Learnings from GMA & Real Life Files
+## Key Learnings from RBM & Real Life Files
 
 ### 🔍 Problem Discovered
 1. **XLS files are often corrupted** → Solution: Convert to XLSX first (preprocessing)
 2. **Merged cells create Unnamed columns** → Solution: Automatic compaction (unmerge → delete blanks → shift left)
 3. **Different files have different structures:**
-   - **GMA:** Código=lines, Unnamed:1=codes (1.1.1), Classificação=descriptions
+   - **RBM:** Código=lines, Unnamed:1=codes (1.1.1), Classificação=descriptions
    - **Real Life:** Código=lines, Unnamed:1=descriptions directly (no hierarchical codes)
 4. **Description is MORE important than code** → Codes vary by company, descriptions are standardized
 
@@ -106,14 +106,14 @@ for row in df:
 **Key Changes:**
 1. **Description is found FIRST** (not dependent on code)
 2. **Code is OPTIONAL** (may not exist or be meaningful)
-3. **No special-casing** for specific files (GMA vs Real Life)
+3. **No special-casing** for specific files (RBM vs Real Life)
 4. **Self-contained logic** in dispatcher.parse()
 
 ## Implementation Plan
 
 ### Phase 1: Consolidate Compaction ✅ DONE
 - [x] Compaction logic in XlsParser._compact_merged_columns()
-- [x] Tested on GMA (16→7 columns, 537 accounts extracted)
+- [x] Tested on RBM (16→7 columns, 537 accounts extracted)
 - [x] Tested on Real Life (18→6 columns, 127 accounts extracted)
 
 ### Phase 2: Generalize Compaction 📋 TODO
@@ -201,12 +201,12 @@ class ParseyCaller:
 
 ### File Coverage (All 7 Files)
 ```
-✅ GMA.xlsx:           537 accounts (hierarchical codes 1.1.1.01)
+✅ RBM.xlsx:           537 accounts (hierarchical codes 1.1.1.01)
 ✅ Real Life.xlsx:     127 accounts (description-only, no hierarchy)
 ✅ 202404_2024.xlsx:   ??? accounts (TBD)
 ✅ 042025.xlsx:        ??? accounts (TBD)
-✅ GMB 2023.xlsx:      ??? accounts (TBD)
-✅ MONTELA.xlsx:       ??? accounts (TBD)
+✅ ASP 2023.xlsx:      ??? accounts (TBD)
+✅ SPEZZIA.xlsx:       ??? accounts (TBD)
 ✅ 2025-06.xlsx:       ??? accounts (TBD)
 ```
 

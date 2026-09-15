@@ -173,7 +173,7 @@ REQUIREMENT: Extract BOTH BP and DRE as separate outputs
 
 **Scenario 2: Combined BP+DRE**
 ```
-PDF: "BALANÇO-DRE 2024 - GMD.pdf"
+PDF: "BALANÇO-DRE 2024 - ADA.pdf"
 ├── Page 1: BP (EXTRACT → BP)
 ├── Page 2: DRE (EXTRACT → DRE)
 └── Page 3: Notas (SKIP)
@@ -183,7 +183,7 @@ REQUIREMENT: Separate and extract both statements
 
 **Scenario 3: Balancete with Embedded Results**
 ```
-PDF: "GMC - BP 03.2024.pdf"
+PDF: "ABT - BP 03.2024.pdf"
 ├── Contains: Balancete (account-level trial balance)
 ├── Includes: Resultado do Exercício (embedded income data)
 
@@ -453,7 +453,7 @@ return PDFParseResult(bp_data=bp_data, dre_data=dre_data)
 - [ ] Tests: MGLU3 PDF extracts ≥20 BP accounts + ≥20 DRE accounts
 
 **Test Files Available:**
-- ✅ `BALANÇO-DRE 2024 - GMD.pdf` (combined BP+DRE)
+- ✅ `BALANÇO-DRE 2024 - ADA.pdf` (combined BP+DRE)
 - ✅ `Demonstrações Financeiras Anuais Completas 2021.pdf`
 - ✅ `Demonstrações Financeiras 4T24 -REAIS.pdf`
 - ✅ `DFP.pdf`
@@ -595,7 +595,7 @@ relevant_lines = remover.filter_irrelevant_lines(lines)
 - [ ] Malformed DRE tables
 
 **Test Files:**
-- `auxil/BP_teste/PDF/BALANÇO-DRE 2024 - GMD.pdf`
+- `auxil/BP_teste/PDF/BALANÇO-DRE 2024 - ADA.pdf`
 - `auxil/BP_teste/PDF/dre_image.pdf`
 - `auxil/BP_teste/PDF/Demonstrações Financeiras 4T24 -REAIS.pdf`
 
@@ -802,7 +802,7 @@ result.export_to_excel("output.xlsx", include_dre=True)
    - Add export methods
 
 4. **Test with real PDFs**
-   - Test `BALANÇO-DRE 2024 - GMD.pdf`
+   - Test `BALANÇO-DRE 2024 - ADA.pdf`
    - Test `dre_image.pdf` (scanned)
    - Test multi-page DREs
    - Validate totals and structure

@@ -43,6 +43,31 @@ _CORE_SPLIT_RE = re.compile(r"\s[-–—]\s")
 _BONUS_NATUREZA = 5.0
 
 
+def _confianca_honesta(query_norm: str, descricao_candidata: str) -> float:
+    """
+    Confiança HONESTA de um match, para exibição — NÃO é a régua do auto-aceite.
+
+    ``token_set_ratio`` dá 100 sempre que a descrição de origem é um
+    SUBCONJUNTO do candidato: "EMPRESTIMOS" casa 100 com "Empréstimos a
+    Funcionários", "OUTROS" com "Outros Créditos - Longo Prazo". O
+    ``token_sort_ratio`` desaba nesses casos (59, 34) porque o candidato traz
+    palavras que a origem não tem. Só que nenhum limiar separa o falso do
+    parcial legítimo — "Bancos" -> "Bancos Conta Movimento" tem sort 43, MENOR
+    que os falsos —, então não dá para RECUSAR sem perder o casamento parcial
+    que o projeto exige (``test_matcher_partial_match``). O que dá, e é honesto,
+    é parar de FINGIR confiança 1.0: a média de set e sort cai para a faixa de
+    revisão (~0,6-0,8) quando o match é por subconjunto e fica perto de 1.0 só
+    quando os dois textos batem de verdade. Não muda QUAL conta é casada — muda
+    o número que o analista lê e o que o Sumário sinaliza para revisão.
+    """
+    alvo = normalize(descricao_candidata)
+    if not query_norm or not alvo:
+        return 1.0
+    s_set = fuzz.token_set_ratio(query_norm, alvo)
+    s_sort = fuzz.token_sort_ratio(query_norm, alvo)
+    return round((s_set + s_sort) / 200.0, 2)
+
+
 @dataclass
 class MatchCandidate:
     """Candidato de matching."""
@@ -357,7 +382,9 @@ class ContaMatcher:
                 descricao=fuzzy_result.descricao,
                 score=fuzzy_result.score,
                 source="fuzzy",
-                confidence=fuzzy_result.score,
+                # Auto-aceite decide pelo score bruto (inalterado); a confiança
+                # EXIBIDA é honesta — não finge 1.0 num match por subconjunto.
+                confidence=_confianca_honesta(query_normalized, fuzzy_result.descricao),
                 method="fuzzy_auto_accept",
             )
 
@@ -390,7 +417,7 @@ class ContaMatcher:
                 descricao=candidates[0].descricao,
                 score=candidates[0].score,
                 source="heuristic",
-                confidence=candidates[0].score,
+                confidence=_confianca_honesta(query_normalized, candidates[0].descricao),
                 method="heuristic_boost",
             )
 

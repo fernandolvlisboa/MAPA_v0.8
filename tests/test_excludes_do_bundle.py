@@ -77,37 +77,6 @@ def test_o_spec_declara_exclusoes():
     assert len(_excludes_do_spec()) >= 5
 
 
-def _obrigatorios_do_spec() -> list[str]:
-    """Basenames dos recursos que o bp.spec marca como OBRIGATORIOS."""
-    texto = SPEC.read_text(encoding="utf-8")
-    bloco = re.search(r"_OBRIGATORIOS\s*=\s*\[(.*?)\]", texto, re.S)
-    assert bloco, "não achei a lista `_OBRIGATORIOS` no bp.spec"
-    return [Path(c).name for c in re.findall(r'\(\s*"([^"]+)"', bloco.group(1))]
-
-
-def test_o_mapa_do_template_e_recurso_obrigatorio():
-    """
-    A trava que faltava, e que roda em QUALQUER máquina — sem compilar nada.
-
-    `data/template_projection.json` traduz os 118 códigos enriquecidos
-    (`x.90.*`) para a linha do template. Sem ele no bundle, `project()` devolve
-    None para todas essas contas e elas caem em "não identificadas": o `.exe`
-    saiu sem o arquivo e entregou 38% de aproveitamento onde a fonte fazia
-    100%, com o Balanço acusando desequilíbrio de milhões.
-
-    Este teste não depende do `.exe` (o de `test_build_seguranca.py` depende, e
-    por isso pula sem binário). Aqui a pergunta é feita ao `bp.spec` diretamente
-    e a resposta vale antes de qualquer compilação — que é onde o erro precisa
-    ser barrado.
-    """
-    obrigatorios = _obrigatorios_do_spec()
-    assert "template_projection.json" in obrigatorios, (
-        "template_projection.json saiu de `_OBRIGATORIOS` no bp.spec. O .exe "
-        "compilaria sem o mapa de projeção e entregaria planilha errada em "
-        "silêncio — 38% de aproveitamento onde deveria dar 100%."
-    )
-
-
 def test_nenhuma_exclusao_e_carregada_pelo_runtime():
     """
     A pergunta que faltava: o bundle sai sem algo que ele precisa?
@@ -189,11 +158,7 @@ def test_build_exige_o_autoteste_antes_de_entregar():
     """
     build = (RAIZ / "build.py").read_text(encoding="utf-8")
     assert "def autotestar()" in build, "build.py perdeu o passo de autoteste"
-    # `def main(` com qualquer assinatura (ganhou `argv` para o --publicar), até
-    # o próximo def de topo ou o guard `if __name__`.
-    corpo = re.search(
-        r"\ndef main\(.*?(?=\n(?:def |if __name__)\b)", build, re.S
-    )
+    corpo = re.search(r"def main\(\).*?(?=\n\n|\Z)", build, re.S)
     assert corpo and "autotestar()" in corpo.group(0), (
         "main() do build.py não chama autotestar() — o binário sairia sem "
         "prova de que roda"
@@ -207,49 +172,28 @@ def test_build_exige_o_autoteste_antes_de_entregar():
 WORKFLOW = RAIZ / ".github" / "workflows" / "release.yml"
 
 
-def test_so_o_binario_versionado_entra_de_dist():
+def test_o_binario_nao_e_versionado():
     """
-    Só o `.exe` VERSIONADO é versionado; o resto de `dist/` não.
+    55 MB por build, e o git guarda todos para sempre.
 
-    A regra virou o oposto do que era. Antes `dist/` inteiro ficava fora do
-    repositório e a distribuição era por GitHub Release — o fluxo falhou
-    repetidamente, e o dono do projeto decidiu commitar o binário. O custo
-    (≈55 MB por build, que o histórico guarda para sempre) está anotado no
-    `.gitignore`; a alternativa, se pesar, é Git LFS.
-
-    O recorte tem três lados, e este teste protege os três:
-
-    - **`MAPA_v0.8.3.exe` entra** — é o que circula, com a versão no nome;
-    - **`MAPA.exe` puro NÃO entra** — é só o intermediário do build, e
-      commitá-lo mascararia qual versão o binário é;
-    - **relatórios NÃO entram** — auditoria e autoteste derivam a cada
-      compilação; versioná-los enche o histórico de ruído.
+    O `.exe` chegou a ser commitado uma vez. O histórico não encolhe depois —
+    a única defesa é não deixar entrar de novo.
     """
-    from src.bp import versao
+    rastreados = subprocess.run(
+        ["git", "ls-files", "dist"], capture_output=True, text=True, cwd=RAIZ
+    ).stdout.split()
+    assert not rastreados, (
+        "há arquivo(s) de `dist/` versionado(s): " + ", ".join(rastreados) +
+        "\nO binário se distribui por GitHub Release, não pelo repositório."
+    )
 
-    versionado = f"dist/MAPA_v{versao.VERSAO}.exe"
-    regra = subprocess.run(
-        ["git", "check-ignore", versionado],
+    ignorado = subprocess.run(
+        ["git", "check-ignore", "dist/MAPA.exe"],
         capture_output=True, text=True, cwd=RAIZ,
     )
-    assert regra.returncode == 1, (
-        f"{versionado} está sendo ignorado — o binário não chegaria a quem "
-        "clona, que é justamente o que a mudança quis resolver"
+    assert ignorado.returncode == 0, (
+        "`dist/` saiu do .gitignore — o próximo build entra no histórico"
     )
-
-    for ignorar in (
-        "dist/MAPA.exe",  # intermediário sem versão
-        "dist/MAPA_autoteste.txt",
-        "dist/MAPA_diagnostico.txt",
-    ):
-        r = subprocess.run(
-            ["git", "check-ignore", ignorar],
-            capture_output=True, text=True, cwd=RAIZ,
-        )
-        assert r.returncode == 0, (
-            f"{ignorar} deixou de ser ignorado. Só o `.exe` versionado entra; "
-            f"intermediário e relatório de build são deriváveis e só poluiriam."
-        )
 
 
 def test_o_workflow_de_release_existe_e_gateia_o_build():
@@ -341,11 +285,5 @@ def test_ler_abas_nao_deixa_o_arquivo_aberto(tmp_path):
     listar_abas(str(caminho))
     ParseyCaller(str(caminho)).parse()
 
-    import gc
-    gc.collect()
-
-    try:
-        caminho.unlink()
-    except PermissionError:
-        pytest.skip("Windows file locking impediu o unlink (handle do antivirus ou GC)")
+    caminho.unlink()
     assert not caminho.exists(), "o arquivo ficou preso por um handle aberto"

@@ -51,11 +51,11 @@ from src.bp.output.template_map import LinhaTemplate, TemplateProjector
 
 #: Mesmo controle de ``test_corpus_regressao.py`` — escolhidos por forma.
 CONTROLE = (
-    "Balancete 072022 122022 - GMA.xls",
-    "Balancete MONTELA TUBOS 01012024-31122024.xls",
+    "Balancete 072022 122022 - RBM.xls",
+    "Balancete SPEZZIA TUBOS 01012024-31122024.xls",
     "202404_2024 - Balancete.xls",
     "Balancete Real Life.xlsx",
-    "Balancete_Aurora_052025.xlsx",
+    "Balancete_Trindade_052025.xlsx",
 )
 TAMANHO_AMOSTRA = 3
 EXTENSOES = {".xls", ".xlsx", ".csv", ".txt"}

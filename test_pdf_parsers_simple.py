@@ -17,7 +17,7 @@ def test_pdfplumber():
             "error": "Module not found",
         }
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         return {"lib": "pdfplumber", "status": "SKIP", "error": "PDF not found"}
@@ -51,7 +51,7 @@ def test_tabula():
             "error": "Module not found",
         }
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         return {"lib": "tabula-py", "status": "SKIP", "error": "PDF not found"}
@@ -86,7 +86,7 @@ def test_pdfminer():
             "error": "Module not found",
         }
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         return {"lib": "pdfminer.six", "status": "SKIP", "error": "PDF not found"}
@@ -117,7 +117,7 @@ def test_pymupdf():
             "error": "Module not found",
         }
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         return {"lib": "PyMuPDF", "status": "SKIP", "error": "PDF not found"}

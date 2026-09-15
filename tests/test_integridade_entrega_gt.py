@@ -277,7 +277,7 @@ def test_saldo_credor_em_conta_de_ativo_chega_negativo(entrega_negativa):
 # ============================================================================
 #
 # Nada aqui assere sobre conta específica de balancete específico. Uma conta
-# sem destino no template ("PARCELAMENTOS", no GMA) é PARTICULARIDADE
+# sem destino no template ("PARCELAMENTOS", no RBM) é PARTICULARIDADE
 # ESPERADA — vai acontecer num percentual alto dos clientes. Fixar teste nela
 # amarra o modelo a um arquivo. O que se exige é a invariante: seja lá o que
 # fique de fora, tem de ser reconciliado, e nada pode evaporar.
@@ -290,8 +290,8 @@ CORPUS = Path("data/samples")
 #: profundidades diferentes), não por conveniência. A varredura do corpus
 #: inteiro está em ``test_corpus_regressao.py``.
 CONTROLE_COM_HIERARQUIA = [
-    "Balancete 072022 122022 - GMA.xls",
-    "Balancete MONTELA TUBOS 01012024-31122024.xls",
+    "Balancete 072022 122022 - RBM.xls",
+    "Balancete SPEZZIA TUBOS 01012024-31122024.xls",
     "202404_2024 - Balancete.xls",
 ]
 
@@ -407,8 +407,8 @@ def test_nenhum_codigo_emitido_e_ancestral_de_outro(nome):
 #: homônimas, e uma folha absorvida pelo agrupador não é conta perdida. O que
 #: interessa é quanto do dinheiro da origem chega à entrega.
 #:
-#: Medido em 7 balancetes: quatro cobrem 100%, dois passam de 99%, e o GMA
-#: cobre 88,6% — **o GMA é o pior caso do corpus, não o representativo**. O
+#: Medido em 7 balancetes: quatro cobrem 100%, dois passam de 99%, e o RBM
+#: cobre 88,6% — **o RBM é o pior caso do corpus, não o representativo**. O
 #: piso fica abaixo dele com folga: o objetivo é pegar regressão, não
 #: cristalizar o outlier.
 PISO_COBERTURA_DE_VALOR = 0.85

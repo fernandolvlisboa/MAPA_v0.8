@@ -140,3 +140,22 @@ do alinhamento de colunas.
 - novo: `src/bp/output/build_gt_output.py` (construtor)
 - novo: `data/template_projection.json` (mapa de projeção, auditável)
 - novo: `tests/test_gt_output.py` (17 testes)
+
+---
+
+## A linha de SITUAÇÃO: orientar pelo resultado
+
+O Sumário abre com uma linha **SITUAÇÃO**, em português e colorida, que traduz o
+resultado para qualquer nível de senioridade (de sócio a trainee) antes de
+qualquer número:
+
+- ✅ **ENTREGA PRONTA** — os totais batem; BP_GT/DRE_GT podem ir ao cliente.
+- ⚠️ **ENTREGA COM RESSALVAS** — o template foi preenchido (com quantas contas e
+  quanto do valor foi coberto), mas os totais ainda não batem; revise "POR QUE
+  NÃO FECHA" e a fila de "Contas Não Identificadas".
+- ⛔ **NÃO FOI POSSÍVEL MONTAR A ENTREGA** — nenhuma conta reconhecida; confira
+  se o arquivo é um balancete e em qual aba está o balanço.
+
+Invariante: uma entrega **vazia nunca** sai marcada como pronta — `0 == 0` não é
+um balanço que fecha (`BuildResult.balanco_confere`, `.veredito`). Ver
+`REVISAO_QUALIDADE.md` §32.
