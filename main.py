@@ -24,41 +24,33 @@ import contextlib
 import sys
 from pathlib import Path
 
-# Permite `python main.py` da raiz sem instalar o pacote.
-RAIZ = Path(__file__).resolve().parent
-if str(RAIZ) not in sys.path:
-    sys.path.insert(0, str(RAIZ))
-
 
 def _saida_nunca_derruba_o_programa() -> None:
     """
     Impede que um símbolo fora da tabela do console mate o processo.
 
     O console clássico do Windows usa cp1252, que não tem ``→``, ``✓`` nem
-    ``✗``. Cada um deles é um ``UnicodeEncodeError`` **fatal**: o processo
-    morre com código 1 no meio de um ``print`` e o usuário vê um traceback em
-    vez do menu. Aconteceu duas vezes seguidas, com dois caracteres
-    diferentes — trocar o caractere culpado conserta um caso e deixa a
-    armadilha armada para o próximo.
+    ``✗``. Cada um deles é um ``UnicodeEncodeError`` **fatal**: o processo morre
+    com código 1 no meio de um ``print`` e o usuário vê um traceback em vez do
+    menu. Aconteceu duas vezes seguidas, com dois caracteres diferentes — trocar
+    o caractere culpado conserta um caso e deixa a armadilha armada para o
+    próximo.
 
     Só ``errors="replace"``, mantendo a codificação do console. Forçar UTF-8
-    aqui foi a minha primeira tentativa e estava errada: o processo parava de
-    cair, mas o console decodificava os bytes pela tabela dele e o menu saía
-    ``BP â€” PadronizaÃ§Ã£o``. Trocar queda por texto ilegível não é conserto.
-
-    Mantendo a tabela do console, tudo que cabe nela sai correto — acentos e
-    travessão incluídos, que são cp1252 — e só o símbolo impossível vira
-    ``?``. Degradar o enfeite, nunca a execução nem o resto do texto.
-
-    Silencioso quando não dá para reconfigurar (saída redirecionada, stream
-    substituído por um teste): aí vale o comportamento de antes.
+    aqui estava errado: o processo parava de cair, mas o console decodificava os
+    bytes pela tabela dele e o menu saía ``BP â€” PadronizaÃ§Ã£o``. Trocar queda
+    por texto ilegível não é conserto. Mantendo a tabela do console, tudo que
+    cabe nela sai correto — acentos e travessão incluídos, que são cp1252 — e só
+    o símbolo impossível vira ``?``. Degradar o enfeite, nunca a execução.
     """
     for fluxo in (sys.stdout, sys.stderr):
         with contextlib.suppress(AttributeError, ValueError, OSError):
             fluxo.reconfigure(errors="replace")
 
-
-_saida_nunca_derruba_o_programa()
+# Permite `python main.py` da raiz sem instalar o pacote.
+RAIZ = Path(__file__).resolve().parent
+if str(RAIZ) not in sys.path:
+    sys.path.insert(0, str(RAIZ))
 
 PASTA_TREINO = RAIZ / "src" / "bp" / "training" / "DFS_Exemple"
 PASTA_SAIDA = RAIZ / "output" / "gt"
@@ -131,7 +123,7 @@ def acao_treinar() -> None:
 
 def acao_padronizar() -> None:
     """Lê um balancete e entrega o Template GT povoado."""
-    _titulo("PADRONIZAR -- balancete -> Template GT")
+    _titulo("PADRONIZAR — balancete → Template GT")
     entrada = _pedir_arquivo("Caminho do balancete")
     if not entrada:
         print("  cancelado.")
@@ -149,7 +141,7 @@ def acao_padronizar() -> None:
     PASTA_SAIDA.mkdir(parents=True, exist_ok=True)
     saida = PASTA_SAIDA / f"{_slug(cliente)}_{ano}.xlsx"
 
-    print("\nProcessando... (parse -> matching -> projecao -> template)")
+    print("\nProcessando... (parse → matching → projeção → template)")
     from src.bp.output.build_gt_output import build_gt_output
 
     try:
@@ -203,7 +195,7 @@ def acao_revisar() -> None:
 
 _OPCOES = {
     "1": ("Treinar (aprender com balancetes novos)", acao_treinar),
-    "2": ("Padronizar um balancete -> Template GT", acao_padronizar),
+    "2": ("Padronizar um balancete → Template GT", acao_padronizar),
     "3": ("Revisar contas pendentes (assistente)", acao_revisar),
     "0": ("Sair", None),
 }
@@ -249,6 +241,7 @@ def _loop_menu() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     """Ponto de entrada. Sem argumento abre a janela; ``--menu`` abre o menu."""
+    _saida_nunca_derruba_o_programa()
     args = list(sys.argv[1:] if argv is None else argv)
     if any(a in ("--menu", "-m") for a in args):
         return _loop_menu()

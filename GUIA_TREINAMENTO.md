@@ -100,8 +100,9 @@ Arquivos processados: 2
 Contas totais: 305
 Contas sintéticas: 245
 Contas analíticas filtradas: 60
-Matched: 220 (89.8%)
-Precisam revisão: 25 (10.2%)
+Contas tentadas (sem lixo/totais): 232
+Casados (auto): 220 (94.8% das tentadas)
+Precisam revisão: 12 (5.2% das tentadas)
 
 Variações aprendidas: 85 códigos
 Sinônimos identificados: 12
@@ -110,6 +111,11 @@ Total acumulado: 8 arquivos processados
 
 ✓ Relatório exportado: output/training_report.md
 ```
+
+> **Match rate = casados ÷ contas _tentadas_**, não ÷ sintéticas. "Tentadas" são
+> as contas de fato submetidas ao matcher — sintéticas menos linhas-lixo, totais
+> e ignoradas. Dividir pelo total sintético mistura "não casou" com "nem era
+> conta" e afunda a taxa sem motivo. Ver `REVISAO_QUALIDADE.md` §32.
 
 ---
 

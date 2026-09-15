@@ -160,7 +160,7 @@ import openpyxl
 # Corpus de testes
 CORPUS_FILES = [
     "Balancete Real Life.xlsx",  # Flat structure
-    "Balancete 072022 122022 - GMA.xlsx",  # Hierarchical
+    "Balancete 072022 122022 - RBM.xlsx",  # Hierarchical
     "202404_2024 - Balancete.xlsx",  # Standard
     "1544 - BALANCETE 1222024.csv",  # CSV
     "2019-01.TXT",  # TXT

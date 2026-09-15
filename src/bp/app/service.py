@@ -110,7 +110,7 @@ def cliente_do_nome(nomes: str | Path | Iterable[str | Path]) -> str:
     Nome de cliente provável a partir do(s) nome(s) de arquivo.
 
     Tira datas, números soltos e as palavras que descrevem o documento; o que
-    sobra costuma ser o cliente (``Balancete 072022 122022 - GMA`` -> ``GMA``).
+    sobra costuma ser o cliente (``Balancete 072022 122022 - RBM`` -> ``RBM``).
 
     Devolve ``""`` quando não sobra nada — de propósito. Chutar "Balancete
     042025 em excel" como nome de cliente é pior do que não chutar: sai
@@ -168,8 +168,8 @@ def nome_de_saida(cliente: str, anos: Sequence[int]) -> str:
     exercício convivem em ``Drop`` — um bom, um ruim —, o nome idêntico
     obrigava a abrir os dois para saber qual era qual, e o único jeito de
     distinguir virava a data de modificação. Com a versão no nome, a pasta já
-    conta a história: ``Aurora_2025_v0.8.1.xlsx`` ao lado de
-    ``Aurora_2025_v0.8.2.xlsx`` diz na hora o que mudou entre eles.
+    conta a história: ``Trindade_2025_v0.8.1.xlsx`` ao lado de
+    ``Trindade_2025_v0.8.2.xlsx`` diz na hora o que mudou entre eles.
 
     O sufixo ``(2)`` de ``caminho_sem_colisao`` continua valendo para duas
     execuções da MESMA versão — ele resolve colisão, não identificação.

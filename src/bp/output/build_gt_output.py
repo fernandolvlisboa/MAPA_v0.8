@@ -52,10 +52,13 @@ from ..utils.natureza import mapear_natureza, resultado_do_periodo, totais_por_n
 from ..utils.prazo import mapear_prazo, prazo_do_codigo_referencial
 from ..utils.synonyms import is_garbage_description
 from ..validators.entrega import RelatorioEntrega, conferir_dre, conferir_totais
+from ..utils.cosif import detectar_cosif, e_compensacao
 from ..validators.hierarquia import (
+    canonicalizar_contas,
     conferir_hierarquia,
     residuo_da_equacao,
     selecionar_para_projecao,
+    valor_do_grupo,
 )
 from .origem import Origem, escrever_aba_origem, ler_origem, nome_da_aba
 from .template_map import TemplateProjector
@@ -197,6 +200,21 @@ class BuildResult:
     #: Contas com nome próprio que subiram para um agrupador mapeado. Não são
     #: perda: o valor delas está no total do agrupador.
     contas_absorvidas: int = 0
+    #: Contas ACEITAS mas com confiança honesta baixa — o casamento foi por
+    #: subconjunto de texto ("EMPRESTIMOS" -> "Empréstimos a Funcionários"), que
+    #: o fuzzy não distingue de um parcial legítimo. Entram na entrega, mas o
+    #: Sumário sinaliza para revisão em vez de apresentá-las como confiança 1.0.
+    contas_baixa_confianca: int = 0
+    #: O balancete de origem é COSIF (instituição financeira)?
+    cosif: bool = False
+    #: Contas de COMPENSAÇÃO (COSIF grupos 3/9) — de ordem, fora do balanço
+    #: patrimonial. Ficam fora do BP e da reconciliação, e são listadas à parte
+    #: para o total bruto do balancete continuar rastreável. (codigo, desc, valor)
+    compensacao: list[tuple[str, str, float]] = field(default_factory=list)
+    #: Total de compensação por grupo-raiz ({"3": ..., "9": ...}), lido do saldo
+    #: declarado na raiz de cada grupo — não a soma das linhas (que contaria a
+    #: árvore duas vezes).
+    compensacao_por_grupo: dict[str, float] = field(default_factory=dict)
     #: Conferência aritmética do balancete de origem (soma dos filhos vs pai).
     hierarquia: Any = None
     #: Valor (em moeda de origem) das contas sem destino no template. É o
@@ -249,6 +267,11 @@ class BuildResult:
     dre: RelatorioEntrega = field(default_factory=RelatorioEntrega)
     #: Resultado do exercício lido na origem, na moeda da entrega.
     resultado_da_origem: float = 0.0
+
+    @property
+    def total_compensacao(self) -> float:
+        """Total de compensação (raízes dos grupos 3 e 9 somadas), fora do BP."""
+        return sum(self.compensacao_por_grupo.values())
 
     @property
     def captura_integra(self) -> bool:
@@ -349,6 +372,13 @@ class BuildResult:
         if abs(self.valor_nao_coberto) > 0.01:
             return False
         if self.hierarquia is not None and self.hierarquia.tem_hierarquia:
+            if self.cosif:
+                # No COSIF a entrega é montada pelos TOTAIS de grupo (de-para de
+                # domínio), não pelo rollup de cada folha; entrega.confere e
+                # dre.confere acima já provaram que os totais batem com a origem,
+                # e a equação de classes fecha. Divergências de subtotal no meio
+                # da árvore são ruído da origem, não erro da entrega.
+                return self.hierarquia.equacao_fecha
             return self.hierarquia.rollup_integro and self.hierarquia.equacao_fecha
         base = max(abs(self.total_ativo), abs(self.total_passivo), 1.0)
         return abs(self.total_ativo - self.total_passivo) / base < 0.01
@@ -373,6 +403,15 @@ class BuildResult:
                 "planilha com várias abas, em qual aba está o balanço.",
             )
         if self.balanco_confere:
+            if self.cosif:
+                return (
+                    "ok",
+                    "ENTREGA PRONTA (balancete COSIF) — o balanço fecha "
+                    "(Ativo = Passivo + PL + Resultado) e os totais batem com a "
+                    "origem. As linhas foram montadas por um de-para de banco, e "
+                    "a compensação ficou FORA do balanço, na aba 'Contas de "
+                    "Compensação'. Confira as linhas antes de enviar ao cliente.",
+                )
             return (
                 "ok",
                 "ENTREGA PRONTA — os totais batem com o balancete de origem. "
@@ -535,6 +574,11 @@ def build_gt_output(
         result.contas_nao_identificadas += parcial.contas_nao_identificadas
         result.saldos_ilegiveis += parcial.saldos_ilegiveis
         result.contas_absorvidas += parcial.contas_absorvidas
+        result.contas_baixa_confianca += parcial.contas_baixa_confianca
+        result.cosif = result.cosif or parcial.cosif
+        result.compensacao.extend(parcial.compensacao)
+        for grupo, v in parcial.compensacao_por_grupo.items():
+            result.compensacao_por_grupo[grupo] = v
         result.resultado_transferido += parcial.resultado_transferido
         result.valor_nao_coberto += parcial.valor_nao_coberto
         for classe, v in parcial.emitido_por_classe.items():
@@ -680,6 +724,20 @@ def build_gt_output(
         todas_nao_ident,
         "Fila de revisão do analista. Uso interno — não faz parte da entrega.",
     )
+    if result.compensacao:
+        _criar_aba_tabular(
+            wb,
+            "Contas de Compensação",
+            ["codigo_original", "descricao_original", "valor"],
+            [
+                {"codigo_original": c, "descricao_original": d, "valor": v}
+                for c, d, v in result.compensacao
+            ],
+            "Contas de compensação (COSIF grupos 3 e 9) — de ordem, FORA do "
+            "balanço patrimonial e por isso não somadas em BP_GT. Listadas aqui "
+            "para o total bruto do balancete ficar rastreável. Valores em "
+            "milhares de reais.",
+        )
 
     _ordenar_abas(wb)
     _avisar("Salvando a planilha")
@@ -926,6 +984,180 @@ def _resolver(
     return _Resolucao(conta, codigo_template=proj.codigo_template, decisao=r.decision)
 
 
+#: Abaixo desta confiança honesta, um match ACEITO é sinalizado para revisão no
+#: Sumário. 0.85 espelha o auto_accept_threshold do matcher: match exato fica em
+#: 1.0; match por subconjunto de texto cai para cá e pede um olhar humano.
+_LIMIAR_CONFIANCA_REVISAO = 0.85
+
+
+def _reagrupar_por_papel_cosif(por_raiz: dict[str, float]) -> dict[str, float]:
+    """Soma os totais por grupo-raiz COSIF no PAPEL contábil (A/P/R/D)."""
+    from ..utils.cosif import papel_cosif
+
+    out: dict[str, float] = {}
+    for raiz, valor in por_raiz.items():
+        papel = papel_cosif(raiz) or raiz
+        out[papel] = out.get(papel, 0.0) + valor
+    return out
+
+
+#: Onde o resultado do período vai no Balanço enquanto o exercício não é
+#: encerrado — o mesmo destino que ``_transferir_resultado_do_periodo`` usa.
+_CODIGO_RESULTADO_NO_PL = "2.03.04.01"
+
+
+def _padronizar_cosif(
+    contas: list[dict[str, Any]], escala: float, result: BuildResult
+) -> tuple[list[dict], list[dict], list[dict], BuildResult]:
+    """
+    Padroniza um balancete COSIF pela de-para de domínio (não pelo fuzzy).
+
+    Um banco não casa conta a conta com o plano de PJ; o casamento por texto
+    produzia contas erradas com cara de confiança. Aqui o roteiro é
+    determinístico: cada grupo COSIF vai para a linha do Template GT que o
+    usuário revisou (``utils.cosif.DE_PARA_COSIF``), por prefixo mais longo.
+
+    Emite pelo SALDO DECLARADO do nó, com *netting* pelo ancestral de-para mais
+    próximo — assim "Despesas operacionais" (8.1) entra já sem o pessoal
+    (8.1.7.27/30/33) e a depreciação (8.1.8), que saem em linhas próprias, sem
+    dupla contagem. O resultado do período (receitas − despesas) é levado ao PL
+    (lucros/prejuízos acumulados) para o Balanço fechar.
+    """
+    from ..utils.cosif import (
+        DE_PARA_COSIF,
+        DESPESA,
+        RECEITA,
+        mapear_cosif,
+        papel_cosif,
+    )
+
+    lancamentos: dict[str, list[float]] = defaultdict(list)
+    desc0: dict[str, str] = {}
+    orig: dict[str, str] = {}
+    for c in contas:
+        cod = str(c.get("codigo", "")).strip()
+        if not cod:
+            continue
+        lancamentos[cod].append(c.get("saldo") or 0.0)
+        desc0.setdefault(cod, str(c.get("descricao", "")))
+        orig.setdefault(cod, str(c.get("codigo_original", cod)))
+    # Valor de cada nó, tratando a linha-subtotal que convive com seu detalhe
+    # (aggregate-among-details do COSIF) para não contar em dobro.
+    saldo: dict[str, float] = {
+        cod: valor_do_grupo(vals) for cod, vals in lancamentos.items()
+    }
+
+    presentes = [k for k in DE_PARA_COSIF if k in saldo]
+    declarado = {k: saldo[k] for k in presentes}
+
+    def ancestral_de_para(chave: str) -> str | None:
+        segs = chave.split(".")
+        for n in range(len(segs) - 1, 0, -1):
+            pref = ".".join(segs[:n])
+            if pref in declarado:
+                return pref
+        return None
+
+    net = dict(declarado)
+    for k in presentes:
+        pai = ancestral_de_para(k)
+        if pai is not None:
+            net[pai] -= declarado[k]
+
+    dados: list[dict[str, Any]] = []
+    tratadas: list[dict[str, Any]] = []
+    nao_ident: list[dict[str, Any]] = []
+    receita_total = 0.0
+    despesa_total = 0.0
+
+    for k in sorted(presentes):
+        alvo, rotulo = DE_PARA_COSIF[k]
+        papel = papel_cosif(k)
+        sinal = -1.0 if papel == DESPESA else 1.0
+        valor = _escalar(net[k], escala) * sinal
+        if papel == RECEITA:
+            receita_total += net[k]
+        elif papel == DESPESA:
+            despesa_total += net[k]
+        dados.append({
+            "codigo_padronizado": alvo,
+            "descricao_original": desc0.get(k, ""),
+            "valor": valor,
+        })
+        tratadas.append({
+            "codigo_original": orig.get(k, k),
+            "descricao_original": desc0.get(k, ""),
+            "codigo_padronizado": alvo,
+            "descricao_padronizada": rotulo,
+            "codigo_template": alvo,
+            "valor": valor,
+            "score": 1.0,  # de-para determinístico de domínio
+        })
+        if papel:
+            result.emitido_por_raiz[papel] = (
+                result.emitido_por_raiz.get(papel, 0.0) + net[k]
+            )
+            classe = "RESULTADO" if papel in (RECEITA, DESPESA) else papel
+            result.emitido_por_classe[classe] = (
+                result.emitido_por_classe.get(classe, 0.0) + net[k]
+            )
+        if alvo.startswith("1"):
+            result.total_ativo += valor
+        elif alvo.startswith("2"):
+            result.total_passivo += valor
+
+    # Resultado do período ao PL, para o Balanço fechar (Ativo = Passivo + PL +
+    # Resultado). A DRE mostra o mesmo lucro pelas linhas de receita/despesa.
+    resultado = receita_total - despesa_total
+    result.resultado_da_origem = _escalar(resultado, escala)
+    if abs(resultado) > 0.005:
+        valor_res = _escalar(resultado, escala)
+        dados.append({
+            "codigo_padronizado": _CODIGO_RESULTADO_NO_PL,
+            "descricao_original": "Resultado do período (transferido ao PL)",
+            "valor": valor_res,
+        })
+        tratadas.append({
+            "codigo_original": "(gerado)",
+            "descricao_original": "Resultado do período (receitas - despesas)",
+            "codigo_padronizado": _CODIGO_RESULTADO_NO_PL,
+            "descricao_padronizada": "Lucros/Prejuízos Acumulados",
+            "codigo_template": _CODIGO_RESULTADO_NO_PL,
+            "valor": valor_res,
+            "score": 1.0,
+        })
+        result.total_passivo += valor_res
+        result.resultado_transferido = valor_res
+
+    # Subgrupos (nível 2) sem de-para e com saldo material: não somem, vão para
+    # revisão com o motivo explícito.
+    for cod in saldo:
+        if len(cod.split(".")) != 2 or e_compensacao(cod):
+            continue
+        coberto = mapear_cosif(cod) is not None or any(
+            dp.startswith(cod + ".") for dp in DE_PARA_COSIF
+        )
+        if coberto or abs(saldo[cod]) <= 0.005:
+            continue
+        result.valor_nao_coberto += saldo[cod]
+        result.contas_sem_destino.append(
+            ContaSemDestino(orig.get(cod, cod), desc0.get(cod, ""), saldo[cod],
+                            "grupo COSIF sem de-para para o Template GT")
+        )
+        nao_ident.append({
+            "codigo_original": orig.get(cod, cod),
+            "descricao_original": desc0.get(cod, ""),
+            "motivo_no_match": "grupo COSIF sem de-para para o Template GT",
+            "valor": _escalar(saldo[cod], escala),
+        })
+
+    result.contas_tratadas = len(tratadas)
+    result.contas_nao_identificadas = len(nao_ident)
+    result.linhas_escritas = len(dados)
+    result.avisos = _validar(dados, result)
+    return dados, tratadas, nao_ident, result
+
+
 def _padronizar(
     input_path: Path,
     matcher: ContaMatcher,
@@ -943,7 +1175,7 @@ def _padronizar(
       ``BANCOS CONTA MOVIMENTO`` já contém as seis contas bancárias abaixo
       dele; emitir os sete valores soma o ramo duas vezes);
     - **valor perdido** quando uma folha com nome próprio não casava — e não
-      casa mesmo: "SICOOB - COOPCENTRO - GMA 62540-0" não existe em plano de
+      casa mesmo: "SICOOB - UNISUDESTE - RBM 62540-0" não existe em plano de
       contas nenhum. O valor dela simplesmente sumia do balanço.
 
     Era a causa de o balanço não fechar. Agora ``selecionar_para_projecao``
@@ -953,9 +1185,63 @@ def _padronizar(
     do agrupador é exatamente a soma dos filhos.
     """
     result = BuildResult(output_path=Path())
-    contas = ParseyCaller(input_path, aba=aba).parse()
+    # Canonicaliza o código de origem ANTES de qualquer análise: em plano de
+    # largura fixa com padding (COSIF), o pai só é reconhecido como ancestral
+    # do filho depois disso. Em plano de código variável (todo o corpus de PJ)
+    # é no-op. Tudo a jusante — hierarquia, natureza, prazo, matching, projeção
+    # — passa a ver a mesma chave canônica, sem outros pontos de mudança.
+    contas = canonicalizar_contas(ParseyCaller(input_path, aba=aba).parse())
     result.contas_lidas = len(contas)
+
+    # COSIF (instituição financeira): as contas de COMPENSAÇÃO (grupos 3 e 9)
+    # são de ordem — garantias, custódia, classificação de risco —, ficam FORA
+    # do balanço patrimonial e se anulam entre ativo e passivo. Se entrassem no
+    # matching e na reconciliação, inflariam o balanço em dezenas de milhões
+    # (num caso real, R$ 35 mi de cada lado, dobrando o Ativo). Saem aqui, antes
+    # de tudo, e vão para uma lista à parte — o total bruto continua rastreável.
+    result.cosif = detectar_cosif(contas)
+    if result.cosif:
+        for c in contas:
+            codigo = str(c.get("codigo", "")).strip()
+            if not e_compensacao(codigo):
+                continue
+            valor_comp = _escalar(c.get("saldo"), escala)
+            result.compensacao.append((
+                str(c.get("codigo_original", codigo)),
+                str(c.get("descricao", "")),
+                valor_comp,
+            ))
+            # O saldo declarado na RAIZ do grupo (código de um dígito) é o total
+            # do grupo — a soma das linhas contaria pai + filhos.
+            if len(codigo) == 1:
+                result.compensacao_por_grupo[codigo] = valor_comp
+        contas = [c for c in contas if not e_compensacao(c.get("codigo"))]
+
     result.hierarquia = conferir_hierarquia(contas)
+
+    if result.cosif and result.hierarquia is not None:
+        # COSIF tem mais grupos que a convenção de 3-4 classes: sem
+        # compensação, sobram Ativo (1,2), Passivo/PL (4,5,6), Receita (7) e
+        # Despesa (8) — seis raízes. A busca de sinais que fecha a equação
+        # contábil desliga acima de cinco raízes, e a equação passava a "não
+        # fechar" por 66 milhões num balancete que fecha. Reagrupar pelo PAPEL
+        # do grupo dá quatro baldes (A/P/R/D) e a equação volta a fechar.
+        result.hierarquia.totais_por_raiz = _reagrupar_por_papel_cosif(
+            result.hierarquia.totais_por_raiz
+        )
+        # E a abertura por classe (Ativo/Passivo/Resultado), que as conferências
+        # de cobertura usam: no COSIF, Ativo = grupos 1+2, Passivo/PL = 4+5+6,
+        # Resultado = 7+8. Sem isto, o grupo 2 (Permanente) cairia no Passivo e
+        # a conferência acusaria uma diferença que não existe.
+        tr = result.hierarquia.totais_por_raiz
+        result.hierarquia.totais_por_classe = {
+            "ATIVO": tr.get("ATIVO", 0.0),
+            "PASSIVO": tr.get("PASSIVO", 0.0),
+            "RESULTADO": tr.get("RECEITA", 0.0) + tr.get("DESPESA", 0.0),
+        }
+        # Banco não casa conta a conta com o plano de PJ: roteia pela de-para de
+        # domínio, não pelo fuzzy. Curto-circuita todo o caminho de matching.
+        return _padronizar_cosif(contas, escala, result)
 
     naturezas = mapear_natureza(contas)
     prazos = mapear_prazo(contas)
@@ -987,7 +1273,7 @@ def _padronizar(
         grupo = por_codigo[codigo]
         resolvida = next(r for r in grupo if r.codigo_template)
         # Soma o grupo inteiro: códigos repetidos são normais em balancete real
-        # (no GMA, `2.1.1.01.0010` cobre duas contas distintas) e o nó vale a
+        # (no RBM, `2.1.1.01.0010` cobre duas contas distintas) e o nó vale a
         # soma do que está sob ele.
         bruto = 0.0
         for r in grupo:
@@ -1021,14 +1307,19 @@ def _padronizar(
             "descricao_original": str(resolvida.conta.get("descricao", "")),
             "valor": valor,
         })
+        confianca = round(getattr(resolvida.decisao, "confidence", resolvida.decisao.score), 2)
+        if confianca < _LIMIAR_CONFIANCA_REVISAO:
+            result.contas_baixa_confianca += 1
         tratadas.append({
-            "codigo_original": codigo,
+            "codigo_original": str(resolvida.conta.get("codigo_original", codigo)),
             "descricao_original": str(resolvida.conta.get("descricao", "")),
             "codigo_padronizado": resolvida.decisao.codigo,
             "descricao_padronizada": resolvida.decisao.descricao,
             "codigo_template": codigo_template,
             "valor": valor,
-            "score": round(resolvida.decisao.score, 2),
+            # Confiança HONESTA, não o score bruto do auto-aceite: um match por
+            # subconjunto de texto sai ~0,6-0,8, não 1,0. Ver _confianca_honesta.
+            "score": confianca,
         })
 
         if codigo_template.startswith("1"):
@@ -1054,16 +1345,17 @@ def _padronizar(
                 result.nao_coberto_por_natureza.get(natureza, 0.0) + bruto
             )
         motivo = r.motivo or "sem match confiável no plano referencial"
+        codigo_exibido = str(r.conta.get("codigo_original", codigo))
         result.contas_sem_destino.append(
             ContaSemDestino(
-                codigo=codigo,
+                codigo=codigo_exibido,
                 descricao=str(r.conta.get("descricao", "")),
                 valor=bruto,
                 motivo=motivo,
             )
         )
         nao_ident.append({
-            "codigo_original": codigo,
+            "codigo_original": codigo_exibido,
             "descricao_original": str(r.conta.get("descricao", "")),
             "motivo_no_match": motivo,
             "valor": _escalar(bruto, escala),
@@ -1325,9 +1617,30 @@ def _validar(dados: list[dict], result: BuildResult) -> list[str]:
             "o valor não pôde ser convertido e entrou como zero. Confira o "
             "formato numérico do balancete antes de olhar o resto."
         )
+    if result.contas_baixa_confianca:
+        avisos.append(
+            f"{result.contas_baixa_confianca} conta(s) foram casadas por "
+            "semelhança PARCIAL de texto (confiança < 85% na aba 'Contas "
+            "Tratadas', coluna 'score') — o programa não tem como garantir que "
+            "o destino está certo. Ex.: 'EMPRESTIMOS' pode ter casado com "
+            "'Empréstimos a Funcionários'. Revise essas linhas antes de enviar."
+        )
+    if result.cosif:
+        grupos = " + ".join(
+            f"grupo {g} R$ {v:,.2f}"
+            for g, v in sorted(result.compensacao_por_grupo.items())
+        )
+        avisos.append(
+            "BALANCETE COSIF (instituição financeira). O plano-alvo é de PJ em "
+            "geral, então o casamento conta a conta é parcial — trate a entrega "
+            "como ponto de partida. As contas de COMPENSAÇÃO ("
+            f"{grupos or 'grupos 3/9'}) foram deixadas FORA do balanço, como "
+            "manda a técnica (são contas de ordem que se anulam), e estão "
+            "listadas na aba 'Contas de Compensação'."
+        )
     # A conferência que importa: a origem é aritmeticamente consistente?
     if result.hierarquia is not None and result.hierarquia.tem_hierarquia:
-        if not result.hierarquia.rollup_integro:
+        if not result.hierarquia.rollup_integro and not result.cosif:
             pior = result.hierarquia.divergencias[0]
             avisos.append(
                 f"O BALANCETE DE ORIGEM não fecha em "
@@ -1335,6 +1648,16 @@ def _validar(dados: list[dict], result: BuildResult) -> list[str]:
                 f"filhos não bate com o total declarado. Pior caso — {pior}. "
                 f"O problema é anterior à padronização; confira o arquivo do "
                 f"cliente antes de usar esta saída."
+            )
+        elif not result.hierarquia.rollup_integro and result.cosif:
+            # No COSIF a entrega usa os TOTAIS de grupo (de-para), não o rollup
+            # de folha; subtotais divergentes no meio da árvore são ruído da
+            # origem e não afetam o balanço entregue. Informa, sem alarmar.
+            avisos.append(
+                f"Nota (COSIF): {result.hierarquia.pais_divergentes} subtotal(is) "
+                "no meio da árvore da origem não batem com a soma dos filhos. "
+                "Não afeta a entrega, que é montada pelos totais de grupo — mas "
+                "vale conferir no arquivo do cliente se precisar do detalhe fino."
             )
         if not result.hierarquia.equacao_fecha:
             avisos.append(

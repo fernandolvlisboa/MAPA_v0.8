@@ -13,7 +13,7 @@ def test_pdfplumber():
     """Testa extração com pdfplumber"""
     import pdfplumber
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         print(f"[SKIP] {pdf_path.name} nao encontrado")
@@ -59,7 +59,7 @@ def test_tabula():
         print("\n[SKIP] tabula-py nao disponivel")
         return
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         print(f"[SKIP] {pdf_path.name} nao encontrado")
@@ -101,7 +101,7 @@ def test_pdfminer():
         print("\n[SKIP] pdfminer.six nao disponivel")
         return
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         print(f"[SKIP] {pdf_path.name} nao encontrado")
@@ -136,7 +136,7 @@ def test_pymupdf():
         print("\n[SKIP] PyMuPDF nao disponivel")
         return
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         print(f"[SKIP] {pdf_path.name} nao encontrado")
@@ -180,7 +180,7 @@ def test_financial_statement_parser():
         print(f"\n[SKIP] FinancialStatementParser nao disponivel: {e}")
         return
 
-    pdf_path = Path("src/bp/training/DFS_Exemple/GMC - BP 03.2024.pdf")
+    pdf_path = Path("src/bp/training/DFS_Exemple/ABT - BP 03.2024.pdf")
 
     if not pdf_path.exists():
         print(f"[SKIP] {pdf_path.name} nao encontrado")

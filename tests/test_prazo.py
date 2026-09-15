@@ -239,8 +239,8 @@ def test_raiz_de_classe_nao_absorve_o_balanco_inteiro():
 CONTROLE = (
     "IBH 18_Balancete_06.2026.xlsx",
     "Infraestrutura Brasil III_Balancete 06.2026.xlsx",
-    "Balancete_Aurora_052025.xlsx",
-    "Balancete 072022 122022 - GMA.xls",
+    "Balancete_Trindade_052025.xlsx",
+    "Balancete 072022 122022 - RBM.xls",
     "202404_2024 - Balancete.xls",
 )
 

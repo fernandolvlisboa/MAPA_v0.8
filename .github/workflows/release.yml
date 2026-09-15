@@ -50,11 +50,7 @@ jobs:
         run: uv sync --extra packaging
 
       - name: Suite de testes
-        # `--with pytest-timeout` + timeout POR TESTE: um dialogo modal (ou
-        # qualquer congelamento) morre em 120s apontando o teste no traceback,
-        # em vez de o job inteiro morrer mudo aos 10 min — foi o que segurou
-        # v0.8.1 e v0.8.2 (nenhuma release saiu porque este passo travava).
-        run: uv run --with pytest-timeout pytest -q -m "not integration" --timeout=120 --timeout-method=thread
+        run: uv run pytest -q -m "not integration"
         timeout-minutes: 10
 
       - name: Compilar, auditar e autotestar o .exe

@@ -75,7 +75,7 @@ def main():
     """Testa matching em múltiplos arquivos"""
 
     test_files = [
-        Path("src/bp/training/DFS_Exemple/Balancete 072022 122022 - GMA.xlsx"),
+        Path("src/bp/training/DFS_Exemple/Balancete 072022 122022 - RBM.xlsx"),
         Path("src/bp/training/DFS_Exemple/Balancete Real Life.xlsx"),
         Path("src/bp/training/DFS_Exemple/202404_2024 - Balancete.xlsx"),
     ]

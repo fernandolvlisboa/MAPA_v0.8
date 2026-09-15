@@ -1,20 +1,19 @@
 # `data/samples/` — balancetes de treinamento e teste
 
 Esta pasta é o **único lugar** onde o MAPA procura os balancetes que ele lê
-para treinar e testar. Ela existe no repositório, mas o **conteúdo é
-ignorado** pelo git — os arquivos ficam só na sua máquina.
+para treinar e testar. Ela existe no repositório, para a versão do MAPA original ela não é ignorada,
+mas deve ser tratada com cautela e não deve estar disponível para clone..
 
 ## Por que essa separação existe
 
 Os balancetes carregam dados de clientes (CNPJ, nomes, saldos). Se
-entrassem no repositório, viajariam junto com todo commit e todo clone —
-principalmente crítico agora que o MAPA pode virar público.
+entrassem no repositório, viajariam junto com todo commit e todo clone.
+
+O Clone já aconteceu no MAPA v0.8 e esse repositório deve se manter privado.
 
 ## Como usar
 
-**Adicionar balancetes:** copie os arquivos para dentro desta pasta. O
-git ignora tudo aqui (exceto este `README.md`), então não aparecem em
-`git status` e não podem ser commitados por acaso.
+**Adicionar balancetes:** copie os arquivos para dentro desta pasta.
 
 Formatos aceitos: `.xls`, `.xlsx`, `.csv`, `.txt`, `.pdf`.
 

@@ -135,13 +135,13 @@ def test_fallback_nao_altera_balancete_ja_hierarquico():
     """
     A trava que impede a heurística de estragar o que já funciona.
 
-    Um balancete com código hierárquico de verdade (MONTELA) NÃO pode passar
+    Um balancete com código hierárquico de verdade (SPEZZIA) NÃO pode passar
     pela reconstrução por indentação — ela só roda quando não há árvore.
     """
-    caminho = require_corpus_file("Balancete MONTELA TUBOS 01012024-31122024.xls")
+    caminho = require_corpus_file("Balancete SPEZZIA TUBOS 01012024-31122024.xls")
     contas = ParseyCaller(str(caminho)).parse()
     # Códigos hierárquicos reais têm ponto; a reconstrução geraria "1.1.1" a
-    # partir do zero, mas o MONTELA tem códigos como "1.1.01.02" — os originais.
+    # partir do zero, mas o SPEZZIA tem códigos como "1.1.01.02" — os originais.
     assert any("." in str(c["codigo"]) for c in contas)
     relatorio = conferir_hierarquia(contas)
     assert relatorio.tem_hierarquia and relatorio.pais_conferidos > 50

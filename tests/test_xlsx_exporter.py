@@ -4,7 +4,7 @@ Testes do exportador .xlsx.
 HISTÓRICO — por que este arquivo foi reescrito
 ----------------------------------------------
 A versão anterior apontava para
-``auxil/BP_teste/SOLARIS - Balancete Acumulado 12.2023 ....xls``, que **não
+``auxil/BP_teste/VIVAE - Balancete Acumulado 12.2023 ....xls``, que **não
 existe** no repositório. O pipeline engole o erro de leitura
 (``ParseyCaller.read()`` → ``except Exception: return None``) e o exporter
 gera uma planilha bem-formada com **zero contas**. Resultado: os 5 testes

@@ -44,7 +44,7 @@ def test_ano_do_nome(nome, esperado):
 
 def test_ano_repetido_no_nome_vence():
     """"072022 122022" é o mesmo exercício escrito duas vezes."""
-    assert service.ano_do_nome("Balancete 072022 122022 - GMA.xls") == 2022
+    assert service.ano_do_nome("Balancete 072022 122022 - RBM.xls") == 2022
 
 
 def test_ano_futuro_distante_e_recusado():
@@ -58,8 +58,8 @@ def test_ano_futuro_distante_e_recusado():
 @pytest.mark.parametrize(
     "nome,esperado",
     [
-        ("Balancete 072022 122022 - GMA.xls", "GMA"),
-        ("BALANÇO-DRE 2024 - GMD.pdf", "GMD"),
+        ("Balancete 072022 122022 - RBM.xls", "RBM"),
+        ("BALANÇO-DRE 2024 - ADA.pdf", "ADA"),
         ("Balancete Real Life.xlsx", "Real Life"),
         ("2458-25 DF Neo Invest Controladora e Consolidado Dez24.pdf", "Neo Invest"),
     ],
@@ -80,34 +80,21 @@ def test_cliente_vazio_quando_o_nome_so_tem_data():
 
 
 def test_cliente_da_serie_usa_o_palpite_que_se_repete():
-    nomes = ["Balancete 2022 - GMA.xls", "Balancete 2023 - GMA.xls", "Anexo 2024.xls"]
-    assert service.cliente_do_nome(nomes) == "GMA"
+    nomes = ["Balancete 2022 - RBM.xls", "Balancete 2023 - RBM.xls", "Anexo 2024.xls"]
+    assert service.cliente_do_nome(nomes) == "RBM"
 
 
 # ------------------------------------------------------- nome do arquivo
 
 
 def test_nome_de_saida_um_ano_e_serie():
+    # A versão entra no nome do arquivo (ver service.nome_de_saida): dois
+    # arquivos do mesmo cliente/exercício na mesma pasta se distinguem sem abrir.
     from src.bp import versao
 
     v = versao.VERSAO
-    assert service.nome_de_saida("GMA Ltda", [2024]) == f"GMA_Ltda_2024_v{v}.xlsx"
-    assert service.nome_de_saida("GMA", [2024, 2022, 2023]) == f"GMA_2022-2024_v{v}.xlsx"
-
-
-def test_nome_de_saida_carrega_a_versao():
-    """
-    Dois arquivos do mesmo cliente e exercicio precisam se distinguir NA PASTA.
-
-    Quando um bom e um ruim conviviam em `Drop` com o nome identico, o unico
-    jeito de saber qual era qual era abrir os dois. A versao no nome resolve
-    isso antes de abrir qualquer coisa.
-    """
-    from src.bp import versao
-
-    nome = service.nome_de_saida("Aurora", [2025])
-    assert f"_v{versao.VERSAO}" in nome, f"a versao sumiu do nome: {nome}"
-    assert nome.endswith(".xlsx")
+    assert service.nome_de_saida("RBM Ltda", [2024]) == f"RBM_Ltda_2024_v{v}.xlsx"
+    assert service.nome_de_saida("RBM", [2024, 2022, 2023]) == f"RBM_2022-2024_v{v}.xlsx"
 
 
 def test_sanitizar_nome_tira_o_que_o_windows_recusa():
@@ -401,30 +388,6 @@ _TEM_TK = importlib.util.find_spec("tkinter") is not None
 requer_tk = pytest.mark.skipif(not _TEM_TK, reason="tkinter ausente (apt install python3-tk)")
 
 
-def _root_ou_pula():
-    """
-    Cria a raiz Tk, ou PULA se o Tk desta maquina nao inicializa.
-
-    O modulo `tkinter` existir nao garante que `Tk()` funcione. Numa
-    instalacao real do Python 3.13 no Windows o import passava e `Tk()` morria
-    com `TclError: Can't find a usable tk.tcl` — arvore do tcl incompleta.
-    Pior: o arquivo faltante MUDAVA entre execucoes (`icons.tcl` numa,
-    `listbox.tcl` na seguinte), entao sondar uma vez na coleta nao serve; a
-    sonda passava e o teste falhava logo depois.
-
-    Por isso a guarda fica no ponto de uso, e nao na coleta. Cada teste tenta
-    de verdade, na hora, e um Tk quebrado vira SKIP com a causa — nunca uma
-    falha que aponte para o nosso codigo. Sondar na coleta ainda tinha o
-    efeito colateral de abrir uma janela so para decidir se pula.
-    """
-    import tkinter
-
-    try:
-        return dnd.criar_root()
-    except tkinter.TclError as exc:
-        pytest.skip(f"Tk nao inicializa nesta maquina (instalacao do Python): {exc}")
-
-
 def carregar_ui():
     """
     Importa ``app.ui`` mesmo onde não há Tk instalado.
@@ -477,7 +440,7 @@ def test_desligado_por_ambiente_diz_que_foi_de_proposito(monkeypatch):
     variável de ambiente" e "não achei a biblioteca" pedem ações opostas.
     """
     monkeypatch.setenv("BP_SEM_DND", "1")
-    root, backend = _root_ou_pula()
+    root, backend = dnd.criar_root()
     try:
         assert backend == dnd.SEM_SUPORTE
         assert "BP_SEM_DND" in dnd.diagnostico()
@@ -507,7 +470,7 @@ def test_falha_do_tkdnd_vira_motivo_legivel(monkeypatch):
     monkeypatch.delenv("BP_SEM_DND", raising=False)
     monkeypatch.setattr(builtins, "__import__", sem_tkdnd)
 
-    root, backend = _root_ou_pula()
+    root, backend = dnd.criar_root()
     try:
         assert backend == dnd.SEM_SUPORTE
         motivo = dnd.diagnostico()
@@ -648,17 +611,6 @@ def test_erro_em_callback_vira_mensagem_e_log(tmp_path, monkeypatch):
     engole, e o programa segue como se nada tivesse acontecido.
     """
     AplicacaoBP = carregar_ui().AplicacaoBP
-
-    # O diálogo de erro é modal: num runner sem ninguém para clicar "OK",
-    # `messagebox.showerror` BLOQUEIA para sempre — e travar não é exceção, então
-    # o `contextlib.suppress` do app não pega. Foi isto que congelou a suíte no
-    # CI (v0.8.1/v0.8.2 morriam no timeout de 10 min). Este teste valida o recado
-    # e o log, não a janela; então neutralizamos só o diálogo. (Sem Tk instalado,
-    # `carregar_ui` já planta um tkinter falso e não há o que neutralizar.)
-    if importlib.util.find_spec("tkinter") is not None:
-        import tkinter.messagebox as _messagebox
-
-        monkeypatch.setattr(_messagebox, "showerror", lambda *a, **k: None)
 
     recados: list[str] = []
     log = tmp_path / "MAPA_erros.log"

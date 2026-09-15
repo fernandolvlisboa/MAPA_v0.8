@@ -6,7 +6,7 @@ sintética declara um saldo que deve ser igual à soma dos seus filhos diretos.
 
     2.1.1.01        EMPRÉSTIMOS                       -194.622,59
     ├ ...0002       EMPRÉSTIMO BANCÁRIO SICOOB         -42.708,96
-    ├ ...0004       CONTA GARANTIDA - SICREDI GMA      -50.000,00
+    ├ ...0004       CONTA GARANTIDA - SICREDI RBM      -50.000,00
     ├ ...0010       EMPRESTIMO SANTANDER              -136.811,42
     ├ ...0010       JUROS A APROPRIAR - CURTO PRAZO     73.254,70
     └ ...009        EMPRESTIMO CREDIMATA - 624703      -38.356,91
@@ -20,14 +20,14 @@ perdeu nem inventou linha.
 Medido no corpus (31 arquivos, ver ``tests/test_corpus_regressao.py``): 17
 expõem hierarquia e **14 fecham em todos os agrupadores**. Os 3 que não fecham
 são os ``.TXT``, todos pela mesma causa — o parser de largura fixa perde o
-sinal das contas redutoras. O exemplo acima vem do balancete GMA, que é o
+sinal das contas redutoras. O exemplo acima vem do balancete RBM, que é o
 **pior caso** do corpus em cobertura de valor (88,6%, contra 100% em quatro
 dos sete medidos); usá-lo como ilustração é proposital, usá-lo como referência
 única seria sobreajuste.
 
 Duas armadilhas que este módulo trata e que custaram caro
 --------------------------------------------------------
-1. **Código repetido é normal.** No GMA, ``2.1.1.01.0010`` aparece duas vezes
+1. **Código repetido é normal.** No RBM, ``2.1.1.01.0010`` aparece duas vezes
    (EMPRESTIMO SANTANDER e JUROS A APROPRIAR). Nove códigos se repetem, o que
    representa 12 contas. Qualquer estrutura ``dict[codigo] = conta`` **descarta
    as repetidas em silêncio** — e foi exatamente o que fez 4 dos 80 rollups
@@ -35,7 +35,7 @@ Duas armadilhas que este módulo trata e que custaram caro
    Aqui tudo é agrupado em ``dict[codigo] -> list[conta]``.
 
 2. **Contas com nome próprio não devem ser mapeadas uma a uma.**
-   "SICOOB - COOPCENTRO - GMA 62540-0" não existe em plano de contas nenhum, e
+   "SICOOB - UNISUDESTE - RBM 62540-0" não existe em plano de contas nenhum, e
    nem precisa: o agrupador dela ("BANCOS CONTA MOVIMENTO") existe e já carrega
    o total. ``selecionar_para_projecao`` desce a árvore e **para no nível
    mapeado mais alto**, o que resolve de uma vez os dois erros opostos:
@@ -46,6 +46,7 @@ Duas armadilhas que este módulo trata e que custaram caro
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections import defaultdict
 from collections.abc import Callable, Iterable
 from itertools import product as _product
@@ -61,10 +62,15 @@ __all__ = [
     "Divergencia",
     "RelatorioHierarquia",
     "agrupar_por_codigo",
+    "canonicalizar_contas",
+    "chave_hierarquica",
     "conferir_hierarquia",
+    "detectar_largura_fixa",
+    "e_linha_de_total",
     "mapear_filhos",
     "participa_da_arvore",
     "selecionar_para_projecao",
+    "valor_do_grupo",
 ]
 
 #: Tolerância absoluta em reais. Balancete fecha ao centavo; a folga existe só
@@ -76,26 +82,192 @@ TOLERANCIA = 0.01
 #: descrição quando a origem não tem coluna de código, e linhas de totalização
 #: do balancete chegam com um NÚMERO nos dois campos (ex.: código
 #: ``"-2647871.8"``, descrição ``"3166245.14"``). Oito dessas linhas-fantasma
-#: no balancete GMA somavam 20,7 milhões de totais inexistentes e faziam a
+#: no balancete RBM somavam 20,7 milhões de totais inexistentes e faziam a
 #: equação contábil "não fechar" — o defeito estava no medidor, não no dado.
 _CODIGO_HIERARQUICO_RE = re.compile(r"^\d+(\.\d+)*$")
+
+#: Descrição de uma linha de **totalização geral** da demonstração: o grande
+#: total do Ativo, do Passivo, o total geral. Não é conta — é uma soma que o
+#: template recalcula sozinho —, e num plano em que esse total é codificado
+#: dentro de um grupo (COSIF: ``3.9.9.99.99 TOTAL DO ATIVO``, ``9.9.9.99.99
+#: TOTAL DO PASSIVO``) ela entrava na árvore como se fosse conta e virava um
+#: valor gigante no lugar errado. É distinta de "Total do Ativo Circulante",
+#: que é subtotal de um bloco e a hierarquia já trata pela soma dos filhos —
+#: por isso o padrão casa só o total do Ativo/Passivo/Geral INTEIRO: nada
+#: depois da palavra, salvo o "e Patrimônio Líquido" que fecha o Passivo.
+_LINHA_DE_TOTAL_RE = re.compile(
+    r"^total\s+(?:d[oae]s?\s+)?"
+    r"(?:ativo|passivo(?:\s*[e+]\s*patrimonio\s+liquido)?|geral|"
+    r"exercicio|balanco|patrimonio\s+liquido)"
+    r"\s*$",
+)
+
+
+def _sem_acento(texto: Any) -> str:
+    return "".join(
+        c
+        for c in unicodedata.normalize("NFD", str(texto or "").strip().lower())
+        if unicodedata.category(c) != "Mn"
+    )
+
+
+def e_linha_de_total(descricao: Any) -> bool:
+    """A descrição é a de uma linha de totalização geral da demonstração?"""
+    return bool(_LINHA_DE_TOTAL_RE.match(_sem_acento(descricao)))
+
+
+#: Fração mínima de códigos com "zero interior" (um segmento zero seguido de
+#: outro não-zero) para reconhecer um plano de **largura fixa com padding** —
+#: COSIF e vários ERPs. Nos balancetes de PJ do corpus a fração é 0,0%; no
+#: balancete de banco medido é 37,8%. O limite folgado separa os dois sem
+#: ambiguidade.
+_FRACAO_PADDING_FIXO = 0.15
+
+
+def _tem_zero_interior(codigo: str) -> bool:
+    """``1.1.2.30.00.00003`` tem — o ``00`` no meio, seguido do id ``00003``."""
+    try:
+        vals = [int(s) for s in codigo.split(".")]
+    except ValueError:
+        return False
+    return any(
+        vals[i] == 0 and any(v != 0 for v in vals[i + 1 :])
+        for i in range(len(vals) - 1)
+    )
+
+
+def detectar_largura_fixa(codigos: Iterable[str]) -> int | None:
+    """
+    Largura ``W`` de um plano de código **fixo com padding**, ou ``None``.
+
+    Planos como o COSIF escrevem a hierarquia em posições fixas, preenchendo
+    com zero os níveis não usados e reservando o último segmento para um id
+    sequencial da subconta: ``1.1.2.30.00.00003`` é o nó ``1.1.2.30``, não uma
+    conta seis níveis abaixo. Nesses planos o pai não é prefixo-de-ponto do
+    filho (``1.1.2.30.00.00003`` não é prefixo de ``1.1.2.30.02.00007``), então
+    ``mapear_filhos`` não montava a árvore: **342 de 414 contas viravam raiz** e
+    o total de cada classe somava pai + filho + neto, inflando o Ativo de
+    R$ 30,9 mi para R$ 181 mi.
+
+    Reconhece o estilo pela presença de "zero interior" em fração relevante dos
+    códigos. Os balancetes de PJ do corpus têm 0,0% (nenhum efeito — o código
+    volta intacto); um balancete de banco tem 37,8%.
+    """
+    hier = [
+        c
+        for c in (str(x).strip() for x in codigos)
+        if _CODIGO_HIERARQUICO_RE.fullmatch(c)
+    ]
+    if len(hier) < 10:
+        return None
+    fracao = sum(1 for c in hier if _tem_zero_interior(c)) / len(hier)
+    if fracao < _FRACAO_PADDING_FIXO:
+        return None
+    largura = max(len(c.split(".")) for c in hier)
+    return largura if largura >= 5 else None
+
+
+def _e_padding(segmento: str) -> bool:
+    """Segmento só de zeros — nível não usado (``0``, ``00``, ``000``)."""
+    s = segmento.strip()
+    return s != "" and set(s) == {"0"}
+
+
+def chave_hierarquica(codigo: str, largura: int | None) -> str:
+    """
+    Chave canônica de um código, para que a árvore aninhe por prefixo de ponto.
+
+    Sem plano fixo (``largura is None``) devolve o código intacto — é o estilo
+    de código variável (``1``, ``1.1``, ``2.1.1.01.0010``) do corpus, em que o
+    prefixo de ponto já é a hierarquia.
+
+    Com plano fixo, distingue **nó-agregado** de **folha analítica** pelo
+    padding, e é essa distinção que evita fundir contas distintas:
+
+    - **Nó-agregado** — tem um segmento-zero nos níveis (``1.1.2.30.00.00003``,
+      o ``00`` no 5º nível): o último segmento é só o id da linha totalizadora.
+      Descarta-se o id e aparam-se os zeros → ``1.1.2.30``. ``1.0.0.00.00.00007``
+      (o grupo inteiro) vira ``1``.
+    - **Folha analítica** — todos os níveis preenchidos (``1.2.2.10.20.00004``,
+      ``1.2.2.10.20.00035``): o último segmento é a própria folha e **fica**.
+      As duas continuam chaves distintas — não se pode somá-las como se fossem
+      a mesma conta —, e ambas aninham sob o nó ``1.2.2.10`` por prefixo.
+
+    O aninhamento por prefixo de ponto faz o resto: ``1.1.2.30.02.00007`` (folha)
+    é filho de ``1.1.2.30`` (nó). Fundir só acontece entre linhas que já eram o
+    mesmo código — código repetido é normal em balancete real e o motor soma,
+    como no RBM.
+    """
+    if largura is None:
+        return codigo
+    segs = codigo.split(".")
+    if len(segs) >= largura and largura >= 5:
+        niveis = segs[:-1]  # último = id sequencial da subconta
+        if any(_e_padding(s) for s in niveis):
+            # Nó-agregado: apara os níveis-zero à direita.
+            while len(niveis) > 1 and _e_padding(niveis[-1]):
+                niveis = niveis[:-1]
+            return ".".join(niveis)
+        # Folha totalmente especificada: mantém o código inteiro (o id é a folha).
+        return codigo
+    # Forma curta (menos segmentos que a largura cheia): já é o próprio nível.
+    while len(segs) > 1 and _e_padding(segs[-1]):
+        segs = segs[:-1]
+    return ".".join(segs)
+
+
+def canonicalizar_contas(contas: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
+    """
+    Normaliza os códigos de origem para que a hierarquia aninhe corretamente.
+
+    Detecta o estilo do plano uma vez (largura fixa com padding vs. código
+    variável). Se for variável — o caso de todo o corpus de PJ — devolve as
+    contas **sem mudança nenhuma**. Se for fixo, reescreve ``codigo`` para a
+    chave canônica e guarda o original em ``codigo_original`` para
+    rastreabilidade. É idempotente: rodar de novo sobre contas já canônicas não
+    reencontra padding e devolve tudo igual.
+
+    Preserva a contagem de linhas (1:1); a fusão de nós repetidos é feita
+    depois, pela agregação por código, exatamente como já era.
+    """
+    contas = list(contas)
+    codigos = [str(c.get("codigo", "")).strip() for c in contas]
+    largura = detectar_largura_fixa(codigos)
+    if largura is None:
+        return contas
+    novas: list[dict[str, Any]] = []
+    for conta, codigo in zip(contas, codigos):
+        chave = (
+            chave_hierarquica(codigo, largura)
+            if _CODIGO_HIERARQUICO_RE.fullmatch(codigo)
+            else codigo
+        )
+        nova = dict(conta)
+        nova["codigo"] = chave
+        nova.setdefault("codigo_original", codigo)
+        novas.append(nova)
+    return novas
 
 
 def participa_da_arvore(conta: dict[str, Any]) -> bool:
     """
     A conta é um nó da hierarquia?
 
-    Exige código hierárquico **e** descrição que não seja lixo. As duas
-    condições são necessárias: as linhas de totalização do balancete chegam com
-    um número nos dois campos, e ``"4389425.29"`` casa o formato de código
-    hierárquico tão bem quanto ``"1.1.01"``. Quem sabe distinguir é
-    ``is_garbage_description`` — a definição de linha-lixo que o matcher já
-    usa, reaproveitada aqui em vez de duplicada.
+    Exige código hierárquico **e** descrição que não seja lixo nem linha de
+    totalização geral. As condições são necessárias: as linhas de totalização
+    numéricas do balancete chegam com um número nos dois campos, e
+    ``"4389425.29"`` casa o formato de código hierárquico tão bem quanto
+    ``"1.1.01"`` — quem sabe distinguir é ``is_garbage_description``; e a linha
+    de "TOTAL DO ATIVO/PASSIVO" tem descrição legítima mas é soma, não conta,
+    e o template recalcula os totais sozinho.
     """
     codigo = str(conta.get("codigo", "")).strip()
     if not _CODIGO_HIERARQUICO_RE.fullmatch(codigo):
         return False
-    return not is_garbage_description(str(conta.get("descricao", "")))
+    descricao = str(conta.get("descricao", ""))
+    if is_garbage_description(descricao):
+        return False
+    return not e_linha_de_total(descricao)
 
 
 @dataclass(frozen=True)
@@ -156,7 +328,7 @@ class RelatorioHierarquia:
         para saldo ilegível, então um balancete em que **nenhum** valor foi lido
         tem todo pai batendo com a soma dos filhos (0 == 0) e a equação contábil
         fechando (0 == 0). Foi o que aconteceu com as abas "Balancetes 2024" e
-        "Balancetes 2025" do Ravena: 773 de 774 e 821 de 824 contas com
+        "Balancetes 2025" do SmartRio: 773 de 774 e 821 de 824 contas com
         ``saldo=None``, e o relatório dizia "184 pais conferem, equação fecha".
 
         Meio a meio é folgado de propósito — balancete real tem conta zerada e
@@ -202,7 +374,7 @@ class RelatorioHierarquia:
           ``Ativo - Passivo - (Receitas - Custos) = 0``.
 
         Somar tudo sob a segunda convenção acusa um desequilíbrio que não
-        existe. Foi o que aconteceu com o balancete Aurora, um plano de
+        existe. Foi o que aconteceu com o balancete Trindade, um plano de
         **quatro** classes (1 Ativo, 2 Passivo, 3 Custos, 4 Receitas), todas
         positivas::
 
@@ -320,11 +492,34 @@ def _saldo(conta: dict[str, Any]) -> float:
     return parse_saldo(conta.get("saldo")) or 0.0
 
 
+def valor_do_grupo(saldos: list[float]) -> float:
+    """
+    Valor de um nó cujos lançamentos caíram na mesma chave (código repetido).
+
+    Duas realidades caem aqui, e a regra separa as duas pela **identidade do
+    rollup**:
+
+    - **Subtotal + detalhe** (COSIF): dentro de ``8.1.7.33`` a linha
+      ``…00004 PROVENTOS`` (849.558,97) já é a soma de FÉRIAS, SALÁRIO, 13º…
+      que valem os mesmos 849.558,97. Somar tudo conta em dobro. Se UM
+      lançamento é igual à soma dos demais, ele é o subtotal — devolve só ele.
+    - **Contas homônimas distintas** (RBM: ``2.1.1.01.0010`` cobre EMPRÉSTIMO
+      SANTANDER e JUROS A APROPRIAR, -200 e -100): nenhuma é a soma da outra, e
+      a resposta é a soma — o comportamento de sempre.
+    """
+    total = sum(saldos)
+    if len(saldos) > 1:
+        for s in saldos:
+            if abs(s - (total - s)) <= TOLERANCIA:
+                return s
+    return total
+
+
 def agrupar_por_codigo(contas: Iterable[dict[str, Any]]) -> dict[str, list[dict]]:
     """
     Agrupa contas por código, **preservando as repetidas**.
 
-    Um ``dict[codigo] = conta`` perderia 12 das 537 contas do balancete GMA.
+    Um ``dict[codigo] = conta`` perderia 12 das 537 contas do balancete RBM.
     """
     grupos: dict[str, list[dict]] = defaultdict(list)
     for conta in contas:

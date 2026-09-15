@@ -35,9 +35,9 @@ OCR (Tesseract), não instalado neste ambiente.
 
 | PDF | Tipo | Contas |
 |-----|------|-------:|
-| GMC - BP 03.2024 | balanço nativo 2-col | 35 |
-| BALANÇO-DRE 2024 - GMD | balanço+DRE nativo | 106 |
-| Vertis S.A DF 2023 | DF nativo | 36 |
+| ABT - BP 03.2024 | balanço nativo 2-col | 35 |
+| BALANÇO-DRE 2024 - ADA | balanço+DRE nativo | 106 |
+| Voll S.A DF 2023 | DF nativo | 36 |
 | 3T25 DFS MGLU3 | DF 59 pg | 382 |
 | DFP / DF 4T24 / DF 2021 / DF Internacional | DFs 100+ pg | ~500–600 cada |
 | BP_Image / dre_image | **escaneado** | 0 (requer OCR) |
@@ -70,7 +70,7 @@ classe certa entram no dicionário; o resto vai para revisão.
   pipeline `pdf_utils/ocr_engine.py` existe; falta ligar como fallback quando o
   PDF não tem texto.
 - **DFs consolidadas** (IFRS, 100+ pg) são material ruidoso para treino de
-  balancete; os balancetes limpos (GMC, GMD, Vertis) são os mais valiosos.
+  balancete; os balancetes limpos (ABT, ADA, Voll) são os mais valiosos.
 
 ## Arquivos
 
@@ -78,3 +78,23 @@ classe certa entram no dicionário; o resto vai para revisão.
 - novo: `tests/test_pdf_balance.py`
 - alterado: `src/bp/parsers/dispatcher.py` — roteia `.pdf`
 - alterado: `src/bp/training/trainer.py` — descobre `*.pdf`
+
+---
+
+## Leitura robusta de `.xls` e detecção de coluna por conteúdo
+
+Rodando os balancetes de exemplo fora do Windows, três defeitos de leitura
+apareceram e foram corrigidos (detalhe em `REVISAO_QUALIDADE.md` §30–§32):
+
+- **`.xls` legado (BIFF)** passou a ler via `xlrd` — não depende mais de
+  LibreOffice/Excel, que faltam ou falham em Linux/CI.
+- **Coluna de saldo** rejeita rótulo desalinhado: valida por conteúdo
+  (`parse_saldo`) que a coluna é numérica e não é código.
+- **Coluna de descrição** rejeita código **plano** (só dígitos), não só o
+  hierárquico; e, como último recurso, rankeia todas as colunas por
+  descritividade — o que evita a entrega vazia de um arquivo cuja descrição não
+  está numa coluna de nome conhecido.
+- **Cabeçalho em inglês** (`DESCR/ACCNT_CODE/AMOUNT_*`) entrou no vocabulário de
+  detecção de cabeçalho.
+- **Seleção de aba** não encurta a varredura por contagem de linhas sem árvore —
+  uma aba-modelo cheia de linhas não pode mais esconder o balancete ao lado.

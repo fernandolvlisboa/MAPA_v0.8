@@ -361,7 +361,7 @@ MIN_MATCH_RATE_EXCELLENT = 0.80   # 80% (excelência)
 - ⚠️ Rollup não aplicável (todas no mesmo nível)
 
 ### Caso 2: Estrutura Hierárquica
-**Arquivo:** `Balancete 072022 122022 - GMA.xlsx`
+**Arquivo:** `Balancete 072022 122022 - RBM.xlsx`
 
 **Características:**
 - Códigos hierárquicos (1.1.1.01, etc)

@@ -1,30 +1,58 @@
-# 📊 BP — Padronização Automática de Balancetes Contábeis
+# 📊 MAPA — Mapeamento de Plano de Contas
 
-Sistema em Python que lê balancetes contábeis de **qualquer formato** (XLSX, XLS,
-CSV, TXT, PDF) e de **qualquer empresa** — cada um com seu próprio plano de contas
-e nomenclatura — e os **mapeia para um plano de contas de referência único e
-padronizado**, aprendendo com cada balancete processado.
+Sistema em Python que lê balancetes contábeis de **qualquer formato** (XLSX,
+XLS, CSV, TXT, PDF) e de **qualquer empresa** — cada um com seu próprio plano
+de contas e nomenclatura — e os **mapeia para um plano de contas de referência
+único e padronizado**, aprendendo com cada balancete processado. A entrega
+oficial é o **Template GT** da empresa, preenchido sem intervenção manual.
+
+> **Nome do projeto**: MAPA (Mapeamento de Plano de Contas). O nome interno
+> `bp` do pacote Python é histórico e permanece no código para não quebrar
+> imports — pense em MAPA como o produto e `bp` como o módulo.
+
+---
+
+## 🚀 Comece por aqui
+
+```bash
+uv sync
+uv run python main.py
+```
+
+Isso abre a **janela** que os colaboradores usam para virar balancete em
+Template GT. Arrasta os arquivos, confere cliente e exercício, clica em
+*Gerar*. Ver [`PLANO_J_INTERFACE.md`](PLANO_J_INTERFACE.md).
+
+Nada de treinar, gerar plano, revisar pendências: essas coisas ficam no menu
+de terminal, atrás de `--menu`, para o analista que **cuida** do MAPA.
 
 ---
 
 ## 🎯 Objetivo real
 
 Um contador que atende várias empresas recebe balancetes com:
+
 - códigos de conta diferentes em cada empresa (`1.1.01` numa, `1.1.1.4.2` noutra);
 - descrições diferentes para a mesma conta (`BENS NUMERÁRIOS`, `CAIXA GERAL`,
   `DISPONIBILIDADES` — todas são "Caixa");
 - formatos de arquivo diferentes (Excel, PDF escaneado, CSV, TXT).
 
-Hoje esse trabalho de "de-para" é **manual, conta a conta**. O BP automatiza isso:
+Hoje esse trabalho de "de-para" é **manual, conta a conta**. O MAPA automatiza:
 
 ```
-Balancete de origem  ─►  Parser  ─►  Matching inteligente  ─►  Plano Referencial
-(qualquer formato)       (extrai)     (fuzzy + sinônimos +      (código único e
-                                       aprendizado)              padronizado)
+Balancete de origem  ─►  Parser  ─►  Matching inteligente  ─►  Plano Referencial  ─►  Template GT
+(qualquer formato)       (extrai)     (fuzzy + sinônimos +      (código único e         (entrega ao
+                                       aprendizado)              padronizado)             cliente)
 ```
 
 E, crucialmente, **aprende**: cada balancete revisado alimenta um dicionário de
-variações que melhora os próximos matchings.
+variações que melhora os próximos matchings. O plano-alvo é o **Plano de Contas
+Referencial da RFB — PJ em Geral** (`L100A` Balanço + `L300A` DRE, 1.109 contas,
+esquema de código único). Ver [`PLANO_REFERENCIAL.md`](PLANO_REFERENCIAL.md)
+para o porquê da escolha e [`PLANO_B.md`](PLANO_B.md) para a camada de
+qualidade do matching.
+
+---
 
 O plano-alvo é o **Plano de Contas Referencial da RFB — PJ em Geral**
 (`L100A` Balanço + `L300A` DRE, 1.226 contas, esquema de código único).
@@ -39,13 +67,15 @@ ampliando o reconhecimento sem contaminar o plano-alvo. Ver
 ## 🧩 Como as peças se encaixam
 
 | Componente | Onde | O que faz |
-|-----------|------|-----------|
+|---|---|---|
+| **Janela** | `src/bp/app/` | UI (`ui.py`), palpites e validação (`service.py`), drag-and-drop (`dnd.py`), regras de arquivo do .exe (`paths.py`) |
 | **Parsers** | `src/bp/parsers/` | Lê cada formato. `ParseyCaller` (dispatcher) detecta o tipo e extrai `[{codigo, descricao, saldo}]`. Inclui OCR para PDF escaneado. |
 | **Plano de contas** | `src/bp/generators/` | `PlanodeContas` carrega o JSON-alvo. `plano_referencial.py` extrai o alvo limpo do master ECF. |
-| **Matcher** | `src/bp/matchers/` | `ContaMatcher`: fuzzy (RapidFuzz) + sinônimos contábeis + heurísticas + cache + desempate por IA injetável. |
+| **Matcher** | `src/bp/matchers/` | `ContaMatcher`: fuzzy (RapidFuzz) + sinônimos + heurísticas + cache + desempate por IA injetável. |
 | **Sinônimos** | `src/bp/utils/synonyms.py` | Expande descrições de origem para o vocabulário canônico e descarta linhas-lixo. |
 | **Treinamento** | `src/bp/training/` | `AccountTrainer` processa balancetes incrementalmente e aprende variações. `review_wizard` para revisão manual. |
-| **Exporter** | `src/bp/exporters/` | Gera um `.xlsx` estruturado (resumo, contas, hierarquia, não-casadas, variações, validação). |
+| **Saída GT** | `src/bp/output/` | `build_gt_output`: preenche o Template GT com os dados padronizados. |
+| **Exporter diagnóstico** | `src/bp/exporters/` | Gera `.xlsx` estruturado (resumo, contas, hierarquia, não-casadas, variações). |
 
 ---
 
@@ -53,62 +83,38 @@ ampliando o reconhecimento sem contaminar o plano-alvo. Ver
 
 - **Python 3.13+**
 - **[uv](https://docs.astral.sh/uv/)** (gerenciador de dependências recomendado)
-- Opcional para OCR de PDF escaneado: **Tesseract** (`por`) e **poppler**
-
----
-
-## 🖥️ O programa do usuário final (janela)
-
-Quem só precisa **entregar a planilha** não usa terminal nenhum: arrasta os
-balancetes para a janela, confere cliente e exercício e clica em *Gerar*.
-
-```bash
-uv run python main.py
-```
-
-`main.py` sem argumento **abre a janela** — é a apresentação: você chama e o
-programa aparece, sem passo intermediário. É o mesmo alvo do `app.py`, que vai
-virar o executável. Para a bancada do analista (treinar, revisar pendências)
-passe `--menu`.
-
-Uma tela, três estados — escolher, processando, resultado. A tela de resultado
-diz quantas contas entraram, quantas ficaram sem classificação e **se o balanço
-fecha**, porque a pergunta que importa é "posso mandar isto para o cliente?".
-
-É este arquivo (`app.py`) que vira o `.exe` distribuído. O desenho da interface,
-as decisões e o que ficou para a v2 estão em
-[`PLANO_J_INTERFACE.md`](PLANO_J_INTERFACE.md).
-
-> Em Linux, o `tkinter` pode não vir instalado: `sudo apt install python3-tk`.
-> No Windows e no macOS ele já vem com o Python.
+- Em Linux, o `tkinter` pode não vir instalado: `sudo apt install python3-tk`.
+  No Windows e no macOS ele já vem com o Python.
+- Para OCR de PDF escaneado (opcional): **Tesseract** (`por`) e **poppler**.
+- Para gerar o `.exe` (opcional, Windows): PyInstaller já vem no extra
+  `packaging` — `uv sync --extra packaging`.
 
 ---
 
 ## ▶️ Bancada do analista: o menu de terminal
 
-Um ponto de entrada interativo que pergunta o que fazer (treinar, padronizar um
-balancete, revisar pendências) e chama a fonte do projeto. É a ferramenta de
-quem **cuida** do BP — treino e revisão não aparecem na janela do colaborador:
+`main.py --menu` abre três opções — treinar, padronizar, revisar. Existe para
+o dono do MAPA, não para o colaborador; por isso o menu não aparece na janela.
 
 ```bash
 uv run python main.py --menu
 ```
 
 O passo a passo detalhado abaixo mostra cada etapa isolada; o menu só as
-orquestra em três opções (treinar, padronizar, revisar).
+orquestra.
 
 ---
 
-## 🚀 Passo a passo de execução
+## 🚀 Passo a passo do analista
 
-> Todos os comandos assumem a raiz do projeto e o `uv`. Se preferir `pip`,
-> troque `uv run python` por `python` num virtualenv com as dependências.
+> Todos os comandos assumem a raiz do projeto e o `uv`.
 
 ### Passo 0 — Instalar dependências
 
 ```bash
 uv sync                                  # núcleo (166 MB) — roda tudo do fluxo abaixo
 uv sync --extra ocr --extra curation     # + OCR de escaneados e geração do master
+uv sync --extra packaging                # + PyInstaller (para gerar o .exe)
 ```
 
 O núcleo cobre XLSX/XLS/CSV/TXT e **PDF nativo**. Os extras são só para a
@@ -122,15 +128,15 @@ uv run pytest -q
 
 ### Passo 1 — (Opcional) Gerar o plano master a partir do Excel
 
-O repositório **já inclui** `data/plano_contas.json`. Só refaça este passo se
-mudar a planilha-fonte `src/plano_master.xlsx`:
+O repositório **já inclui** `data/plano_contas.json`. Só refaça se mudar a
+planilha-fonte `src/plano_master.xlsx`:
 
 ```bash
 uv run python -m src.bp.generators.plano_contas_generator \
     -i src/plano_master.xlsx -o data/plano_contas.json
 ```
 
-### Passo 2 — Gerar o Plano de Contas Referencial (alvo limpo)
+### Passo 2 — Gerar o Plano Referencial (alvo limpo)
 
 Extrai do master ECF apenas o plano-alvo consistente (`L100A` + `L300A`). Gera
 `data/plano_referencial.json`:
@@ -149,7 +155,7 @@ Saída esperada: `1.226 contas` (raízes `1` Ativo, `2` Passivo/PL, `3` DRE).
    cp meus_balancetes/*.xlsx data/samples/
    ```
 
-   Formatos aceitos: `.xlsx`, `.xls`, `.csv` (e `.txt`/`.pdf` via parser).
+   Formatos aceitos: `.xlsx`, `.xls`, `.csv`, `.txt`, `.pdf`.
 
 2. Rode o treinamento incremental (processa **apenas arquivos novos**):
 
@@ -164,38 +170,32 @@ Saída esperada: `1.226 contas` (raízes `1` Ativo, `2` Passivo/PL, `3` DRE).
    ```
 
 O treino filtra contas analíticas (fornecedor específico, c/c bancária, CNPJ),
-descarta linhas-lixo (totais numéricos) e grava o que aprendeu em
+descarta linhas-lixo e grava o que aprendeu em
 `src/bp/training/account_variations.json` — que o matcher passa a usar sozinho.
 
 ### Passo 4 — Revisar os casos que precisam de decisão humana
 
-O relatório aponta contas "precisam de revisão". Use o assistente interativo
-para classificá-las e ensinar o sistema:
+O relatório aponta contas "precisam de revisão". Use o assistente:
 
 ```bash
-# Listar pendências sem interagir
-uv run python -m src.bp.training.review_wizard --all --list
-
-# Revisar interativamente (todos os arquivos, 10 por vez)
-uv run python -m src.bp.training.review_wizard --all --limit 10
+uv run python -m src.bp.training.review_wizard --all --list        # lista
+uv run python -m src.bp.training.review_wizard --all --limit 10    # revisa
 ```
-
-Comandos dentro do assistente:
 
 | Tecla | Ação |
 |-------|------|
 | `s` | Buscar candidatos por descrição (fuzzy) |
 | `h` | Navegar pela hierarquia (Ativo → Circulante → …) |
 | `c` | Informar o código manualmente |
-| `i` | Ignorar permanentemente (ruído específico) |
+| `i` | Ignorar permanentemente |
 | `k` | Pular nesta sessão |
 | `q` | Sair |
 
-Cada decisão vai para o cache e para `account_variations.json`. Depois de
-revisar, **rode o Passo 3 de novo** para consolidar o aprendizado.
+Depois de revisar, **rode o Passo 3 de novo** para consolidar o aprendizado.
 
-### Passo 5 — Gerar a entrega no Template GT
+### Passo 5 — Gerar a entrega no Template GT (via API)
 
+A janela faz isso — este é o modo programático:
 Esta é a **saída oficial**: o template da empresa povoado com o balancete
 padronizado (ver [`PLANO_H.md`](PLANO_H.md) e [`docs/TEMPLATE_GT_BP.md`](docs/TEMPLATE_GT_BP.md)).
 
@@ -227,17 +227,16 @@ build_gt_output([
 ```
 
 Os anos **não** são fixos em 2021-2025: o template comporta cinco exercícios
-quaisquer (2018-2021 funciona igual) e os rótulos são reescritos sozinhos.
+quaisquer, e os rótulos são reescritos sozinhos. Abas: **BP_GT / DRE_GT** (a
+entrega ao cliente, preenchidas pelas fórmulas SUMIFS do template) + **Sumário
+/ Contas Tratadas / Contas Não Identificadas** (uso interno).
 
-Abas: **BP_GT / DRE_GT** (a entrega ao cliente, preenchidas pelas fórmulas
-SUMIFS do template) + **Sumário / Contas Tratadas / Contas Não Identificadas**
-(uso interno, para o analista revisar).
+### Passo 6 — Gerar o `.exe`
 
-### Passo 5b — Exportação diagnóstica (.xlsx próprio)
+Em máquina Windows, com o venv sincronizado (extra `packaging`):
 
-Converte um balancete de origem no `.xlsx` estruturado final, usando o plano
-referencial como alvo:
-
+```powershell
+uv run python build.py
 ```bash
 uv run python -m auxil.export_xlsx \
     -i "data/samples/Balancete Real Life.xlsx" \
@@ -245,15 +244,15 @@ uv run python -m auxil.export_xlsx \
     --plano data/plano_referencial.json
 ```
 
-O `.xlsx` gerado tem abas: **Resumo**, **Contas** (com código sugerido e score),
-**Hierarquia**, **Não Casadas** (para revisão), **Variações**, **Sinônimos**,
-**Validação** e **Original**.
+O script:
 
-### Passo 6 — Rodar os testes
+1. compila `dist\MAPA.exe` a partir de `bp.spec` (allowlist explícita);
+2. roda `tests/test_build_seguranca.py` sobre o `.exe` gerado — falha se
+   qualquer arquivo de cliente aparecer dentro;
+3. imprime o tamanho final e o caminho.
 
-```bash
-uv run pytest -q
-```
+Ver [`PLANO_K_EMPACOTAMENTO.md`](PLANO_K_EMPACOTAMENTO.md) para o que entra,
+o que não entra e por quê.
 
 ---
 
@@ -267,44 +266,13 @@ O `MAPA.exe` sai em `dist/MAPA.exe`, ~55 MB, **onefile**:
 - SmartScreen pode alertar na primeira vez (executável não assinado). *Mais informações → Executar assim mesmo*.
 - **Abra com duplo clique normal.** O Windows bloqueia arrastar-e-soltar em janela aberta como administrador (UIPI) — e falha calado.
 
-### O `.exe` entra no repositório
+### O `.exe` não entra no repositório
 
-O binário **versionado** — `dist/MAPA_v0.8.3.exe` — é versionado no git. Quem
-clona já tem o binário, sem depender de o workflow de Release passar, que é o
-motivo da mudança: o fluxo de Release falhou repetidamente e travava a entrega.
+São 55 MB por build. Commitado, o git guarda **todos** para sempre e o histórico não encolhe depois. `dist/` está no `.gitignore` e é assim que fica.
 
-A versão vai no **nome** do arquivo (`MAPA_v0.8.3.exe`, não `MAPA.exe` puro):
-dois binários na mesma pasta deixam de ser indistinguíveis, do mesmo jeito que
-a planilha de saída sai como `Cliente_2025_v0.8.3.xlsx`. O `MAPA.exe` sem
-versão é só o intermediário do build e fica de fora; os relatórios de auditoria
-e autoteste também.
+A distribuição é por **GitHub Release**: até 2 GB por arquivo, fora do histórico, com link estável para circular.
 
-> **O custo, para constar:** são ~55 MB por build e o git guarda **todos** para
-> sempre — apagar depois não encolhe o histórico. Se o repositório ficar pesado
-> demais, o caminho é **Git LFS**, não um `git rm` (que não recupera espaço).
-
-**Publicar em um comando** — compila, audita, autotesta, nomeia com a versão e
-faz `git add` + `commit` + `push` do binário, tudo só se cada passo anterior
-passar:
-
-```bash
-uv run python build.py --publicar
-```
-
-Ou, se preferir separar o build da publicação:
-
-```bash
-uv run python build.py                  # compila, audita, autotesta, nomeia
-git add dist/MAPA_v0.8.3.exe
-git commit -m "MAPA.exe v0.8.3"
-git push
-```
-
-Sem `--publicar`, o `build.py` para depois de gerar o binário e imprime essas
-três linhas já preenchidas com a versão atual. Ele só devolve `.exe` que passou
-na auditoria e no autoteste — o que você publica tem a mesma garantia.
-
-### Publicar uma versão por Release (opcional)
+### Publicar uma versão
 
 Duas linhas, e o resto é automático:
 
@@ -364,12 +332,9 @@ O autoteste monta um balancete sintético, chama o motor de verdade sobre o temp
 
 ```
 uv sync                                   # 0. instalar
-└─ (opcional) gerar master do Excel       # 1. plano_contas_generator
-   └─ gerar referencial                   # 2. plano_referencial  → data/plano_referencial.json
-      └─ treinar                          # 3. train.py           → account_variations.json + report
-         └─ revisar pendências            # 4. review_wizard      (repetir 3 após revisar)
-            └─ exportar balancete          # 5. export_xlsx        → output/exports/*.xlsx
-               └─ testar                   # 6. pytest
+uv run python main.py                     # colaborador — janela
+uv run python main.py --menu              # analista — menu
+uv run python build.py                    # gerar o .exe (Windows)
 ```
 
 ---
@@ -380,25 +345,19 @@ uv sync                                   # 0. instalar
 from src.bp.generators.plano_contas import PlanodeContas
 from src.bp.matchers import ContaMatcher
 
-# Carrega o plano-alvo referencial
 plano = PlanodeContas("data/plano_referencial.json")
-
-# Matcher (já carrega variações aprendidas de account_variations.json)
 matcher = ContaMatcher(plano, cache_path="data/match_cache.json")
 
 r = matcher.match("BENS NUMERARIOS")
 if r.decision:
     print(r.decision.codigo, r.decision.descricao, r.decision.score)
-else:
-    print("precisa revisão", [c.descricao for c in r.candidates[:3]])
 ```
 
 Desempate por IA (injetável, desacoplado do provedor):
 
 ```python
 def meu_classificador(descricao, candidatos, contexto):
-    # chame aqui um LLM (Claude/Ollama/...) e devolva um MatchDecision, ou None
-    ...
+    ...  # chame um LLM aqui, devolva um MatchDecision ou None
 
 matcher = ContaMatcher(plano, use_ai=True, ai_classifier=meu_classificador)
 ```
@@ -420,7 +379,7 @@ t.export_report("output/training_report.md")
 
 | Arquivo | Conteúdo |
 |---------|----------|
-| `src/bp/training/account_variations.json` | Variações de descrição aprendidas — 380 códigos, 1.313 variações (**usado pelo matcher**) |
+| `src/bp/training/account_variations.json` | Variações de descrição aprendidas — ~440 códigos (**usado pelo matcher**) |
 | `src/bp/training/learned_patterns.json` | Sinônimos/abreviações identificados |
 | `src/bp/training/training_cache.json` | Cache de matching do treino |
 | `src/bp/training/processed_files.json` | Arquivos já processados (incremental) |
@@ -457,21 +416,25 @@ O cache é recriado sozinho conforme você usa; nenhuma decisão manual é perdi
 ## 🗂️ Estrutura do projeto
 
 ```
-BP/
+MAPA/
+├── main.py                            # ← ponto de entrada (janela + --menu)
+├── app.py                             # ← alvo do PyInstaller (mesma janela)
+├── build.py                           # ← constrói e valida o .exe
+├── bp.spec                            # ← spec do PyInstaller (allowlist)
 ├── src/
 │   ├── plano_master.xlsx              # Fonte Excel do plano master (ECF)
-│   └── bp/
-│       ├── app/                      # ← a janela do usuário final (Plano J)
+│   └── bp/                            # (nome histórico — o pacote Python)
+│       ├── app/                       # A janela do usuário final (Plano J)
 │       │   ├── paths.py               # onde ler / onde escrever (regra do .exe)
 │       │   ├── service.py             # ponte GUI → núcleo (palpites, validação)
 │       │   ├── dnd.py                 # arrastar-e-soltar, com degradação
 │       │   └── ui.py                  # a janela
-│       ├── parsers/                   # XLSX/XLS/CSV/TXT/PDF + dispatcher + OCR
-│       ├── generators/
-│       │   ├── plano_contas.py        # PlanodeContas (loader/consultas)
-│       │   ├── plano_contas_generator.py  # Excel → plano_contas.json (master)
-│       │   └── plano_referencial.py   # master → plano_referencial.json (alvo limpo)
+│       ├── parsers/                   # XLSX/XLS/CSV/TXT/PDF + dispatcher
+│       ├── generators/                # PlanodeContas + geradores do plano
 │       ├── matchers/                  # ContaMatcher + MatchCache
+│       ├── output/                    # build_gt_output → Template GT
+│       ├── exporters/                 # xlsx_exporter (diagnóstico)
+│       └── training/                  # trainer, review_wizard, DFS_Exemple/
 │       ├── utils/
 │       │   ├── normalizer.py
 │       │   └── synonyms.py            # expansão de sinônimos + guarda anti-lixo
@@ -503,18 +466,31 @@ BP/
 ## 🔎 Solução de problemas
 
 | Sintoma | Causa provável | Solução |
-|---------|----------------|---------|
+|---|---|---|
+| Janela não abre; erro de `tkinter` | Linux sem Tk instalado | `sudo apt install python3-tk` |
+| Arrastar não funciona na janela | driver `tkdnd` ausente | use o botão *Clique para escolher* — o programa funciona igual |
+| Balanço não fecha na tela de resultado | conta com saldo ilegível ou classe errada | abrir a planilha e conferir *Contas Não Identificadas* |
 | `Plano de contas não encontrado` | falta `data/plano_referencial.json` | rode o **Passo 2** |
+| Match rate baixo | poucos exemplos ou sem revisão | mais **Passo 3** + revisão no **Passo 4** |
 | `Nenhum arquivo novo encontrado` | balancetes já processados | adicione novos em `data/samples/` ou apague `processed_files.json` para reprocessar |
 | Match rate baixo | poucos exemplos / sem revisão | rode mais o **Passo 3** e revise no **Passo 4** |
 | Erro ao parsear | encoding ou colunas faltando | garanta colunas `codigo`, `descricao`, `saldo`; UTF-8 |
 | PDF escaneado sem texto | falta OCR | instale Tesseract (`por`) e poppler |
+| `.exe` não abre | Windows antigo (< 10) ou antivírus | testar em `C:\Users\<usuario>\Desktop`; se antivírus, exceção pontual |
 
 ---
 
 ## 📌 Estado atual
 
-- ✅ Parsers (XLSX/XLS/CSV/TXT/PDF+OCR), dispatcher, exporter — funcionais
+- ✅ Janela do usuário final — **Plano J**
+- ✅ Empacotamento em `.exe` com allowlist + teste anti-vazamento — **Plano K**
+- ✅ Saída no **Template GT** da empresa (entrega ao cliente) — **Plano H**
+- ✅ Anos flexíveis + série histórica multi-arquivo — **Plano I**
+- ✅ Parsers (XLSX/XLS/CSV/TXT/PDF nativo), dispatcher, exporter
+  - `.xls` legado lê em Linux/CI sem LibreOffice (estratégia `xlrd`) — ver
+    [`REVISAO_QUALIDADE.md`](REVISAO_QUALIDADE.md) §30
+  - detecção de coluna por **conteúdo** (código plano, saldo com rótulo
+    desalinhado, cabeçalho em inglês) — §31/§32
 - ✅ Plano referencial (alvo único e consistente) — **Plano A**
 - ✅ Matching com sinônimos, guarda anti-lixo e desempate — **Plano B**
 - ✅ Desambiguação por classe contábil Ativo/Passivo/Resultado — **Plano C**
@@ -526,10 +502,33 @@ BP/
 - ✅ Anos flexíveis + série histórica multi-arquivo — **Plano I**
 - ✅ Janela do usuário final (arrastar-e-soltar → Template GT) — **Plano J**
 - ✅ Vocabulário L100B/C (Financeiras e Seguradoras) incorporado como variações
-- ✅ Treino incremental + review wizard
+- ✅ Treino incremental + review wizard — **85% de auto-aceite** sobre 9,6k
+  contas *tentadas* (denominador honesto: exclui totais/linhas-lixo) nos 12
+  balancetes de exemplo
+- ✅ **Veredito ao usuário** no Sumário da entrega — *PRONTA / COM RESSALVAS /
+  NÃO FOI POSSÍVEL* —, para qualquer senioridade (sócio ou trainee) saber pelo
+  RESULTADO o que fazer com o arquivo; entrega vazia nunca sai marcada "OK" (§32)
+- ✅ Seleção de aba pergunta ao usuário só quando há ambiguidade real (arquivo
+  não é balancete puro, ou traz dois-ou-mais balancetes); um balancete claro
+  entre abas de apoio segue sozinho
+- ✅ **Uma entrega por entidade**: arquivo com holding + controlada (2+ balanços
+  em abas) gera um Template GT por empresa, em vez de somá-las numa só planilha
+  (§33/§34)
+- ✅ **Rastreabilidade** (`src/bp/versao.py`): versão + impressão digital
+  (contagem/hash de plano, vocabulário e mapa do template) no cabeçalho da
+  janela, no Sumário e no **nome do arquivo de saída** — responde "o que mudou?"
+  entre duas execuções sem abrir a planilha (mesclado da linha pública v0.8)
+- ✅ Robustez de console no Windows (cp1252) e caixa de avisos rolável na tela —
+  os botões de ação nunca são empurrados para fora quando os avisos crescem
+- ✅ Reconciliação por dígito-raiz (`emitido_por_raiz`/`residuo_da_equacao`):
+  não confunde Custos (3) com Receitas (4) num plano de quatro classes
 - ✅ Núcleo enxuto: 825 MB → 166 MB (ver [`DEPENDENCIAS.md`](DEPENDENCIAS.md))
-- ✅ `628 testes` (518 no CI, 110 de integração com corpus), suíte higienizada
+- ✅ Suíte de testes higienizada; integração com corpus pula quando os
+  balancetes privados não estão presentes
 - 🔜 OCR para PDFs escaneados (requer Tesseract) — pipeline existe, falta ligar
+
+**Para a próxima rodada:** [`GUIA_PROXIMOS_TREINAMENTOS.md`](GUIA_PROXIMOS_TREINAMENTOS.md)
+— o caminho passo a passo.
 
 Documentos de arquitetura: [`ARQUITETURA.md`](ARQUITETURA.md),
 [`PLANO_REFERENCIAL.md`](PLANO_REFERENCIAL.md) (A),
